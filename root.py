@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-08-15 17:43:07
+# @Last Modified time: 2017-08-25 19:05:38
 
 ''' Set the root of the DATA directory. '''
 

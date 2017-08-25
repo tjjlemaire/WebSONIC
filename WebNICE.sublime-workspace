@@ -900,10 +900,14 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 357.0,
-		"last_filter": "repl",
+		"height": 111.0,
+		"last_filter": "commit repo",
 		"selected_items":
 		[
+			[
+				"commit repo",
+				"Git: Quick Commit (repo)"
+			],
 			[
 				"repl",
 				"SublimeREPL: Python"
@@ -1189,7 +1193,7 @@
 				"About"
 			]
 		],
-		"width": 406.0
+		"width": 378.0
 	},
 	"console":
 	{
@@ -1211,7 +1215,7 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Users/admin/Google Drive/PhD/NICE model/WebNICE"
+		"/C/Users/admin/Google Drive/PhD/NICE model/webnice"
 	],
 	"file_history":
 	[
@@ -1762,8 +1766,8 @@
 						"selection":
 						[
 							[
-								247,
-								247
+								459,
+								459
 							]
 						],
 						"settings":
