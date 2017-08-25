@@ -1,0 +1,148 @@
+/*
+* @Author: Theo Lemaire
+* @Date:   2017-08-17 19:07:50
+* @Last Modified by:   Theo Lemaire
+* @Last Modified time: 2017-08-17 22:20:40
+*/
+
+
+/* Body
+-----------------------------------------*/
+
+body {
+	background-color: rgb(250, 250, 250);
+}
+
+
+/* Header & Footer
+-----------------------------------------*/
+
+#header {
+	width: 100%;
+	margin: 0;
+}
+
+#header-middle {
+	display: inline-block;
+	width: calc(100% - 24em);
+    text-align: center;
+}
+
+.header-side {
+	display: inline-block;
+	width: 12em;
+	height: 100%;
+}
+
+#header-left {
+	float: left;
+}
+
+#header-right {
+	float: right;
+}
+
+.header-txt {
+	margin-top: 0;
+    margin-bottom: 0;
+}
+
+.logo {
+	width: 100%;
+	/*display: block;*/
+    margin-left: auto;
+    margin-right: auto
+}
+
+
+#footer {
+	width: 100%;
+	margin: 0;
+	text-align: center;
+}
+
+.separator {
+	width: 100%;
+	padding: 1px 1px;
+	margin: 0;
+}
+
+
+/* Container
+-----------------------------------------*/
+
+#container {
+	margin: 0;
+	padding: 0;
+}
+
+.grid-div {
+    float: left;
+    width: 100%;
+    padding: 0;
+    /*background-color: green;*/
+}
+
+@media (min-width:60em){
+    #left-div {
+    	width: 35em;
+    }
+    #right-div {
+    	width: calc(100% - 35em);
+    }
+}
+
+@media (min-width:100em){
+    #container {
+    	padding-left: 10em;
+    	padding-right: 10em;
+    }
+}
+
+
+/* Panel
+-----------------------------------------*/
+
+
+.panel-title {
+	text-align: center;
+}
+
+
+.panel {
+	padding: 0 2em 1em 1em;
+	margin: 1em;
+	background-color: white;
+    box-shadow: 2px 2px 5px #888888;
+}
+
+
+/* Graph
+-----------------------------------------*/
+
+.graph-div {
+    width: 100%;
+}
+
+.graph-separator {
+	width: 100%;
+    border: none;
+	height: 2px;
+    color: #bfbfbf;
+    background-color: #bfbfbf;
+}
+
+
+
+/* Table
+-----------------------------------------*/
+
+.table {
+	width: 100%;
+}
+
+.slider-row {
+	height: 4em;
+}
+
+

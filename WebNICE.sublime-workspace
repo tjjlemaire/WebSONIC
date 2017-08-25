@@ -1,0 +1,1939 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"backgrou",
+				"background-color"
+			],
+			[
+				"class",
+				"className"
+			],
+			[
+				"backgr",
+				"background-color"
+			],
+			[
+				"align",
+				"vertical-align"
+			],
+			[
+				"stylesh",
+				"stylesheets"
+			],
+			[
+				"LeechT",
+				"LeechTouch\t(leech.py)"
+			],
+			[
+				"partial",
+				"partialmethod\tclass"
+			],
+			[
+				"epfl",
+				"epfl_logo"
+			],
+			[
+				"loadP",
+				"LoadParamsFile\tfunction"
+			],
+			[
+				"div",
+				"Div"
+			],
+			[
+				"dia",
+				"diams"
+			],
+			[
+				"sim",
+				"sim_queue"
+			],
+			[
+				"simlist",
+				"simlist_per_freq"
+			],
+			[
+				"simli",
+				"simlist_PW\tstatement"
+			],
+			[
+				"idx_",
+				"idx_to_remove"
+			],
+			[
+				"return_",
+				"return_index=True"
+			],
+			[
+				"PRF",
+				"PRFs"
+			],
+			[
+				"nu",
+				"neuron"
+			],
+			[
+				"Corti",
+				"CorticalRS\tclass"
+			],
+			[
+				"header",
+				"header_split"
+			],
+			[
+				"Th",
+				"thalamocortical\t(thalamic.py)"
+			],
+			[
+				"Tha",
+				"ThalamicRE\t(thalamic.py)"
+			],
+			[
+				"C_",
+				"C_eq"
+			],
+			[
+				"CC",
+				"C_Ca"
+			],
+			[
+				"curr",
+				"currCa\tfunction"
+			],
+			[
+				"tau",
+				"tau_Ca\tstatement"
+			],
+			[
+				"s",
+				"sinf\tfunction"
+			],
+			[
+				"currN",
+				"currNet\tfunction"
+			],
+			[
+				"RE",
+				"RE_params"
+			],
+			[
+				"Ba",
+				"BaseMech"
+			],
+			[
+				"states",
+				"states_names"
+			],
+			[
+				"file",
+				"filedir_out"
+			],
+			[
+				"subdir",
+				"subdirpath"
+			],
+			[
+				"stati",
+				"static_image_route"
+			],
+			[
+				"send",
+				"send_from_directory"
+			],
+			[
+				"image",
+				"image_directory"
+			],
+			[
+				"tit",
+				"tight_layout\tfunction"
+			],
+			[
+				"fonti",
+				"fontsize=fs\t(plot_TC_Ih_kinetics.py)"
+			],
+			[
+				"set",
+				"set_yticks"
+			],
+			[
+				"Scatt",
+				"Scattergl\tclass"
+			],
+			[
+				"NaK_",
+				"NaK_states"
+			],
+			[
+				"Cor",
+				"CorticalLTS\t(sim_elec_batch.py)"
+			],
+			[
+				"Cortical",
+				"CorticalFS\t(sim_elec_batch.py)"
+			],
+			[
+				"der",
+				"derStates"
+			],
+			[
+				"py",
+				"physical_constants\tstatement"
+			],
+			[
+				"fontsize",
+				"fontsize=fs"
+			],
+			[
+				"Vc",
+				"Vclamps"
+			],
+			[
+				"gh_rel",
+				"gH_rel_vclamp\tstatement"
+			],
+			[
+				"Solver",
+				"SolverElec\t(solvers.py)"
+			],
+			[
+				"gh",
+				"gH_rel_eq\tstatement"
+			],
+			[
+				"Log",
+				"LogNorm\tclass"
+			],
+			[
+				"CCa",
+				"CCa_min"
+			],
+			[
+				"C",
+				"CCa"
+			],
+			[
+				"Thaa",
+				"ThalamoCortical"
+			],
+			[
+				"alpha",
+				"alpham\tfunction"
+			],
+			[
+				"Press",
+				"Pressure2Intensity"
+			],
+			[
+				"Pre",
+				"Pressure2Intensity\t(plot_P_vs_I.py)"
+			],
+			[
+				"minf_",
+				"minf_Na"
+			],
+			[
+				"taum",
+				"taum_Na"
+			],
+			[
+				"dC",
+				"dCa_dt"
+			],
+			[
+				"GK",
+				"GKCaMax"
+			],
+			[
+				"Na",
+				"NaPool"
+			],
+			[
+				"line",
+				"linewidth=2"
+			],
+			[
+				"iNa",
+				"iNaPump"
+			],
+			[
+				"GNa",
+				"GNapump"
+			],
+			[
+				"gNa",
+				"GNaMax"
+			],
+			[
+				"data",
+				"data_root\tstatement"
+			],
+			[
+				"B",
+				"BilayerSonophore\t(solvers.py)"
+			],
+			[
+				"filep",
+				"filepath_out"
+			],
+			[
+				"fil",
+				"filepath"
+			],
+			[
+				"neuron",
+				"neurons"
+			],
+			[
+				"SPIKE",
+				"SPIKE_MIN_QAMP"
+			],
+			[
+				"detect",
+				"detectSpikes\tfunction"
+			],
+			[
+				"DF",
+				"DF_als\tstatement"
+			],
+			[
+				"upDate",
+				"updateSlider"
+			],
+			[
+				"P",
+				"Psnaps\tstatement"
+			],
+			[
+				"Int",
+				"Intensity2Pressure"
+			],
+			[
+				"pressure",
+				"Intensity2Pressure\tfunction"
+			],
+			[
+				"Corticl",
+				"CorticalFS"
+			],
+			[
+				"Cort",
+				"CorticalRS\t(channels.py)"
+			],
+			[
+				"mech",
+				"mech_type"
+			],
+			[
+				"is",
+				"isValidUser"
+			],
+			[
+				"login",
+				"login_state"
+			],
+			[
+				"login_",
+				"login_events"
+			],
+			[
+				"re",
+				"requires_auth\tfunction"
+			],
+			[
+				"Thalamic",
+				"ThalamicRE\t(channels.py)"
+			],
+			[
+				"Pmavg",
+				"Pmavg_train"
+			],
+			[
+				"Pm",
+				"Pmavg"
+			],
+			[
+				"Thala",
+				"ThalamicRE\t(channels.py)"
+			],
+			[
+				"nst",
+				"n_stim"
+			],
+			[
+				"plt_s",
+				"plt_showpatches"
+			],
+			[
+				"Z",
+				"Z_train"
+			],
+			[
+				"W",
+				"WARNING\tstatement"
+			],
+			[
+				"tsim",
+				"tstim"
+			],
+			[
+				"offe",
+				"offsets\tstatement"
+			],
+			[
+				"Mech",
+				"MechRatM\t(channels.py)"
+			],
+			[
+				"manda",
+				"mandatory_attributes"
+			],
+			[
+				"derSt",
+				"derStatesEff\t(NeuronalBilayerSonophore.py)"
+			],
+			[
+				"npuls",
+				"n_pulse_on\tstatement"
+			],
+			[
+				"ass",
+				"AssertionError\tclass"
+			],
+			[
+				"Ass",
+				"AssertionError\tclass"
+			],
+			[
+				"A",
+				"Amax"
+			],
+			[
+				"ch",
+				"channels\tmodule"
+			],
+			[
+				"filnea",
+				"filenames"
+			],
+			[
+				"sim_",
+				"sim_types"
+			],
+			[
+				"cha",
+				"channels\t(NeuronalBilayerSonophore.py)"
+			],
+			[
+				"print",
+				"printPct"
+			],
+			[
+				"dete",
+				"detectSpikes"
+			],
+			[
+				"det",
+				"detectSpikes\t(utils.py)"
+			],
+			[
+				"rs",
+				"rs_mech"
+			],
+			[
+				"Zef",
+				"Zeff_off"
+			],
+			[
+				"at",
+				"atleast_2d\tfunction"
+			],
+			[
+				"lookup",
+				"lookup_path"
+			],
+			[
+				"coeff",
+				"coeff_names"
+			],
+			[
+				"eff",
+				"effcoeff_names"
+			],
+			[
+				"1e3",
+				"1e-3"
+			],
+			[
+				"new",
+				"new_batch"
+			],
+			[
+				"log_fie",
+				"log_filename"
+			],
+			[
+				"batch",
+				"batch_dir"
+			],
+			[
+				"tp",
+				"tpatch_off"
+			],
+			[
+				"pkl_file",
+				"pkl_filepath"
+			],
+			[
+				"Tpulse",
+				"Tpulse_on"
+			],
+			[
+				"t_",
+				"t_pulse0"
+			],
+			[
+				"n_p",
+				"n_pulse_off"
+			],
+			[
+				"n_pul",
+				"n_pulse_on"
+			],
+			[
+				"Tpul",
+				"Tpulse_off"
+			],
+			[
+				"ipat",
+				"ipatch_off"
+			],
+			[
+				"ipatch",
+				"ipatch_on"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "viewer.py",
+			"settings":
+			{
+				"buffer_size": 20123,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "README.rst",
+			"settings":
+			{
+				"buffer_size": 459,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/LaTeXTools/LaTeX.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Anaconda Python Builder",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/Python27.sublime-build",
+					""
+				],
+				[
+					"Packages/User/Python35.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/Python27.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Traditional"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Script Builder"
+				]
+			],
+			[
+				"Packages/LaTeXTools/LaTeX.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Traditional"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Script Builder"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/LaTeXTools/LaTeX.sublime-build",
+				"XeLaTeX"
+			]
+		],
+		[
+			[
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/LaTeXTools/LaTeX.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Traditional"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - PdfLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - XeLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Basic Builder - LuaLaTeX"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					"Script Builder"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/LaTeXTools/LaTeX.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/LaTeXTools/LaTeX.sublime-build",
+					""
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/LaTeXTools/LaTeX.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/Python27.sublime-build",
+					""
+				],
+				[
+					"Packages/User/Python35.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/Python27.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/Python27.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/Python27.sublime-build",
+					""
+				],
+				[
+					"Packages/User/Python35.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 357.0,
+		"last_filter": "repl",
+		"selected_items":
+		[
+			[
+				"repl",
+				"SublimeREPL: Python"
+			],
+			[
+				"go",
+				"Anaconda: Goto object definition"
+			],
+			[
+				"goto",
+				"Anaconda: Goto object definition"
+			],
+			[
+				"git sta",
+				"Git: Status"
+			],
+			[
+				"git commit",
+				"Git: Commit"
+			],
+			[
+				"git ",
+				"Git: Status"
+			],
+			[
+				"git his",
+				"Git: Commit history"
+			],
+			[
+				"git",
+				"Git: Commit history"
+			],
+			[
+				"git repo",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"git st",
+				"Git: Status"
+			],
+			[
+				"list",
+				"Package Control: List Packages"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"git quick ",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"git comm",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"status ",
+				"Git: Status"
+			],
+			[
+				"rep",
+				"SublimeREPL: Python"
+			],
+			[
+				"git stat",
+				"Git: Status"
+			],
+			[
+				"quic",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"git hi",
+				"Git: Commit history"
+			],
+			[
+				"sta",
+				"Git: Status"
+			],
+			[
+				"git quick",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"quick ",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				" commi",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"anaconda",
+				"Anaconda: McCabe complexity check"
+			],
+			[
+				"remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"header",
+				"FileHeader: Add Header"
+			],
+			[
+				"quick",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"stat",
+				"Indexing Status"
+			],
+			[
+				"log",
+				"Git: Log All"
+			],
+			[
+				"qui",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"status",
+				"Git: Status"
+			],
+			[
+				"qu",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"repl py",
+				"SublimeREPL: Python"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				"auto",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"comit",
+				"Git: Commit"
+			],
+			[
+				"commit",
+				"Git: Commit"
+			],
+			[
+				"git lo",
+				"Git: Log All"
+			],
+			[
+				"git log",
+				"Git: Log All"
+			],
+			[
+				"list p",
+				"Package Control: List Packages"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"install p",
+				"Package Control: Install Package"
+			],
+			[
+				"anacon",
+				"Anaconda: Show error list"
+			],
+			[
+				"mcc",
+				"Anaconda: McCabe complexity check"
+			],
+			[
+				"mcca",
+				"Anaconda: McCabe complexity check"
+			],
+			[
+				"au",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"pep8",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"ana",
+				"Anaconda: Autoformat PEP8 Errors"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"llist",
+				"Package Control: List Packages"
+			],
+			[
+				"git add",
+				"Git: Add All"
+			],
+			[
+				"commi",
+				"Git: Quick Commit (current file)"
+			],
+			[
+				"git pus",
+				"Git: Push"
+			],
+			[
+				"git qui",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"add",
+				"Git: Add Current File"
+			],
+			[
+				"gitadd",
+				"Git: Add Current File"
+			],
+			[
+				" add",
+				"Git: Add Current File"
+			],
+			[
+				"git status",
+				"Git: Status"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"theme",
+				"Colorsublime: Install Theme"
+			],
+			[
+				"boxy",
+				"Boxy Theme: Activation"
+			],
+			[
+				"snipp",
+				"Snippet: Try/Except"
+			],
+			[
+				"remov",
+				"Package Control: Remove Package"
+			],
+			[
+				"lis",
+				"Package Control: List Packages"
+			],
+			[
+				"in",
+				"Package Control: Install Package"
+			],
+			[
+				"packa",
+				"Package Control: List Packages"
+			],
+			[
+				"color",
+				"Colorsublime: Install Theme"
+			],
+			[
+				"Package Control: in",
+				"Package Control: Install Package"
+			],
+			[
+				"",
+				"About"
+			]
+		],
+		"width": 406.0
+	},
+	"console":
+	{
+		"height": 1608.0,
+		"history":
+		[
+			"view.run_command(\"example\")",
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/admin/Google Drive/PhD/NICE model/WebNICE"
+	],
+	"file_history":
+	[
+		"/C/Users/admin/Google Drive/PhD/NICE model/WebNICE/viewer.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/WebNICE/WebNICE.sublime-project",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/.gitignore",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/viewer.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/stylesheet.css",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/login.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/css.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/server.py",
+		"/C/Users/admin/Desktop/test_anim.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels/leech.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/run.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_gating_kinetics.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_elec_leech.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash/dash.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_renderer/bundle.js",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_LeechT_gating_kinetics.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_eff_coeffs.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_TC_Ih_kinetics.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels/__init__.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/README.rst",
+		"/C/Users/admin/Anaconda3/lib/site-packages/dash_auth/__init__.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_auth/basic_auth.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_auth/auth.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_comp_multivar.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/utils.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_US_batch_full.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels/thalamic.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_comp_singlevar.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/root.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_batch_singlevar.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_batch_multivar.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/helpers.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/dash_crossfiltering.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/test_meshgrid.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/test_meshgrid",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_gating_dynamics.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/solvers/SolverUS.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/solvers/SolverElec.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/constants.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels/cortical.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/test_b64.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_auth/plotly_auth.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_auth/__init__.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/bls.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/__init__.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_elec_batch.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_US_lookup.py",
+		"/C/Users/admin/Downloads/HAGPA/Ih.mod",
+		"/C/Users/admin/Downloads/BIOLCYBERN/IT_huguenard.mod",
+		"/C/Users/admin/Downloads/BIOLCYBERN/cadecay_destexhe.mod",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_elec_anim.py",
+		"/C/Users/admin/Downloads/BIOLCYBERN/IL_gutnick.mod",
+		"/C/Users/admin/Downloads/BIOLCYBERN/IM_cortex.mod",
+		"/C/Users/admin/Downloads/BIOLCYBERN/HH_traub.mod",
+		"/C/Users/admin/Downloads/BIOLCYBERN/sPY_template",
+		"/C/Users/admin/Downloads/Ih.mod",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/datasort.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_elec_batch2.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.channels.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/index.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.solvers.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.SolverUS.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.SolverElec.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/solvers/__init__.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/solvers.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.bls.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.cortical.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.base.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.leech.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.thalamic.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/README.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/setup.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels/base.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_US_titration_dur.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_US_titration_amp.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels/abc_register.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_auth/api_requests.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_auth/register.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash_auth/version.py",
+		"/C/Users/admin/Anaconda3/Lib/site-packages/dash/authentication.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/create_data_folders.py",
+		"/C/Users/admin/Downloads/basic_example.py",
+		"/C/Users/admin/Downloads/simple_anim.py",
+		"/C/Users/admin/Downloads/colorbar_tick_labelling_demo.py",
+		"/C/Users/admin/Downloads/colorbar_tick_labelling_demo (1).py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels_old.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/PointNICE/channels.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/channels/leech.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/channels/cortical.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/channels/thalamic.py",
+		"/D/webapp/viewer.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_Tcell_gating_dynamics.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/plot_P_vs_I.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/postpro/postpro_threshold_frequency.py",
+		"/C/Users/admin/Downloads/SomaIonCa.ion",
+		"/C/Users/admin/Downloads/fBRIonNa.fBR",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/web/__init__.py",
+		"/D/webapp/__init__.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tmp/update_output_params.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/LICENSE",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_US_batch_mech.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PointNICE.utils.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/conf.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PyNICE.utils.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/docs/PyNICE.solvers.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_HH_elec.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tests/test_basic.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/plot/plot_forces.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_lookup.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/tests/test_graphs.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_titration_duration.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_titration_amplitude.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_batch_mech.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/sim/sim_batch_elec.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/postpro/postpro_sensitivity_embedding.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/postpro/postpro_spikerate.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/postpro/postpro_threshold_duration.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/postpro/postpro_spikes.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/postpro/postpro_rmse_charge.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PointNICE/postpro/postpro_latency.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/.gitignore",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/docs/PyNICE.solvers.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/docs/PyNICE.nbls.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/docs/index.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/MANIFEST.in",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/setup.py",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/README.rst",
+		"/C/Users/admin/Google Drive/PhD/NICE model/PyNICE/plot/plot_batch_singlevar.py"
+	],
+	"find":
+	{
+		"height": 48.0
+	},
+	"find_in_files":
+	{
+		"height": 220.0,
+		"where_history":
+		[
+			"C:\\Users\\admin\\Anaconda3\\Lib\\site-packages\\dash_renderer",
+			"C:\\Users\\admin\\Anaconda3\\Lib\\site-packages\\dash_html_components",
+			"C:\\Users\\admin\\Anaconda3\\Lib\\site-packages\\dash_core_components",
+			"C:\\Users\\admin\\Anaconda3\\Lib\\site-packages\\dash",
+			"<open folders>",
+			"",
+			"C:\\Users\\admin\\Google Drive\\PhD\\NBLS model\\NBLSPython",
+			"<open folders>",
+			"C:\\Users\\admin\\AppData\\Roaming\\Sublime Text 3\\Packages",
+			"",
+			"C:\\Users\\Public\\Documents\\Sim4Life\\3.1\\Documentation\\Tutorials\\Tutorial Scripts",
+			"C:/Users/Public/Documents/Sim4Life/3.1/Documentation/html/Tutorials",
+			"<open folders>",
+			"C:\\Users\\Public\\Documents\\Sim4Life\\3.1\\Documentation\\Tutorials\\Tutorial Scripts",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			" ",
+			"colors",
+			"name",
+			"'name'",
+			"go.",
+			"NICE",
+			"style",
+			"panel",
+			"style",
+			"css",
+			"css[",
+			"css",
+			"styles",
+			"static_image_route",
+			"Error loading lay",
+			"Error loa",
+			"Error loading layout",
+			"5000",
+			"iNaPump",
+			"m_Ca",
+			"m_K",
+			"h_Na",
+			"m_Na",
+			"NaPump",
+			"Tcell",
+			"fontsize=24",
+			"s2u",
+			"neuron-anim",
+			"diameter-slider",
+			"duration-slider",
+			"amplitude-slider",
+			"frequency-slider",
+			"styles",
+			"Interact",
+			"tstim_ref",
+			"states",
+			"getPatc",
+			"image_directory",
+			"tpatch_on",
+			"px",
+			"pltvars",
+			"pltvar",
+			"pltvars",
+			"outvars",
+			"neurons",
+			"varname",
+			"pltvar",
+			"tmin_plot",
+			"DF_als",
+			"nDFs",
+			"nPRFs",
+			"ndurs",
+			"namps",
+			"ndiams",
+			"len(freqs)",
+			"nfreqs",
+			"ndiams",
+			"default",
+			"GetPatchesLoc",
+			"output-variable-",
+			"response-curve-",
+			"dash.dependencies.Input",
+			"dash.dependencies.Output",
+			"Input",
+			"ngraphs",
+			"controls-div",
+			"outputs-div",
+			"outputdiv",
+			"ndiams",
+			"updateCurve",
+			"Fdrive",
+			"defa",
+			"getData",
+			"default['diameter']",
+			"diameters",
+			"linewidth",
+			"CorticalRS",
+			"hidden",
+			"login",
+			"white",
+			"updateOutputDropdowns",
+			", 'factor",
+			"label",
+			"ch_mech",
+			"Vm0",
+			"fontsize",
+			"CCa_min",
+			"cainf",
+			"tau_Ca",
+			"Vh",
+			"CCa_min",
+			"self.K",
+			"CCa_inf",
+			"6",
+			"super",
+			"interp2d",
+			"LoadParams",
+			"isValidMech",
+			"states_init",
+			",  #",
+			"': ",
+			"isValidMech",
+			"ch_mech",
+			"neurons",
+			"ch_mech",
+			"channel_mech",
+			"ch_mech",
+			"states_init",
+			"states0",
+			"ch_mech",
+			",  #",
+			"': ",
+			",  #",
+			"': ",
+			",  #",
+			"': ",
+			"params",
+			"api_requests",
+			"static_image_route",
+			"image_directory",
+			"stati",
+			"Cataldo",
+			"super",
+			"derC_Ca",
+			"self",
+			"betaOC",
+			"alphaOC",
+			"tauOC"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"'names'",
+			"iPumpNa",
+			"s",
+			"n",
+			"h",
+			"m",
+			"PumpNa",
+			"LeechTouch",
+			"fontsize=fs",
+			"diam-slider",
+			"dur-slider",
+			"amp-slider",
+			"freq-slider",
+			"css",
+			"getPatchesLoc",
+			"output-dropdown-",
+			"output-curve-",
+			"Input",
+			"Output",
+			"diams",
+			"lw",
+			",\n        'factor",
+			"desc",
+			"tau_Ca_removal",
+			"self.iT_2_CCa",
+			"CCa_min",
+			"  #",
+			" = ",
+			"channel_mech",
+			"states0",
+			"  #",
+			" = ",
+			"  #",
+			"  = ",
+			"  #",
+			" = ",
+			"neuron",
+			"betao",
+			"alphao",
+			"tauo",
+			"oinf",
+			"if neuron.name in ['RS', 'FS', 'LTS']",
+			"",
+			"Ca",
+			"K",
+			"h",
+			"tmax_plot",
+			"tmin_plot",
+			"PointNICE",
+			"Create SolverUS instance",
+			"solver",
+			"PointNICE",
+			"SolverUS",
+			"PointNICE",
+			"(n+3) ODE",
+			"n-ODE",
+			"",
+			"ch_mech",
+			"amps",
+			"Na+ activation",
+			"slow K+ activation",
+			"delayed K+ activation",
+			"",
+			"steadyStates",
+			"ch_mech",
+			"n",
+			"m",
+			"alpha",
+			"beta",
+			"ch_mech",
+			"bls",
+			"bls.",
+			"logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S:')",
+			" ",
+			"# Max. conductance of low-threshold Calcium current (S/m^2)",
+			"# Max. adaptation decay of slow non-inactivating Potassium current (s)",
+			"# Max. conductance of slow non-inactivating Potassium current (S/m^2)",
+			"# Max. conductance of delayed Potassium current (S/m^2)",
+			"# Max. conductance of Calcium current (S/m^2)",
+			"Max. conductance of Potassium current (S/m^2)",
+			"# Max. conductance of Sodium current (S/m^2)",
+			"Conductance of non-specific leakage current (S/m^2)",
+			"non-specific leakage",
+			"self.Vm0",
+			"patches.Rectangle((0.0, ybottom)",
+			"getEffRates",
+			"tonset",
+			"neuron",
+			"GTMax",
+			"Potassium",
+			"Sodium",
+			"CorticalRS",
+			"fontsize(fs",
+			"fontsize=fs",
+			"fontsize = fs",
+			"rat_mech",
+			"styles",
+			"css_styles",
+			"bls.",
+			"bls",
+			"self",
+			"self.d",
+			"self.a",
+			"self.d",
+			"self.a",
+			"self",
+			"self.",
+			"set_fontsize(20)",
+			"fontsize=20",
+			"logger.info",
+			",",
+			"':",
+			"'",
+			"':",
+			",",
+			"ch_mech",
+			"rs_mech",
+			"nbls.Qm0",
+			"fig_ext",
+			"rs_mech",
+			"self.Qm0",
+			"self.",
+			"_avg",
+			",  #",
+			"':",
+			"derN",
+			"derP",
+			"derH"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "viewer.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20123,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								326,
+								326
+							]
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": ".",
+									"selector": "source.python - string - comment - constant.numeric"
+								},
+								{
+									"characters": ".",
+									"selector": "source.python - string - constant.numeric"
+								},
+								{
+									"characters": ".",
+									"selector": "source.python - string - constant.numeric"
+								}
+							],
+							"c_time":
+							[
+								128,
+								3,
+								99,
+								100,
+								97,
+								116,
+								101,
+								116,
+								105,
+								109,
+								101,
+								10,
+								100,
+								97,
+								116,
+								101,
+								116,
+								105,
+								109,
+								101,
+								10,
+								113,
+								0,
+								67,
+								10,
+								7,
+								225,
+								8,
+								18,
+								14,
+								49,
+								59,
+								13,
+								55,
+								238,
+								113,
+								1,
+								133,
+								113,
+								2,
+								82,
+								113,
+								3,
+								46
+							],
+							"color_scheme": "Packages/User/Color Highlighter/themes/Tomorrow.tmTheme",
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 135.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "README.rst",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 459,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								247,
+								247
+							]
+						],
+						"settings":
+						{
+							"c_time":
+							[
+								128,
+								3,
+								99,
+								100,
+								97,
+								116,
+								101,
+								116,
+								105,
+								109,
+								101,
+								10,
+								100,
+								97,
+								116,
+								101,
+								116,
+								105,
+								109,
+								101,
+								10,
+								113,
+								0,
+								67,
+								10,
+								7,
+								225,
+								8,
+								18,
+								14,
+								49,
+								59,
+								13,
+								24,
+								152,
+								113,
+								1,
+								133,
+								113,
+								2,
+								82,
+								113,
+								3,
+								46
+							],
+							"syntax": "Packages/RestructuredText/reStructuredText.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 52.0
+	},
+	"input":
+	{
+		"height": 69.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.autopep8":
+	{
+		"height": 278.0
+	},
+	"output.exec":
+	{
+		"height": 219.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 441.0
+	},
+	"output.latextools":
+	{
+		"height": 468.0
+	},
+	"pinned_build_system": "Packages/Python/Python.sublime-build",
+	"project": "WebNICE.sublime-project",
+	"replace":
+	{
+		"height": 90.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"PyNICE\\channels.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 1,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 254.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
