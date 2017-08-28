@@ -529,11 +529,12 @@
 			}
 		},
 		{
-			"file": "README.rst",
+			"file": "root.py",
 			"settings":
 			{
-				"buffer_size": 459,
-				"line_ending": "Windows"
+				"buffer_size": 388,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
 			}
 		}
 	],
@@ -900,10 +901,22 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 111.0,
-		"last_filter": "commit repo",
+		"height": 357.0,
+		"last_filter": "log",
 		"selected_items":
 		[
+			[
+				"log",
+				"Git: Log All"
+			],
+			[
+				"commi",
+				"Git: Quick Commit (repo)"
+			],
+			[
+				"sta",
+				"Git: Status"
+			],
 			[
 				"commit repo",
 				"Git: Quick Commit (repo)"
@@ -985,10 +998,6 @@
 				"Git: Commit history"
 			],
 			[
-				"sta",
-				"Git: Status"
-			],
-			[
 				"git quick",
 				"Git: Quick Commit (repo)"
 			],
@@ -1023,10 +1032,6 @@
 			[
 				"stat",
 				"Indexing Status"
-			],
-			[
-				"log",
-				"Git: Log All"
 			],
 			[
 				"qui",
@@ -1117,10 +1122,6 @@
 				"Git: Add All"
 			],
 			[
-				"commi",
-				"Git: Quick Commit (current file)"
-			],
-			[
 				"git pus",
 				"Git: Push"
 			],
@@ -1193,7 +1194,7 @@
 				"About"
 			]
 		],
-		"width": 378.0
+		"width": 406.0
 	},
 	"console":
 	{
@@ -1215,7 +1216,7 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Users/admin/Google Drive/PhD/NICE model/webnice"
+		"/C/Users/admin/Google Drive/PhD/NICE model/WebNICE"
 	],
 	"file_history":
 	[
@@ -1755,19 +1756,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "README.rst",
-					"semi_transient": true,
+					"file": "root.py",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 459,
+						"buffer_size": 388,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								459,
-								459
+								388,
+								388
 							]
 						],
 						"settings":
@@ -1802,13 +1803,13 @@
 								7,
 								225,
 								8,
-								18,
-								14,
-								49,
-								59,
-								13,
-								24,
-								152,
+								25,
+								19,
+								0,
+								50,
+								5,
+								98,
+								136,
 								113,
 								1,
 								133,
@@ -1819,7 +1820,7 @@
 								3,
 								46
 							],
-							"syntax": "Packages/RestructuredText/reStructuredText.sublime-syntax"
+							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,

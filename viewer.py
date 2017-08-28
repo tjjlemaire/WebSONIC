@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-08-25 18:45:09
+# @Last Modified time: 2017-08-28 15:52:47
 
 ''' Layout and callbacks of the web app. '''
 
