@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:58:23
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-08-17 14:42:51
+# @Last Modified time: 2017-08-28 15:57:53
 
 ''' Run the application on the flask server. '''
 
