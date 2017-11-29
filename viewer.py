@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-08-28 15:52:47
+# @Last Modified time: 2017-11-29 19:17:46
 
 ''' Layout and callbacks of the web app. '''
 
@@ -286,7 +286,11 @@ app.layout = html.Div([
                             dcc.Graph(
                                 id='output-curve-{}'.format(i + 1),
                                 style={'height': '15em'},
-                                animate=False
+                                animate=False,
+                                config={
+                                    'editable': True,
+                                    'modeBarButtonsToRemove': ['sendDataToCloud']
+                                }
                             ),
 
                             # Horizontal line
