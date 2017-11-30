@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-11-29 19:17:46
+# @Last Modified time: 2017-11-30 16:33:31
 
 ''' Layout and callbacks of the web app. '''
 
@@ -517,10 +517,10 @@ def getData(params, data_root):
     # Define path to input file
     filedir = '{}/{}/{:.0f}nm/{:.0f}kHz'.format(data_root, mech_type, a, Fdrive)
     if params['DF'] == 1.0:
-        filecode = 'sim_{}_CW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms'.format(
+        filecode = 'ASTIM_{}_CW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms'.format(
             mech_type, a, Fdrive, params['amp'], params['dur'])
     else:
-        filecode = 'sim_{}_PW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}'.format(
+        filecode = 'ASTIM_{}_PW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}'.format(
             mech_type, a, Fdrive, params['amp'], params['dur'], params['PRF'], params['DF'])
     pkl_filepath = '{}/{}_effective.pkl'.format(filedir, filecode)
 
