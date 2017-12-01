@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-11-30 16:33:31
+# @Last Modified time: 2017-12-01 14:20:24
 
 ''' Layout and callbacks of the web app. '''
 
@@ -495,6 +495,7 @@ def updateCurve(mech_type, diameter, Fdrive, Adrive, tstim, PRF, DF, varname, co
             'zeroline': False
         },
         margin={'l': 60, 'b': 40, 't': 10, 'r': 10},
+        title=''
     )
 
     # Return curve, patches and layout objects
