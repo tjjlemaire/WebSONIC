@@ -15,10 +15,13 @@
 			[
 				"*.sublime-workspace",
 				"*.gitignore",
+				"*.pem",
 				"__init__.py"
 			],
 			"folder_exclude_patterns":
 			[
+				"img",
+				"tmp"
 			],
 			"path": "."
 		}

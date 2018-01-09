@@ -4,16 +4,17 @@
 # @Date:   2017-07-11 18:41:07
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-08-17 19:11:44
+# @Last Modified time: 2018-01-09 18:56:33
 
 ''' Create a Flask server instance '''
 import os
 import glob
 from flask import Flask, send_from_directory
-from root import image_directory
 
 # Create server instance
 server = Flask(__name__)
+
+image_directory = 'img/'
 
 # Add specific route to serve static files
 static_route = '/static/'

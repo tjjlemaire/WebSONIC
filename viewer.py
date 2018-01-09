@@ -4,11 +4,12 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2017-12-01 14:20:24
+# @Last Modified time: 2018-01-09 19:15:34
 
 ''' Layout and callbacks of the web app. '''
 
 import os
+import time
 import pickle
 import base64
 import numpy as np
@@ -21,7 +22,7 @@ import plotly.graph_objs as go
 import colorlover as cl
 
 from server import server, static_route, stylesheets
-from root import data_root, image_directory
+from sftp import channel, data_root
 from login import VALID_USERNAME_PASSWORD_PAIRS
 from PointNICE.solvers import detectSpikes
 from PointNICE.plt import getPatchesLoc
@@ -127,8 +128,8 @@ for stylesheet in stylesheets:
 
 
 # Load static image files into base64 strings
-epfl_logo = base64.b64encode(open(image_directory + 'EPFL.png', 'rb').read()).decode()
-tne_logo = base64.b64encode(open(image_directory + 'TNE.png', 'rb').read()).decode()
+epfl_logo = base64.b64encode(open('img/EPFL.png', 'rb').read()).decode()
+tne_logo = base64.b64encode(open('img/TNE.png', 'rb').read()).decode()
 
 app.layout = html.Div([
 
@@ -289,7 +290,7 @@ app.layout = html.Div([
                                 animate=False,
                                 config={
                                     'editable': True,
-                                    'modeBarButtonsToRemove': ['sendDataToCloud']
+                                    'modeBarButtonsToRemove': ['sendDataToCloud', 'displaylogo']
                                 }
                             ),
 
@@ -525,15 +526,18 @@ def getData(params, data_root):
             mech_type, a, Fdrive, params['amp'], params['dur'], params['PRF'], params['DF'])
     pkl_filepath = '{}/{}_effective.pkl'.format(filedir, filecode)
 
-    # Check input file existence
-    if os.path.isfile(pkl_filepath):
-        # Load and return input data if present
-        with open(pkl_filepath, 'rb') as pkl_file:
+    if channel.isfile(pkl_filepath):
+        t0 = time.time()
+        tmpfile = 'tmp/{}_effective.pkl'.format(filecode)
+        channel.get(pkl_filepath, localpath=tmpfile)
+        with open(tmpfile, 'rb') as pkl_file:
             file_data = pickle.load(pkl_file)
+        os.remove(tmpfile)
+        print('file loaded in {:.0f} ms'.format((time.time() - t0) * 1e3))
     else:
-        # Return None if absent
-        print('Data file "{}" does not exist'.format(pkl_filepath))
+        print('Data file "{}" not found on server'.format(pkl_filepath))
         file_data = None
+
     return file_data
 
 

@@ -9,6 +9,10 @@ $ cd ~/Documents/tlemaire/webNICE
 Serve the application with Gunicorn:
 $ gunicorn --bind 0.0.0.0:8050 run:server
 
+Or in a separate, detached screen session:
+$ screen -d -S webnice_session -m gunicorn --bind 0.0.0.0:8050 run:server
+
+
 The webNICE app is now available at:
 128.178.51.155:8050/viewer
 username: tne2017
