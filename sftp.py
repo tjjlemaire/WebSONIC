@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-09 19:04:52
+# @Last Modified time: 2018-01-10 14:55:11
 
 
 ''' Open SFTP channel and set the root of the remote DATA directory. '''
@@ -16,7 +16,7 @@ data_root = 'WebNICE_data'
 
 # server information
 host_b64 = b'MTI4LjE3OC44NC45Mg=='  # IP address of data server (base-64 encoded)
-user_b64 = b'VGhlbw=='  # username (base-64 encoded)
+user_b64 = b'dG5ld2ViYXBw'  # username (base-64 encoded)
 passwd_b64 = b'bWV5cmluOTI='  # password (base-64 encoded)
 
 # no key (trusted communication line)
