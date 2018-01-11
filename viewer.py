@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-09 19:15:34
+# @Last Modified time: 2018-01-11 18:12:31
 
 ''' Layout and callbacks of the web app. '''
 
@@ -110,7 +110,7 @@ app = dash.Dash(
     url_base_pathname='/viewer',
     csrf_protect=True
 )
-app.title = 'NICE: model predictions viewer'
+app.title = 'TNEWebNICE viewer'
 
 # Protect app with login
 auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
@@ -118,10 +118,8 @@ auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
 
 # -------------------------------- LAYOUT --------------------------------
 
-# Load external style sheet
-app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"})
 
-# Load internal style sheet
+# Load internal style sheets
 for stylesheet in stylesheets:
     app.css.append_css({"external_url": "/css/{}".format(stylesheet)})
 
@@ -136,15 +134,21 @@ app.layout = html.Div([
     # Header
     html.Div([
         html.Div(
-            [html.Img(src='data:image/png;base64,{}'.format(epfl_logo), className='logo')],
+            [html.A(
+                html.Img(src='data:image/png;base64,{}'.format(epfl_logo), className='logo'),
+                href='https://www.epfl.ch')],
             className='header-side', id='header-left'
         ),
         html.Div([
-            html.H2('Neuronal Intramembrane Cavitation Excitation:', className='header-txt'),
-            html.H3('model predictions for various neuron types', className='header-txt')
+            html.H1('Ultrasound Neuromodulation', className='header-txt'),
+            html.H3(['Exploring predictions of the ',
+                     html.I('NICE'),
+                     ' model'], className='header-txt')
         ], id='header-middle'),
         html.Div(
-            [html.Img(src='data:image/png;base64,{}'.format(tne_logo), className='logo')],
+            [html.A(
+                html.Img(src='data:image/png;base64,{}'.format(tne_logo), className='logo'),
+                href='https://tne.epfl.ch')],
             className='header-side', id='header-right'
         )
     ], id='header'),

@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:41:07
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-09 18:56:33
+# @Last Modified time: 2018-01-11 18:10:25
 
 ''' Create a Flask server instance '''
 import os
@@ -22,7 +22,7 @@ list_of_images = [os.path.basename(x) for x in glob.glob('{}*.gif'.format(image_
 
 css_route = '/css/'
 css_directory = os.getcwd()
-stylesheets = ['stylesheet.css']
+stylesheets = ['dash_styles.css', 'my_styles.css']
 
 
 @server.route('{}<image_path>'.format(static_route))
