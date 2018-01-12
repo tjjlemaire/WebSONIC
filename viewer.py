@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-11 18:12:31
+# @Last Modified time: 2018-01-12 09:17:26
 
 ''' Layout and callbacks of the web app. '''
 
@@ -26,7 +26,7 @@ from sftp import channel, data_root
 from login import VALID_USERNAME_PASSWORD_PAIRS
 from PointNICE.solvers import detectSpikes
 from PointNICE.plt import getPatchesLoc
-from PointNICE.constants import SPIKE_MIN_DT, SPIKE_MIN_QAMP
+from PointNICE.constants import SPIKE_MIN_DT, SPIKE_MIN_QAMP, SPIKE_MIN_VAMP
 
 
 
@@ -82,16 +82,25 @@ neurons = {
 
 
 # Define parameter ranges for input sliders
-diams = [16.0, 32.0, 64.0]
-freqs = [200, 400, 600, 800, 1000]
-amps = [10, 20, 40, 80, 150, 300, 600]
-durs = [20, 40, 60, 80, 100, 150, 200, 250, 300]
-PRFs = [0.1, 0.2, 0.5, 1, 2, 5, 10]
+diams = [16.0, 32.0, 64.0]  # nm
+US_freqs = [200, 400, 600, 800, 1000]  # kHz
+US_amps = [10, 20, 40, 80, 150, 300, 600]  # kPa
+elec_amps = [-30, -20, -15, -10, -5, -2, 2, 5, 10, 15, 20, 30]  # mA/m2
+durs = [20, 40, 60, 80, 100, 150, 200, 250, 300]  # ms
+PRFs = [0.1, 0.2, 0.5, 1, 2, 5, 10]  # kHz
 DFs = [0.01, 0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1]
 
-# Define default parameters and set current parameters to default
-default = {'neuron': 'RS', 'diameter': 1, 'freq': 1, 'amp': 4, 'dur': 2, 'PRF': 3, 'DF': 7}
-current = default
+# Define default cell, Us and electricity parameters
+# default = {'neuron': 'RS', 'diameter': 1, 'freq': 1, 'amp': 4, 'dur': 2, 'PRF': 3, 'DF': 7}
+cell_default = {'neuron': 'RS', 'diameter': 1}
+US_default = {'freq': 1, 'amp': 4, 'dur': 2, 'PRF': 3, 'DF': 7}
+elec_default = {'amp': 8, 'dur': 2, 'PRF': 3, 'DF': 7}
+
+# Set current parameters to default
+# current = default
+cell_current = cell_default
+stim_current = US_default
+
 
 # Set plotting parameters
 ngraphs = 3
@@ -173,7 +182,7 @@ app.layout = html.Div([
                                 id='mechanism-type',
                                 options=[{'label': v['desc'], 'value': k}
                                          for k, v in neurons.items()],
-                                value=default['neuron']
+                                value=cell_default['neuron']
                             ), style={'width': '65%'}
                         )
                     ]),
@@ -186,8 +195,8 @@ app.layout = html.Div([
                         html.Td(
                             dcc.Slider(
                                 id='diam-slider', min=0, max=len(diams) - 1, step=1,
-                                value=default['diameter'],
-                                marks={i: '{:.0f} nm'.format(diams[i]) if i == default['diameter']
+                                value=cell_default['diameter'],
+                                marks={i: '{:.0f} nm'.format(diams[i]) if i == cell_default['diameter']
                                           else '' for i in range(len(diams))},
                                 disabled=True,
                             )
@@ -200,7 +209,14 @@ app.layout = html.Div([
 
             # Stim parameters panel
             html.Div([
-                html.H5('US stimulation parameters', className='panel-title'),
+                html.H5('Stimulation parameters', className='panel-title'),
+
+                dcc.Tabs(
+                    tabs=[{'label': 'Ultrasound', 'value': 1},
+                          {'label': 'Electricity', 'value': 2}],
+                    value=1,
+                    id='tabs'
+                ),
 
                 html.Table([
 
@@ -208,8 +224,8 @@ app.layout = html.Div([
                         html.Td('Frequency', style={'width': '30%'}),
                         html.Td(
                             dcc.Slider(
-                                id='freq-slider',
-                                min=0, max=len(freqs) - 1, step=1, value=default['freq']
+                                id='US-freq-slider',
+                                min=0, max=len(US_freqs) - 1, step=1, value=US_default['freq']
                             ), style={'width': '70%'}
                         ),
                     ], className='slider-row'),
@@ -218,8 +234,8 @@ app.layout = html.Div([
                         html.Td('Amplitude'),
                         html.Td(
                             dcc.Slider(
-                                id='amp-slider',
-                                min=0, max=len(amps) - 1, step=1, value=default['amp']
+                                id='US-amp-slider',
+                                min=0, max=len(US_amps) - 1, step=1, value=US_default['amp']
                             )
                         )
                     ], className='slider-row'),
@@ -228,8 +244,8 @@ app.layout = html.Div([
                         html.Td('Duration'),
                         html.Td(
                             dcc.Slider(
-                                id='dur-slider',
-                                min=0, max=len(durs) - 1, step=1, value=default['dur']
+                                id='US-dur-slider',
+                                min=0, max=len(durs) - 1, step=1, value=US_default['dur']
                             )
                         )
                     ], className='slider-row'),
@@ -238,8 +254,8 @@ app.layout = html.Div([
                         html.Td('PRF'),
                         html.Td(
                             dcc.Slider(
-                                id='PRF-slider',
-                                min=0, max=len(PRFs) - 1, step=1, value=default['PRF']
+                                id='US-PRF-slider',
+                                min=0, max=len(PRFs) - 1, step=1, value=US_default['PRF']
                             )
                         )
                     ], className='slider-row'),
@@ -248,12 +264,55 @@ app.layout = html.Div([
                         html.Td('Duty cycle'),
                         html.Td(
                             dcc.Slider(
-                                id='DF-slider',
-                                min=0, max=len(DFs) - 1, step=1, value=default['DF']
+                                id='US-DF-slider',
+                                min=0, max=len(DFs) - 1, step=1, value=US_default['DF']
                             )
                         )
                     ], className='slider-row')
-                ], className='table'),
+                ], id='US-table', className='table', hidden=0),
+
+                html.Table([
+
+                    html.Tr([
+                        html.Td('Amplitude'),
+                        html.Td(
+                            dcc.Slider(
+                                id='elec-amp-slider',
+                                min=0, max=len(elec_amps) - 1, step=1, value=elec_default['amp']
+                            )
+                        )
+                    ], className='slider-row'),
+
+                    html.Tr([
+                        html.Td('Duration'),
+                        html.Td(
+                            dcc.Slider(
+                                id='elec-dur-slider',
+                                min=0, max=len(durs) - 1, step=1, value=elec_default['dur']
+                            )
+                        )
+                    ], className='slider-row'),
+
+                    html.Tr([
+                        html.Td('PRF'),
+                        html.Td(
+                            dcc.Slider(
+                                id='elec-PRF-slider',
+                                min=0, max=len(PRFs) - 1, step=1, value=elec_default['PRF']
+                            )
+                        )
+                    ], className='slider-row'),
+
+                    html.Tr([
+                        html.Td('Duty cycle'),
+                        html.Td(
+                            dcc.Slider(
+                                id='elec-DF-slider',
+                                min=0, max=len(DFs) - 1, step=1, value=elec_default['DF']
+                            )
+                        )
+                    ], className='slider-row')
+                ], id='elec-table', className='table', hidden=1),
             ], className='panel'),
 
 
@@ -282,9 +341,9 @@ app.layout = html.Div([
                                 options=[
                                     {'label': v['desc'],
                                      'value': v['label']}
-                                    for v in neurons[default['neuron']]['vars']
+                                    for v in neurons[cell_default['neuron']]['vars']
                                 ],
-                                value=neurons[default['neuron']]['vars'][i]['label']
+                                value=neurons[cell_default['neuron']]['vars'][i]['label']
                             ),
 
                             # Graph
@@ -341,35 +400,60 @@ def updateSlider(values, curr, factor=1, precision=0, suffix=''):
     return marks
 
 
-@app.callback(Output('freq-slider', 'marks'), [Input('freq-slider', 'value')])
+@app.callback(Output('US-freq-slider', 'marks'), [Input('US-freq-slider', 'value')])
 def updateFreqSlider(value):
-    return updateSlider(freqs, value, suffix='kHz')
+    return updateSlider(US_freqs, value, suffix='kHz')
 
 
-@app.callback(Output('amp-slider', 'marks'), [Input('amp-slider', 'value')])
+@app.callback(Output('US-amp-slider', 'marks'), [Input('US-amp-slider', 'value')])
 def updateAmpSlider(value):
-    return updateSlider(amps, value, suffix='kPa')
+    return updateSlider(US_amps, value, suffix='kPa')
 
 
-@app.callback(Output('dur-slider', 'marks'), [Input('dur-slider', 'value')])
+@app.callback(Output('US-dur-slider', 'marks'), [Input('US-dur-slider', 'value')])
 def updateDurSlider(value):
     return updateSlider(durs, value, suffix='ms')
 
 
-@app.callback(Output('PRF-slider', 'marks'), [Input('PRF-slider', 'value')])
+@app.callback(Output('US-PRF-slider', 'marks'), [Input('US-PRF-slider', 'value')])
 def updatePRFSlider(value):
     return updateSlider(PRFs, value, precision=1, suffix='kHz')
 
 
-@app.callback(Output('DF-slider', 'marks'), [Input('DF-slider', 'value')])
+@app.callback(Output('US-DF-slider', 'marks'), [Input('US-DF-slider', 'value')])
 def updateDutySlider(value):
     return updateSlider(DFs, value, factor=100, precision=0, suffix='%')
 
 
-@app.callback(Output('PRF-slider', 'disabled'), [Input('DF-slider', 'value')])
+@app.callback(Output('US-PRF-slider', 'disabled'), [Input('US-DF-slider', 'value')])
 def togglePRFSlider(value):
     return value == len(DFs) - 1
 
+
+
+@app.callback(Output('elec-amp-slider', 'marks'), [Input('elec-amp-slider', 'value')])
+def updateElecAmpSlider(value):
+    return updateSlider(elec_amps, value, suffix='kPa')
+
+
+@app.callback(Output('elec-dur-slider', 'marks'), [Input('elec-dur-slider', 'value')])
+def updateElecDurSlider(value):
+    return updateSlider(durs, value, suffix='ms')
+
+
+@app.callback(Output('elec-PRF-slider', 'marks'), [Input('elec-PRF-slider', 'value')])
+def updateElecPRFSlider(value):
+    return updateSlider(PRFs, value, precision=1, suffix='kHz')
+
+
+@app.callback(Output('elec-DF-slider', 'marks'), [Input('elec-DF-slider', 'value')])
+def updateElecDutySlider(value):
+    return updateSlider(DFs, value, factor=100, precision=0, suffix='%')
+
+
+@app.callback(Output('elec-PRF-slider', 'disabled'), [Input('elec-DF-slider', 'value')])
+def toggleElecPRFSlider(value):
+    return value == len(DFs) - 1
 
 # -------------------------------- OUTPUT DROPDOWNS CALLBACKS --------------------------------
 
@@ -385,21 +469,29 @@ for i in range(ngraphs):
 
 # -------------------------------- OUTPUT GRAPHS CALLBACKS --------------------------------
 
-def updateData(mech_type, i_diam, i_freq, i_amp, i_dur, i_PRF, i_DF, varname, dd_str):
+def updateData(mech_type, i_diam, i_modality,
+               i_US_freq, i_US_amp, i_US_dur, i_US_PRF, i_US_DF,
+               i_elec_amp, i_elec_dur, i_elec_PRF, i_elec_DF,
+               varname, dd_str):
     global colorset
     idx = int(dd_str[-1])
     colors = colorset[2 * idx - 2: 2 * idx]
-    return updateCurve(mech_type, diams[i_diam], freqs[i_freq], amps[i_amp], durs[i_dur],
-                       PRFs[i_PRF], DFs[i_DF], varname, colors)
+
+    if i_modality == 1:  # US
+        return updateCurve(mech_type, diams[i_diam], US_freqs[i_US_freq], US_amps[i_US_amp],
+                           durs[i_US_dur], PRFs[i_US_PRF], DFs[i_US_DF], varname, colors)
+    else:  # Elec
+        return updateCurve(mech_type, diams[i_diam], None, elec_amps[i_elec_amp],
+                           durs[i_elec_dur], PRFs[i_elec_PRF], DFs[i_elec_DF], varname, colors)
 
 
-def updateCurve(mech_type, diameter, Fdrive, Adrive, tstim, PRF, DF, varname, colors):
+def updateCurve(mech_type, diameter, Fdrive, Astim, tstim, PRF, DF, varname, colors):
     ''' Update curve based on new parameters.
 
         :param mech_type: type of channel mechanism (cell-type specific).
         :param diameter: diameter of the typical BLS structure (nm).
-        :param Fdrive: acoustic stimulus driving frequency (kHz).
-        :param Adrive: acoustic stimulus pressure amplitude (kPa).
+        :param Fdrive: driving frequency for acoustic stimuli (kHz), None for Elec stimuli.
+        :param Astim: stimulus amplitude (kPa for acoustic, mA/m2 for Elec).
         :param tstim: stimulus duration (ms).
         :param PRF: Pulse-repetition frequency (kHz)
         :param DF: stimulus duty factor.
@@ -409,23 +501,27 @@ def updateCurve(mech_type, diameter, Fdrive, Adrive, tstim, PRF, DF, varname, co
     '''
 
     global data
-    global current
+    global cell_current
+    global stim_current
 
     # Define new parameters
-    new = {
+    cell_new = {
         'neuron': mech_type,
-        'diameter': diameter,
+        'diameter': diameter
+    }
+    stim_new = {
         'freq': Fdrive,
-        'amp': Adrive,
+        'amp': Astim,
         'dur': tstim,
         'PRF': PRF,
         'DF': DF
     }
 
     # Load new data if parameters have changed
-    if new != current:
-        data = getData(new, data_root)
-        current = new
+    if cell_new != cell_current or stim_new != stim_current:
+        data = getData(cell_new, stim_new, data_root)
+        cell_current = cell_new
+        stim_current = stim_new
 
     # Get info about variables to plot
     vargroups = [v['label'] for v in neurons[mech_type]['vars']]
@@ -507,32 +603,46 @@ def updateCurve(mech_type, diameter, Fdrive, Adrive, tstim, PRF, DF, varname, co
     return {'data': [*curves, *patches], 'layout': layout}
 
 
-def getData(params, data_root):
+def getData(cell_params, stim_params, data_root):
     ''' Load the appropriate data file and return data structure.
 
-        :param params: dictionary of cell type and stimulation parameters.
+        :param cell_params: dictionary of cell type and BLS diameter.
+        :param params: dictionary of stimulation parameters.
         :param data_root: the absolute path to the root of data directories
         :return: the simulation data for that specific cell and stimulation parameters.
     '''
 
     # Split parameters explicitly
-    mech_type = params['neuron']
-    a = params['diameter']
-    Fdrive = params['freq']
+    mech_type = cell_params['neuron']
+    a = cell_params['diameter']
 
-    # Define path to input file
-    filedir = '{}/{}/{:.0f}nm/{:.0f}kHz'.format(data_root, mech_type, a, Fdrive)
-    if params['DF'] == 1.0:
-        filecode = 'ASTIM_{}_CW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms'.format(
-            mech_type, a, Fdrive, params['amp'], params['dur'])
+    # Define path to input file (ESTIM or ASTIM)
+    if stim_params['freq'] is None:
+        filedir = '{}/{}/Elec'.format(data_root, mech_type)
+        if stim_params['DF'] == 1.0:
+            filecode = 'ESTIM_{}_CW_{:.0f}mA_per_m2_{:.0f}ms'.format(
+                mech_type, stim_params['amp'], stim_params['dur'])
+        else:
+            filecode = 'ESTIM_{}_PW_{:.0f}mA_per_m2_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}'.format(
+                mech_type, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
+                stim_params['DF'])
     else:
-        filecode = 'ASTIM_{}_PW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}'.format(
-            mech_type, a, Fdrive, params['amp'], params['dur'], params['PRF'], params['DF'])
-    pkl_filepath = '{}/{}_effective.pkl'.format(filedir, filecode)
+        Fdrive = stim_params['freq']
+        filedir = '{}/{}/US/{:.0f}nm/{:.0f}kHz'.format(data_root, mech_type, a, Fdrive)
+        if stim_params['DF'] == 1.0:
+            filecode = 'ASTIM_{}_CW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_effective'.format(
+                mech_type, a, Fdrive, stim_params['amp'], stim_params['dur'])
+        else:
+            filecode = 'ASTIM_{}_PW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}_effective'.format(
+                mech_type, a, Fdrive, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
+                stim_params['DF'])
+
+
+    pkl_filepath = '{}/{}.pkl'.format(filedir, filecode)
 
     if channel.isfile(pkl_filepath):
         t0 = time.time()
-        tmpfile = 'tmp/{}_effective.pkl'.format(filecode)
+        tmpfile = 'tmp/{}.pkl'.format(filecode)
         channel.get(pkl_filepath, localpath=tmpfile)
         with open(tmpfile, 'rb') as pkl_file:
             file_data = pickle.load(pkl_file)
@@ -550,11 +660,16 @@ for i in range(ngraphs):
         Output('output-curve-{}'.format(i + 1), 'figure'),
         [Input('mechanism-type', 'value'),
          Input('diam-slider', 'value'),
-         Input('freq-slider', 'value'),
-         Input('amp-slider', 'value'),
-         Input('dur-slider', 'value'),
-         Input('PRF-slider', 'value'),
-         Input('DF-slider', 'value'),
+         Input('tabs', 'value'),
+         Input('US-freq-slider', 'value'),
+         Input('US-amp-slider', 'value'),
+         Input('US-dur-slider', 'value'),
+         Input('US-PRF-slider', 'value'),
+         Input('US-DF-slider', 'value'),
+         Input('elec-amp-slider', 'value'),
+         Input('elec-dur-slider', 'value'),
+         Input('elec-PRF-slider', 'value'),
+         Input('elec-DF-slider', 'value'),
          Input('output-dropdown-{}'.format(i + 1), 'value'),
          Input('output-dropdown-{}'.format(i + 1), 'id')])(updateData)
 
@@ -567,7 +682,12 @@ def updateInfoTable(_):
     # Spike detection
     global data
     if data:
-        n_spikes, lat, sr = detectSpikes(data['t'], data['Qm'], SPIKE_MIN_QAMP, SPIKE_MIN_DT)
+        if 'Qm' in data:
+            n_spikes, lat, sr = detectSpikes(data['t'], data['Qm'], SPIKE_MIN_QAMP, SPIKE_MIN_DT)
+        elif 'Vm' in data:
+            n_spikes, lat, sr = detectSpikes(data['t'], data['Vm'], SPIKE_MIN_VAMP, SPIKE_MIN_DT)
+        else:
+            n_spikes, lat, sr = (0, None, None)
     else:
         n_spikes = 0
         lat = None
@@ -595,3 +715,21 @@ def updateInfoTable(_):
         )
 
     return rows
+
+
+@app.callback(Output('US-table', 'hidden'), [Input('tabs', 'value')])
+def toggle_US_table(value):
+    if value == 1:
+        hide = 0
+    else:
+        hide = 1
+    return hide
+
+
+@app.callback(Output('elec-table', 'hidden'), [Input('tabs', 'value')])
+def toggle_elec_table(value):
+    if value == 1:
+        hide = 1
+    else:
+        hide = 0
+    return hide
