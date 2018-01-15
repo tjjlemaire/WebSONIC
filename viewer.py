@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-15 15:50:37
+# @Last Modified time: 2018-01-15 19:06:46
 
 ''' Layout and callbacks of the web app. '''
 
@@ -130,6 +130,7 @@ app = dash.Dash(
 )
 app.title = 'TNEWebNICE viewer'
 
+
 # Protect app with login
 auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
 
@@ -148,6 +149,9 @@ epfl_logo = base64.b64encode(open('img/EPFL.png', 'rb').read()).decode()
 tne_logo = base64.b64encode(open('img/TNE.png', 'rb').read()).decode()
 
 app.layout = html.Div([
+
+    # Favicon
+    # html.Link(rel='shortcut icon', href=static_route + 'icon'),
 
     # Header
     html.Div([
@@ -198,8 +202,8 @@ app.layout = html.Div([
                         )
                     ]),
                     html.Tr([
-                        html.Td('E-STIM response'),
-                        html.Td(html.Img(id='neuron-anim', style={'width': '100%'}))
+                        html.Td('Membrane mechanism'),
+                        html.Td(html.Img(id='neuron-mechanism', style={'width': '100%'}))
                     ]),
                     html.Tr([
                         html.Td('Sonophore diameter'),
@@ -390,7 +394,7 @@ app.layout = html.Div([
 
 # -------------------------------- INPUT ANIMATION CALLBACK --------------------------------
 
-@app.callback(Output('neuron-anim', 'src'), [Input('mechanism-type', 'value')])
+@app.callback(Output('neuron-mechanism', 'src'), [Input('mechanism-type', 'value')])
 def update_image_src(value):
     return static_route + value
 
