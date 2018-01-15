@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-15 15:32:40
+# @Last Modified time: 2018-01-15 15:50:37
 
 ''' Layout and callbacks of the web app. '''
 
@@ -106,7 +106,7 @@ modalities = {'US': 1, 'elec': 2}
 
 # Set initial parameters
 current_cell = default_cell
-current_modality = modalities['elec']
+current_modality = modalities['US']
 current_stim = default_US if current_modality == modalities['US'] else default_elec
 default_vars = 'vars_US' if current_modality == modalities['US'] else 'vars_elec'
 
@@ -158,10 +158,12 @@ app.layout = html.Div([
             className='header-side', id='header-left'
         ),
         html.Div([
-            html.H1('Ultrasound Neuromodulation', className='header-txt'),
+            html.H1('Ultrasound vs. Electrical Stimulation', className='header-txt'),
             html.H3(['Exploring predictions of the ',
                      html.I('NICE'),
-                     ' model'], className='header-txt')
+                     ' and ',
+                     html.I('Hodgkin-Huxley'),
+                     ' models for different cell types'], className='header-txt')
         ], id='header-middle'),
         html.Div(
             [html.A(
@@ -682,17 +684,7 @@ def getData(cell_params, stim_params, data_root):
         t0 = time.time()
         tmpfile = '{}/tmp/{}.pkl'.format(os.getcwd(), filecode).replace('\\', '/')
         print('retrieving file...')
-        print(tmpfile)
-        # cnt = 0
-        # try:
         channel.get(pkl_filepath, localpath=tmpfile)
-        # print(os.stat(tmpfile).st_size)
-        # time.sleep(0.05)
-        # print(os.stat(tmpfile).st_size)
-        # except OSError:
-        #     cnt += 1
-        #     if cnt < 5:
-        #         getData(cell_params, stim_params, data_root)
         print('opening file...')
         with open(tmpfile, 'rb') as pkl_file:
             file_data = pickle.load(pkl_file)
