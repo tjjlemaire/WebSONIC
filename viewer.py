@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 22:41:29
+# @Last Modified time: 2018-01-16 22:58:02
 
 ''' Layout and callbacks of the web app. '''
 
@@ -158,20 +158,21 @@ app.layout = html.Div([
         html.Div(
             [html.A(
                 html.Img(src='{}EPFL.png'.format(static_route), className='logo'),
-                href='https://www.epfl.ch'),
-             html.A(
-                html.Img(src='{}TNE.png'.format(static_route), className='logo'),
-                href='https://tne.epfl.ch')],
+                href='https://www.epfl.ch')
+             # html.A(
+             #    html.Img(src='{}TNE.png'.format(static_route), className='logo'),
+             #    href='https://tne.epfl.ch')
+            ],
             className='header-side', id='header-left'
         ),
         html.Div([
-            html.H1('Ultrasound vs. Electrical Stimulation', className='header-txt'),
+            html.H1('Ultrasound vs. Electrical stimulation', className='header-txt'),
             html.H3(['Exploring predictions of the ',
                      html.I('NICE'),
                      ' and ',
                      html.I('Hodgkin-Huxley'),
                      ' models'], className='header-txt'),
-            html.Img(src='{}nbls.svg'.format(static_route), id='main-logo')
+            # html.Img(src='{}nbls.svg'.format(static_route), id='main-logo')
         ], id='header-middle'),
         html.Div(
             [html.A(
