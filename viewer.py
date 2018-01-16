@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 22:58:02
+# @Last Modified time: 2018-01-16 23:08:56
 
 ''' Layout and callbacks of the web app. '''
 
@@ -14,7 +14,7 @@ import pickle
 import urllib
 import numpy as np
 import dash
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_auth
 import dash_core_components as dcc
 import dash_html_components as html
@@ -514,24 +514,22 @@ for i in range(ngraphs):
          Input('tabs', 'value')])(updateOutputDropdowns)
 
 
-# def updateOutputDropdownsValue(mech_type, stim_type, varname):
-#     if stim_type == 1:
-#         varlist = neurons[mech_type]['vars_US']
-#     else:
-#         varlist = neurons[mech_type]['vars_elec']
+def updateOutputDropdownsValue(mech_type, stim_type, varname):
+    if stim_type == 1:
+        varlist = neurons[mech_type]['vars_US']
+    else:
+        varlist = neurons[mech_type]['vars_elec']
+    vargroups = [v['label'] for v in varlist]
+    if varname not in vargroups:
+        varname = vargroups[0]
+    return varname
 
-#     vargroups = [v['label'] for v in varlist]
-#     if varname not in vargroups:
-#         varname = vargroups[0]
-#     return varname
 
-
-# for i in range(ngraphs):
-#     app.callback(
-#         Output('output-dropdown-{}'.format(i + 1), 'value'),
-#         [Input('mechanism-type', 'value'),
-#          Input('tabs', 'value'),
-#          Input('output-dropdown-{}'.format(i + 1), 'value')])(updateOutputDropdownsValue)
+for i in range(ngraphs):
+    app.callback(
+        Output('output-dropdown-{}'.format(i + 1), 'value'),
+        [Input('mechanism-type', 'value'), Input('tabs', 'value')],
+        state=[State('output-dropdown-{}'.format(i + 1), 'value')])(updateOutputDropdownsValue)
 
 
 # -------------------------------- OUTPUT GRAPHS CALLBACKS --------------------------------
