@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 17:19:04
+# @Last Modified time: 2018-01-16 21:55:02
 
 ''' Layout and callbacks of the web app. '''
 
@@ -30,7 +30,7 @@ from PointNICE.plt import getPatchesLoc
 from PointNICE.constants import SPIKE_MIN_DT, SPIKE_MIN_QAMP, SPIKE_MIN_VAMP
 
 
-# -------------------------------- PARAMETERS --------------------------------
+# -------------------------------- PLOT VARIABLES --------------------------------
 
 # Define output variables
 charge = {'names': ['Qm'], 'desc': 'charge density', 'label': 'charge', 'unit': 'nC/cm2',
@@ -88,6 +88,17 @@ neurons = {
 }
 
 
+# Set plotting parameters
+ngraphs = 3
+colorset = cl.scales[str(2 * ngraphs + 1)]['qual']['Set1']
+del colorset[5]
+tmin_plot = -5  # ms
+tmax_plot = 350  # ms
+
+
+# -------------------------------- INPUT RANGES & DEFAULT VARIABLES --------------------------------
+
+
 # Define parameter ranges for input sliders
 diams = [16.0, 32.0, 64.0]  # nm
 US_freqs = [200, 400, 600, 800, 1000]  # kHz
@@ -97,31 +108,18 @@ durs = [20, 40, 60, 80, 100, 150, 200, 250, 300]  # ms
 PRFs = [0.1, 0.2, 0.5, 1, 2, 5, 10]  # kHz
 DFs = [0.01, 0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1]
 
-# Define default cell, US and electricity parameters
+# Define default and initial parameters
 default_cell = {'neuron': 'RS', 'diameter': 1}
 default_US = {'freq': 1, 'amp': 4, 'dur': 2, 'PRF': 3, 'DF': 7}
 default_elec = {'amp': 10, 'dur': 2, 'PRF': 3, 'DF': 7}
-
 modalities = {'US': 1, 'elec': 2}
-
-
-# Set initial parameters
 current_cell = default_cell
 current_modality = modalities['US']
 current_stim = default_US if current_modality == modalities['US'] else default_elec
 default_vars = 'vars_US' if current_modality == modalities['US'] else 'vars_elec'
 current_stim = None
 
-
-# Set plotting parameters
-ngraphs = 3
-colorset = cl.scales[str(2 * ngraphs + 1)]['qual']['Set1']
-del colorset[5]
-tmin_plot = -5  # ms
-tmax_plot = 350  # ms
-
-
-# Create empty dataframe
+# Initialize global variables
 datafilepath = None
 df = None
 
@@ -161,7 +159,7 @@ app.layout = html.Div([
             [html.A(
                 html.Img(src='{}EPFL.png'.format(static_route), className='logo'),
                 href='https://www.epfl.ch'),
-            html.A(
+             html.A(
                 html.Img(src='{}TNE.png'.format(static_route), className='logo'),
                 href='https://tne.epfl.ch')],
             className='header-side', id='header-left'
@@ -233,8 +231,8 @@ app.layout = html.Div([
                 html.H5('Stimulation parameters', className='panel-title'),
 
                 dcc.Tabs(
-                    tabs=[{'label': 'Ultrasound', 'value': modalities['US']},
-                          {'label': 'Electricity', 'value': modalities['elec']}],
+                    tabs=[{'label': html.B('Ultrasound'), 'value': modalities['US']},
+                          {'label': html.B('Electricity'), 'value': modalities['elec']}],
                     value=current_modality,
                     id='tabs'
                 ),
@@ -406,15 +404,34 @@ app.layout = html.Div([
 ])
 
 
-
-# -------------------------------- INPUT ANIMATION CALLBACK --------------------------------
+# -------------------------------- NEURON MECHANISM CALLBACK --------------------------------
 
 @app.callback(Output('neuron-mechanism', 'src'), [Input('mechanism-type', 'value')])
 def update_image_src(value):
     return '{}{}_mech.png'.format(static_route, value)
 
 
-# -------------------------------- SLIDERS CALLBACKS --------------------------------
+# -------------------------------- SLIDER TABLES CALLBACKS --------------------------------
+
+@app.callback(Output('US-table', 'hidden'), [Input('tabs', 'value')])
+def toggle_US_table(value):
+    if value == 1:
+        hide = 0
+    else:
+        hide = 1
+    return hide
+
+
+@app.callback(Output('elec-table', 'hidden'), [Input('tabs', 'value')])
+def toggle_elec_table(value):
+    if value == 1:
+        hide = 1
+    else:
+        hide = 0
+    return hide
+
+
+# -------------------------------- US SLIDERS CALLBACKS --------------------------------
 
 def updateSlider(values, curr, factor=1, precision=0, suffix=''):
     marks = {i: '{:.{}f}{}'.format(values[i] * factor, precision, suffix) if i == curr else ''
@@ -452,6 +469,7 @@ def toggleUSPRFSlider(value):
     return value == len(DFs) - 1
 
 
+# -------------------------------- ELEC SLIDERS CALLBACKS --------------------------------
 
 @app.callback(Output('elec-amp-slider', 'marks'), [Input('elec-amp-slider', 'value')])
 def updateElecAmpSlider(value):
@@ -479,7 +497,6 @@ def toggleElecPRFSlider(value):
 
 
 # -------------------------------- OUTPUT DROPDOWNS CALLBACKS --------------------------------
-
 
 def updateOutputDropdowns(mech_type, stim_type):
     if stim_type == 1:
@@ -516,9 +533,7 @@ for i in range(ngraphs):
 #          Input('output-dropdown-{}'.format(i + 1), 'value')])(updateOutputDropdownsValue)
 
 
-
 # -------------------------------- OUTPUT GRAPHS CALLBACKS --------------------------------
-
 
 def updateData(mech_type, i_diam, i_modality,
                i_US_freq, i_US_amp, i_US_dur, i_US_PRF, i_US_DF,
@@ -812,24 +827,3 @@ def update_download_content(_):
 def update_download_name(_):
     filecode = os.path.splitext(os.path.basename(datafilepath))[0]
     return '{}.csv'.format(filecode)
-
-
-# -------------------------------- SLIDER TABLES CALLBACKS --------------------------------
-
-
-@app.callback(Output('US-table', 'hidden'), [Input('tabs', 'value')])
-def toggle_US_table(value):
-    if value == 1:
-        hide = 0
-    else:
-        hide = 1
-    return hide
-
-
-@app.callback(Output('elec-table', 'hidden'), [Input('tabs', 'value')])
-def toggle_elec_table(value):
-    if value == 1:
-        hide = 1
-    else:
-        hide = 0
-    return hide
