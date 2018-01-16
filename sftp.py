@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-10 14:55:11
+# @Last Modified time: 2018-01-16 07:47:05
 
 
 ''' Open SFTP channel and set the root of the remote DATA directory. '''

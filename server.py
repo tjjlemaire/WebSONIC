@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:41:07
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-15 19:07:30
+# @Last Modified time: 2018-01-16 09:39:00
 
 ''' Create a Flask server instance '''
 import os
@@ -18,7 +18,10 @@ image_directory = 'img/'
 
 # Add specific route to serve static files
 static_route = '/static/'
-list_of_images = [os.path.basename(x) for x in glob.glob('{}*_mech.png'.format(image_directory))]
+extensions = ['png', 'svg']
+list_of_images = []
+for ext in extensions:
+    list_of_images += [os.path.basename(x) for x in glob.glob('{}*.{}'.format(image_directory, ext))]
 
 css_route = '/css/'
 css_directory = os.getcwd()
@@ -27,7 +30,8 @@ stylesheets = ['dash_styles.css', 'my_styles.css']
 
 @server.route('{}<image_path>'.format(static_route))
 def serve_image(image_path):
-    image_name = '{}_mech.png'.format(image_path)
+    # image_name = '{}_mech.png'.format(image_path)
+    image_name = image_path
     if image_name not in list_of_images:
         raise Exception('"{}" is excluded from the allowed static files'.format(image_path))
     return send_from_directory(image_directory, image_name)

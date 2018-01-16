@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-15 19:06:46
+# @Last Modified time: 2018-01-16 09:38:21
 
 ''' Layout and callbacks of the web app. '''
 
@@ -143,22 +143,20 @@ for stylesheet in stylesheets:
     app.css.append_css({"external_url": "/css/{}".format(stylesheet)})
 
 
-
-# Load static image files into base64 strings
-epfl_logo = base64.b64encode(open('img/EPFL.png', 'rb').read()).decode()
-tne_logo = base64.b64encode(open('img/TNE.png', 'rb').read()).decode()
-
 app.layout = html.Div([
 
     # Favicon
-    # html.Link(rel='shortcut icon', href=static_route + 'icon'),
+    # html.Link(rel='shortcut icon', href=static_route + 'icon')
 
     # Header
     html.Div([
         html.Div(
             [html.A(
-                html.Img(src='data:image/png;base64,{}'.format(epfl_logo), className='logo'),
-                href='https://www.epfl.ch')],
+                html.Img(src='{}EPFL.png'.format(static_route), className='logo'),
+                href='https://www.epfl.ch'),
+            html.A(
+                html.Img(src='{}TNE.png'.format(static_route), className='logo'),
+                href='https://tne.epfl.ch')],
             className='header-side', id='header-left'
         ),
         html.Div([
@@ -167,12 +165,13 @@ app.layout = html.Div([
                      html.I('NICE'),
                      ' and ',
                      html.I('Hodgkin-Huxley'),
-                     ' models for different cell types'], className='header-txt')
+                     ' models'], className='header-txt'),
+            html.Img(src='{}nbls.svg'.format(static_route), id='main-logo')
         ], id='header-middle'),
         html.Div(
             [html.A(
-                html.Img(src='data:image/png;base64,{}'.format(tne_logo), className='logo'),
-                href='https://tne.epfl.ch')],
+                html.Img(src='{}ITIS.svg'.format(static_route), className='logo'),
+                href='https://www.itis.ethz.ch')],
             className='header-side', id='header-right'
         )
     ], id='header'),
@@ -379,6 +378,7 @@ app.layout = html.Div([
 
     ], id='container'),
 
+    html.Br(),
     html.Hr(className='separator'),
 
     # Footer
@@ -396,7 +396,7 @@ app.layout = html.Div([
 
 @app.callback(Output('neuron-mechanism', 'src'), [Input('mechanism-type', 'value')])
 def update_image_src(value):
-    return static_route + value
+    return '{}{}_mech.png'.format(static_route, value)
 
 
 # -------------------------------- SLIDERS CALLBACKS --------------------------------
@@ -481,16 +481,16 @@ for i in range(ngraphs):
          Input('tabs', 'value')])(updateOutputDropdowns)
 
 
-def updateOutputDropdownsValue(mech_type, stim_type, varname):
-    if stim_type == 1:
-        varlist = neurons[mech_type]['vars_US']
-    else:
-        varlist = neurons[mech_type]['vars_elec']
+# def updateOutputDropdownsValue(mech_type, stim_type, varname):
+#     if stim_type == 1:
+#         varlist = neurons[mech_type]['vars_US']
+#     else:
+#         varlist = neurons[mech_type]['vars_elec']
 
-    vargroups = [v['label'] for v in varlist]
-    if varname not in vargroups:
-        varname = vargroups[0]
-    return varname
+#     vargroups = [v['label'] for v in varlist]
+#     if varname not in vargroups:
+#         varname = vargroups[0]
+#     return varname
 
 
 # for i in range(ngraphs):

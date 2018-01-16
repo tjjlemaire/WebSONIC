@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-01-11 17:32:56
+* @Last Modified time: 2018-01-16 09:33:13
 */
 
 
@@ -53,11 +53,13 @@ p {
 
 .logo {
 	width: 100%;
-	/*display: block;*/
-    margin-left: auto;
-    margin-right: auto
+	margin: 0 auto;
 }
 
+
+#main-logo {
+	height: 6em;
+}
 
 #footer {
 	width: 100%;
@@ -76,15 +78,16 @@ p {
 -----------------------------------------*/
 
 #container {
-	margin: 0;
+	margin: 0 auto;
 	padding: 0;
+	width: 100%;
+	overflow-x: hidden;
 }
 
 .grid-div {
     float: left;
     width: 100%;
     padding: 0;
-    /*background-color: green;*/
 }
 
 @media (min-width:60em){
@@ -102,6 +105,7 @@ p {
     	padding-right: 10em;
     }
 }
+
 
 
 /* Panel
