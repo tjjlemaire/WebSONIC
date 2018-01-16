@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 21:55:02
+# @Last Modified time: 2018-01-16 22:41:29
 
 ''' Layout and callbacks of the web app. '''
 
@@ -231,8 +231,8 @@ app.layout = html.Div([
                 html.H5('Stimulation parameters', className='panel-title'),
 
                 dcc.Tabs(
-                    tabs=[{'label': html.B('Ultrasound'), 'value': modalities['US']},
-                          {'label': html.B('Electricity'), 'value': modalities['elec']}],
+                    tabs=[{'label': 'Ultrasound', 'value': modalities['US']},
+                          {'label': 'Electricity', 'value': modalities['elec']}],
                     value=current_modality,
                     id='tabs'
                 ),
