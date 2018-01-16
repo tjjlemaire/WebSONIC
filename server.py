@@ -4,12 +4,12 @@
 # @Date:   2017-07-11 18:41:07
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 09:39:00
+# @Last Modified time: 2018-01-16 17:00:39
 
 ''' Create a Flask server instance '''
 import os
 import glob
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, send_file
 
 # Create server instance
 server = Flask(__name__)
@@ -30,7 +30,6 @@ stylesheets = ['dash_styles.css', 'my_styles.css']
 
 @server.route('{}<image_path>'.format(static_route))
 def serve_image(image_path):
-    # image_name = '{}_mech.png'.format(image_path)
     image_name = image_path
     if image_name not in list_of_images:
         raise Exception('"{}" is excluded from the allowed static files'.format(image_path))

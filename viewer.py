@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 09:38:21
+# @Last Modified time: 2018-01-16 17:12:04
 
 ''' Layout and callbacks of the web app. '''
 
@@ -20,6 +20,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import colorlover as cl
+import pandas as pd
+import urllib
 
 from server import server, static_route, stylesheets
 from sftp import channel, data_root
@@ -109,6 +111,7 @@ current_cell = default_cell
 current_modality = modalities['US']
 current_stim = default_US if current_modality == modalities['US'] else default_elec
 default_vars = 'vars_US' if current_modality == modalities['US'] else 'vars_elec'
+current_stim = None
 
 
 # Set plotting parameters
@@ -117,6 +120,11 @@ colorset = cl.scales[str(2 * ngraphs + 1)]['qual']['Set1']
 del colorset[5]
 tmin_plot = -5  # ms
 tmax_plot = 350  # ms
+
+
+# Create empty dataframe
+datafilepath = None
+df = None
 
 
 # -------------------------------- APPLICATION --------------------------------
@@ -364,12 +372,19 @@ app.layout = html.Div([
                             ),
 
                             # Horizontal line
-                            html.Hr(className='graph-separator') if i < ngraphs - 1 else None,
+                            html.Hr(className='graph-separator'),
                         ],
                         id='output-{}'.format(i),
                         className='graph-div')
                       for i in range(ngraphs)],
 
+                    html.Div([
+                        html.A('Download Data',
+                               id='download-link',
+                               download="",
+                               href="",
+                               target="_blank")],
+                        id='download-wrapper')
                 ],
                 className='panel'
             )
@@ -390,6 +405,7 @@ app.layout = html.Div([
 
 
 ])
+
 
 
 # -------------------------------- INPUT ANIMATION CALLBACK --------------------------------
@@ -653,12 +669,18 @@ def getData(cell_params, stim_params, data_root):
         :return: the simulation data for that specific cell and stimulation parameters.
     '''
 
+    global df
+    global datafilepath
+
     # Split parameters explicitly
     mech_type = cell_params['neuron']
     a = cell_params['diameter']
 
+
+
     # Define path to input file (ESTIM or ASTIM)
     if stim_params['freq'] is None:
+        vardict = neurons[mech_type]['vars_elec']
         filedir = '{}/{}/Elec/{:.0f}mAm2'.format(data_root, mech_type, stim_params['amp'])
         if stim_params['DF'] == 1.0:
             filecode = 'ESTIM_{}_CW_{:.1f}mA_per_m2_{:.0f}ms'.format(
@@ -668,6 +690,7 @@ def getData(cell_params, stim_params, data_root):
                 mech_type, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
                 stim_params['DF'])
     else:
+        vardict = neurons[mech_type]['vars_US']
         Fdrive = stim_params['freq']
         filedir = '{}/{}/US/{:.0f}nm/{:.0f}kHz'.format(data_root, mech_type, a, Fdrive)
         if stim_params['DF'] == 1.0:
@@ -685,20 +708,33 @@ def getData(cell_params, stim_params, data_root):
 
     if channel.isfile(pkl_filepath):
         print('existing file')
+        datafilepath = '{}/tmp/{}.pkl'.format(os.getcwd(), filecode).replace('\\', '/')
         t0 = time.time()
-        tmpfile = '{}/tmp/{}.pkl'.format(os.getcwd(), filecode).replace('\\', '/')
         print('retrieving file...')
-        channel.get(pkl_filepath, localpath=tmpfile)
+        channel.get(pkl_filepath, localpath=datafilepath)
         print('opening file...')
-        with open(tmpfile, 'rb') as pkl_file:
+        with open(datafilepath, 'rb') as pkl_file:
             file_data = pickle.load(pkl_file)
-        if os.path.isfile(tmpfile):
-            os.remove(tmpfile)
+        if os.path.isfile(datafilepath):
+            os.remove(datafilepath)
         print('file loaded in {:.0f} ms'.format((time.time() - t0) * 1e3))
     else:
         print('Data file "{}" not found on server'.format(pkl_filepath))
         file_data = None
 
+    # Create pandas dataframe from file data (for further download purposes)
+    varlist = ['t']
+    unitlist = ['ms']
+    factorlist = [1e3]
+    for x in vardict:
+        names = x['names']
+        varlist += names
+        unitlist += [x['unit']] * len(names)
+        factorlist += [x['factor']] * len(names)
+    df = pd.DataFrame(data={'{} ({})'.format(key, unitlist[i]): file_data[key] * factorlist[i]
+                            for i, key in enumerate(varlist)})
+
+    # Return raw file data
     return file_data
 
 
@@ -750,18 +786,36 @@ def updateInfoTable(_):
         rows.append(
             html.Tr([
                 html.Td('Latency'),
-                html.Td('{:.1f} ms'.format(lat * 1e3) if isinstance(lat, float) else '---')
+                html.Td('{:.2f} ms'.format(lat * 1e3) if isinstance(lat, float) else '---')
             ])
         )
     if n_spikes > 1:
         rows.append(
             html.Tr([
                 html.Td('Firing rate'),
-                html.Td('{:.1f} kHz'.format(sr * 1e-3) if isinstance(sr, float) else '---')
+                html.Td('{:.2f} kHz'.format(sr * 1e-3) if isinstance(sr, float) else '---')
             ])
         )
 
     return rows
+
+
+# -------------------------------- DOWNLOAD LINK CALLBACK --------------------------------
+
+@app.callback(Output('download-link', 'href'), [Input('output-curve-1', 'figure')])
+def update_download_content(_):
+    csv_string = df.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+    return csv_string
+
+
+@app.callback(Output('download-link', 'download'), [Input('output-curve-1', 'figure')])
+def update_download_name(_):
+    filecode = os.path.splitext(os.path.basename(datafilepath))[0]
+    return '{}.csv'.format(filecode)
+
+
+# -------------------------------- SLIDER TABLES CALLBACKS --------------------------------
 
 
 @app.callback(Output('US-table', 'hidden'), [Input('tabs', 'value')])
