@@ -4,14 +4,14 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 17:12:04
+# @Last Modified time: 2018-01-16 17:19:04
 
 ''' Layout and callbacks of the web app. '''
 
 import os
 import time
 import pickle
-import base64
+import urllib
 import numpy as np
 import dash
 from dash.dependencies import Input, Output
@@ -21,7 +21,6 @@ import dash_html_components as html
 import plotly.graph_objs as go
 import colorlover as cl
 import pandas as pd
-import urllib
 
 from server import server, static_route, stylesheets
 from sftp import channel, data_root

@@ -4,12 +4,12 @@
 # @Date:   2017-07-11 18:41:07
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 17:00:39
+# @Last Modified time: 2018-01-16 20:41:07
 
 ''' Create a Flask server instance '''
 import os
 import glob
-from flask import Flask, send_from_directory, send_file
+from flask import Flask, send_from_directory
 
 # Create server instance
 server = Flask(__name__)
