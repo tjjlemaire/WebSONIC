@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 23:08:56
+# @Last Modified time: 2018-01-17 18:11:17
 
 ''' Layout and callbacks of the web app. '''
 
@@ -717,22 +717,18 @@ def getData(cell_params, stim_params, data_root):
 
     pkl_filepath = '{}/{}.pkl'.format(filedir, filecode)
 
-    print('retrieving file {} from server'.format(pkl_filepath))
-
     if channel.isfile(pkl_filepath):
-        print('existing file')
         datafilepath = '{}/tmp/{}.pkl'.format(os.getcwd(), filecode).replace('\\', '/')
+        print('downloading "{}.pkl" file from server...'.format(filecode))
         t0 = time.time()
-        print('retrieving file...')
         channel.get(pkl_filepath, localpath=datafilepath)
-        print('opening file...')
         with open(datafilepath, 'rb') as pkl_file:
             file_data = pickle.load(pkl_file)
         if os.path.isfile(datafilepath):
             os.remove(datafilepath)
-        print('file loaded in {:.0f} ms'.format((time.time() - t0) * 1e3))
+        print('file data loaded in {:.0f} ms'.format((time.time() - t0) * 1e3))
     else:
-        print('Data file "{}" not found on server'.format(pkl_filepath))
+        print('"{}" file not found on server'.format(pkl_filepath))
         file_data = None
 
     # Create pandas dataframe from file data (for further download purposes)
