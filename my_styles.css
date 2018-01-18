@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-01-18 17:14:24
+* @Last Modified time: 2018-01-18 22:13:05
 */
 
 
@@ -167,8 +167,22 @@ summary {
 
 .table {
 	width: 100%;
+	text-align: center;
 }
 
 .slider-row {
 	height: 4em;
+}
+
+
+.input-row {
+	height: 4em;
+}
+
+.input-div {
+	text-align: center;
+}
+
+.submit-button {
+	margin-top: 1em;
 }

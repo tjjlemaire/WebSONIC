@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-18 17:14:04
+# @Last Modified time: 2018-01-19 00:19:56
 
 ''' Layout and callbacks of the web app. '''
 
@@ -122,6 +122,9 @@ current_stim = None
 # Initialize global variables
 datafilepath = None
 df = None
+n_US_submits = 0
+n_elec_submits = 0
+is_submit = False
 
 
 # -------------------------------- APPLICATION --------------------------------
@@ -233,12 +236,13 @@ app.layout = html.Div([
                     tabs=[{'label': 'Ultrasound', 'value': modalities['US']},
                           {'label': 'Electricity', 'value': modalities['elec']}],
                     value=current_modality,
-                    id='tabs'
+                    id='modality-tabs'
                 ),
 
                 dcc.Checklist(
-                    options=[{'label': 'custom', 'value': '1'}],
-                    values=['0', '1']
+                    options=[{'label': 'custom', 'value': 'custom'}],
+                    values=[],
+                    id='custom-params-check'
                 ),
 
                 html.Table([
@@ -248,7 +252,7 @@ app.layout = html.Div([
                             dcc.Slider(
                                 id='elec-amp-slider',
                                 min=0, max=len(elec_amps) - 1, step=1, value=default_elec['amp']
-                            )
+                            ), style={'width': '70%'}
                         )
                     ], className='slider-row'),
                     html.Tr([
@@ -278,7 +282,39 @@ app.layout = html.Div([
                             )
                         )
                     ], className='slider-row')
-                ], id='elec-table', className='table', hidden=0),
+                ], id='elec-slider-table', className='table', hidden=0),
+
+
+                html.Div([
+                    html.Table([
+                        html.Tr([
+                            html.Td('Amplitude (mA/m2)', style={'width': '30%'}),
+                            html.Td(dcc.Input(id='elec-amp-input', type='number',
+                                              min=-100.0, max=100.0, value=10.0),
+                                    style={'width': '70%'})
+                        ], className='input-row'),
+                        html.Tr([
+                            html.Td('Duration (ms)'),
+                            html.Td(dcc.Input(id='elec-dur-input', type='number',
+                                              min=0.0, max=350.0, value=50.0))
+                        ], className='input-row'),
+                        html.Tr([
+                            html.Td('PRF (kHz)'),
+                            html.Td(dcc.Input(id='elec-PRF-input', type='number',
+                                              min=0.001, max=10.0, value=0.1))
+                        ], className='input-row'),
+                        html.Tr([
+                            html.Td('Duty cycle (%)'),
+                            html.Td(dcc.Input(id='elec-DF-input', type='number',
+                                              min=0.0, max=100.0, value=100.0))
+                        ], className='input-row')
+                    ], className='table'),
+
+                    html.Button('Submit', id='elec-input-submit', className='submit-button')
+
+                ], id='elec-input-table', className='input-div', hidden=0),
+
+
 
                 html.Table([
                     html.Tr([
@@ -326,7 +362,43 @@ app.layout = html.Div([
                             )
                         )
                     ], className='slider-row')
-                ], id='US-table', className='table', hidden=0)
+                ], id='US-slider-table', className='table', hidden=0),
+
+
+                html.Div([
+                    html.Table([
+                        html.Tr([
+                            html.Td('Frequency (kHz)', style={'width': '30%'}),
+                            html.Td(dcc.Input(id='US-freq-input', type='number',
+                                              min=100.0, max=1000.0, value=100.0),
+                                    style={'width': '70%'})
+                        ], className='input-row'),
+                        html.Tr([
+                            html.Td('Amplitude (kPa)'),
+                            html.Td(dcc.Input(id='US-amp-input', type='number', inputmode='numeric',
+                                              min=0.0, max=650.0, value=100.0))
+                        ], className='input-row'),
+                        html.Tr([
+                            html.Td('Duration (ms)'),
+                            html.Td(dcc.Input(id='US-dur-input', type='number',
+                                              min=0.0, max=350.0, value=50.0))
+                        ], className='input-row'),
+                        html.Tr([
+                            html.Td('PRF (kHz)'),
+                            html.Td(dcc.Input(id='US-PRF-input', type='number',
+                                              min=0.001, max=10.0, value=0.1))
+                        ], className='input-row'),
+                        html.Tr([
+                            html.Td('Duty cycle (%)'),
+                            html.Td(dcc.Input(id='US-DF-input', type='number',
+                                              min=0.0, max=100.0, value=100.0))
+                        ], className='input-row'),
+                    ], className='table'),
+
+                    html.Button('Submit', id='US-input-submit', className='submit-button')
+
+                ], id='US-input-table', className='input-div', hidden=0),
+
             ], open=1, className='panel'),
 
 
@@ -417,23 +489,50 @@ def update_image_src(value):
     return '{}{}_mech.png'.format(static_route, value)
 
 
-# -------------------------------- SLIDER TABLES CALLBACKS --------------------------------
+# -------------------------------- TABLES CALLBACKS --------------------------------
 
-@app.callback(Output('US-table', 'hidden'), [Input('tabs', 'value')])
-def toggle_US_table(value):
-    if value == 1:
+@app.callback(
+    Output('US-slider-table', 'hidden'),
+    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
+def toggle_US_slider_table(mod_value, custom_value):
+    if mod_value == 1 and custom_value == []:
         hide = 0
     else:
         hide = 1
     return hide
 
 
-@app.callback(Output('elec-table', 'hidden'), [Input('tabs', 'value')])
-def toggle_elec_table(value):
-    if value == 1:
-        hide = 1
-    else:
+@app.callback(
+    Output('US-input-table', 'hidden'),
+    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
+def toggle_US_input_table(mod_value, custom_value):
+    if mod_value == 1 and custom_value == ['custom']:
         hide = 0
+    else:
+        hide = 1
+    return hide
+
+
+
+@app.callback(
+    Output('elec-slider-table', 'hidden'),
+    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
+def toggle_elec_slider_table(mod_value, custom_value):
+    if mod_value == 2 and custom_value == []:
+        hide = 0
+    else:
+        hide = 1
+    return hide
+
+
+@app.callback(
+    Output('elec-input-table', 'hidden'),
+    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
+def toggle_elec_input_table(mod_value, custom_value):
+    if mod_value == 2 and custom_value == ['custom']:
+        hide = 0
+    else:
+        hide = 1
     return hide
 
 
@@ -516,7 +615,7 @@ for i in range(ngraphs):
     app.callback(
         Output('output-dropdown-{}'.format(i + 1), 'options'),
         [Input('mechanism-type', 'value'),
-         Input('tabs', 'value')])(updateOutputDropdowns)
+         Input('modality-tabs', 'value')])(updateOutputDropdowns)
 
 
 def updateOutputDropdownsValue(mech_type, stim_type, varname):
@@ -533,26 +632,59 @@ def updateOutputDropdownsValue(mech_type, stim_type, varname):
 for i in range(ngraphs):
     app.callback(
         Output('output-dropdown-{}'.format(i + 1), 'value'),
-        [Input('mechanism-type', 'value'), Input('tabs', 'value')],
+        [Input('mechanism-type', 'value'), Input('modality-tabs', 'value')],
         state=[State('output-dropdown-{}'.format(i + 1), 'value')])(updateOutputDropdownsValue)
 
 
 # -------------------------------- OUTPUT GRAPHS CALLBACKS --------------------------------
 
+
 def updateData(mech_type, i_diam, i_modality,
                i_US_freq, i_US_amp, i_US_dur, i_US_PRF, i_US_DF,
                i_elec_amp, i_elec_dur, i_elec_PRF, i_elec_DF,
-               varname, dd_str):
+               US_input_submit, elec_input_submit,
+               varname,
+               US_freq_input, US_amp_input, US_dur_input, US_PRF_input, US_DF_input,
+               elec_amp_input, elec_dur_input, elec_PRF_input, elec_DF_input,
+               dd_str):
     global colorset
+    global n_US_submits
+    global n_elec_submits
+    global is_submit
+
     idx = int(dd_str[-1])
     colors = colorset[2 * idx - 2: 2 * idx]
 
-    if i_modality == modalities['US']:  # US
-        return updateCurve(mech_type, diams[i_diam], US_freqs[i_US_freq], US_amps[i_US_amp],
-                           durs[i_US_dur], PRFs[i_US_PRF], DFs[i_US_DF], varname, colors)
-    else:  # Elec
-        return updateCurve(mech_type, diams[i_diam], None, elec_amps[i_elec_amp],
-                           durs[i_elec_dur], PRFs[i_elec_PRF], DFs[i_elec_DF], varname, colors)
+    # US case
+    if i_modality == modalities['US']:
+        # click on input submit button
+        if isinstance(US_input_submit, int) and US_input_submit == n_US_submits + 1:
+            print('click on US submit')
+            n_US_submits += 1
+            is_submit = True
+            US_inputs = (US_freq_input, US_amp_input, US_dur_input, US_PRF_input, US_DF_input)
+            US_values = [float(x) for x in US_inputs]
+            return updateCurve(mech_type, diams[i_diam], *US_values, varname, colors)
+
+        # input slider or output dropdown change
+        else:
+            return updateCurve(mech_type, diams[i_diam], US_freqs[i_US_freq], US_amps[i_US_amp],
+                               durs[i_US_dur], PRFs[i_US_PRF], DFs[i_US_DF], varname, colors)
+    # Elec case
+    else:
+        # click on input submit button
+        if isinstance(elec_input_submit, int) and elec_input_submit == n_elec_submits + 1:
+            print('click on elec submit')
+            n_elec_submits += 1
+            is_submit = True
+            elec_inputs = (elec_amp_input, elec_dur_input, elec_PRF_input, elec_DF_input)
+            elec_values = [float(x) for x in elec_inputs]
+            return updateCurve(mech_type, diams[i_diam], None, *elec_values, varname, colors)
+
+        # input slider or output dropdown change
+        else:
+            return updateCurve(mech_type, diams[i_diam], None, elec_amps[i_elec_amp],
+                               durs[i_elec_dur], PRFs[i_elec_PRF], DFs[i_elec_DF], varname, colors)
 
 
 def updateCurve(mech_type, diameter, Fdrive, Astim, tstim, PRF, DF, varname, colors):
@@ -694,47 +826,61 @@ def getData(cell_params, stim_params, data_root):
     mech_type = cell_params['neuron']
     a = cell_params['diameter']
 
-
-
-    # Define path to input file (ESTIM or ASTIM)
-    if stim_params['freq'] is None:
-        vardict = neurons[mech_type]['vars_elec']
-        filedir = '{}/{}/Elec/{:.0f}mAm2'.format(data_root, mech_type, stim_params['amp'])
-        if stim_params['DF'] == 1.0:
-            filecode = 'ESTIM_{}_CW_{:.1f}mA_per_m2_{:.0f}ms'.format(
-                mech_type, stim_params['amp'], stim_params['dur'])
+    # Custom parameters -> run simulation
+    if is_submit:
+        if stim_params['freq'] is None:
+            vardict = neurons[mech_type]['vars_elec']
+            print('running ESTIM simulation')
+            # file_data = ...
         else:
-            filecode = 'ESTIM_{}_PW_{:.1f}mA_per_m2_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}'.format(
-                mech_type, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
-                stim_params['DF'])
+            vardict = neurons[mech_type]['vars_US']
+            print('running ASTIM simulation')
+            # file_data = ...
+
+    # Standard parameters -> retrieve simulation file
     else:
-        vardict = neurons[mech_type]['vars_US']
-        Fdrive = stim_params['freq']
-        filedir = '{}/{}/US/{:.0f}nm/{:.0f}kHz'.format(data_root, mech_type, a, Fdrive)
-        if stim_params['DF'] == 1.0:
-            filecode = 'ASTIM_{}_CW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_effective'.format(
-                mech_type, a, Fdrive, stim_params['amp'], stim_params['dur'])
+
+        # Define path to input file (ESTIM or ASTIM)
+        if stim_params['freq'] is None:
+            vardict = neurons[mech_type]['vars_elec']
+            filedir = '{}/{}/Elec/{:.0f}mAm2'.format(data_root, mech_type, stim_params['amp'])
+            if stim_params['DF'] == 1.0:
+                filecode = 'ESTIM_{}_CW_{:.1f}mA_per_m2_{:.0f}ms'.format(
+                    mech_type, stim_params['amp'], stim_params['dur'])
+            else:
+                filecode = 'ESTIM_{}_PW_{:.1f}mA_per_m2_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}'.format(
+                    mech_type, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
+                    stim_params['DF'])
         else:
-            filecode = 'ASTIM_{}_PW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}_effective'.format(
-                mech_type, a, Fdrive, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
-                stim_params['DF'])
+            vardict = neurons[mech_type]['vars_US']
+            Fdrive = stim_params['freq']
+            filedir = '{}/{}/US/{:.0f}nm/{:.0f}kHz'.format(data_root, mech_type, a, Fdrive)
+            if stim_params['DF'] == 1.0:
+                filecode = 'ASTIM_{}_CW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_effective'.format(
+                    mech_type, a, Fdrive, stim_params['amp'], stim_params['dur'])
+            else:
+                filecode = 'ASTIM_{}_PW_{:.0f}nm_{:.0f}kHz_{:.0f}kPa_{:.0f}ms_PRF{:.2f}kHz_DF{:.2f}_effective'.format(
+                    mech_type, a, Fdrive, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
+                    stim_params['DF'])
 
 
-    pkl_filepath = '{}/{}.pkl'.format(filedir, filecode)
+        pkl_filepath = '{}/{}.pkl'.format(filedir, filecode)
 
-    if channel.isfile(pkl_filepath):
-        datafilepath = '{}/tmp/{}.pkl'.format(os.getcwd(), filecode).replace('\\', '/')
-        print('downloading "{}.pkl" file from server...'.format(filecode))
-        t0 = time.time()
-        channel.get(pkl_filepath, localpath=datafilepath)
-        with open(datafilepath, 'rb') as pkl_file:
-            file_data = pickle.load(pkl_file)
-        if os.path.isfile(datafilepath):
-            os.remove(datafilepath)
-        print('file data loaded in {:.0f} ms'.format((time.time() - t0) * 1e3))
-    else:
-        print('"{}" file not found on server'.format(pkl_filepath))
-        file_data = None
+        if channel.isfile(pkl_filepath):
+            datafilepath = '{}/tmp/{}.pkl'.format(os.getcwd(), filecode).replace('\\', '/')
+            print('downloading "{}.pkl" file from server...'.format(filecode))
+            t0 = time.time()
+            channel.get(pkl_filepath, localpath=datafilepath)
+            with open(datafilepath, 'rb') as pkl_file:
+                file_data = pickle.load(pkl_file)
+            if os.path.isfile(datafilepath):
+                os.remove(datafilepath)
+            print('file data loaded in {:.0f} ms'.format((time.time() - t0) * 1e3))
+        else:
+            print('"{}" file not found on server'.format(pkl_filepath))
+            file_data = None
+
+
 
     # Create pandas dataframe from file data (for further download purposes)
     varlist = ['t']
@@ -757,7 +903,7 @@ for i in range(ngraphs):
         Output('output-curve-{}'.format(i + 1), 'figure'),
         [Input('mechanism-type', 'value'),
          Input('diam-slider', 'value'),
-         Input('tabs', 'value'),
+         Input('modality-tabs', 'value'),
          Input('US-freq-slider', 'value'),
          Input('US-amp-slider', 'value'),
          Input('US-dur-slider', 'value'),
@@ -767,8 +913,19 @@ for i in range(ngraphs):
          Input('elec-dur-slider', 'value'),
          Input('elec-PRF-slider', 'value'),
          Input('elec-DF-slider', 'value'),
-         Input('output-dropdown-{}'.format(i + 1), 'value'),
-         Input('output-dropdown-{}'.format(i + 1), 'id')])(updateData)
+         Input('US-input-submit', 'n_clicks'),
+         Input('elec-input-submit', 'n_clicks'),
+         Input('output-dropdown-{}'.format(i + 1), 'value')],
+        [State('US-freq-input', 'value'),
+         State('US-amp-input', 'value'),
+         State('US-dur-input', 'value'),
+         State('US-PRF-input', 'value'),
+         State('US-DF-input', 'value'),
+         State('elec-amp-input', 'value'),
+         State('elec-dur-input', 'value'),
+         State('elec-PRF-input', 'value'),
+         State('elec-DF-input', 'value'),
+         State('output-dropdown-{}'.format(i + 1), 'id')])(updateData)
 
 
 # -------------------------------- OUTPUT METRICS CALLBACKS --------------------------------
