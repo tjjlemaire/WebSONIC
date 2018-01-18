@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-01-16 22:54:13
+* @Last Modified time: 2018-01-18 17:14:24
 */
 
 
@@ -112,17 +112,29 @@ p {
 /* Panel
 -----------------------------------------*/
 
-
-.panel-title {
-	text-align: center;
-}
-
-
 .panel {
 	padding: 0 2em 1em 1em;
 	margin: 1em;
 	background-color: white;
     box-shadow: 2px 2px 5px #888888;
+}
+
+
+summary {
+	outline: none;
+}
+
+.panel-title {
+	font-size: 2.2rem;
+	line-height: 1.5;
+	letter-spacing: -.05rem;
+	margin-bottom: 0.6rem;
+	margin-top: 0.6rem;
+	/*outline: none;*/
+}
+
+#output-panel-title {
+	text-align: center;
 }
 
 
@@ -139,6 +151,7 @@ p {
 	height: 2px;
     color: #bfbfbf;
     background-color: #bfbfbf;
+    /*display: inline-block;*/
 }
 
 

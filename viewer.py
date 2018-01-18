@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-17 18:11:17
+# @Last Modified time: 2018-01-18 17:14:04
 
 ''' Layout and callbacks of the web app. '''
 
@@ -190,10 +190,9 @@ app.layout = html.Div([
         # Left side
         html.Div([
 
-            # Cell parameters panel
-            html.Div([
-                html.H5('Cell parameters', className='panel-title'),
-
+            # Cell parameters panel (collapsable)
+            html.Details([
+                html.Summary('Cell parameters', className='panel-title'),
                 html.Table([
                     html.Tr([
                         html.Td('Cell type', style={'width': '35%'}),
@@ -223,19 +222,23 @@ app.layout = html.Div([
                         )
                     ], className='slider-row')
                 ], className='table'),
+            ], open=1, className='panel'),
 
-            ], className='panel'),
 
-
-            # Stim parameters panel
-            html.Div([
-                html.H5('Stimulation parameters', className='panel-title'),
+            # Stim parameters panel (collapsable)
+            html.Details([
+                html.Summary('Stimulation parameters', className='panel-title'),
 
                 dcc.Tabs(
                     tabs=[{'label': 'Ultrasound', 'value': modalities['US']},
                           {'label': 'Electricity', 'value': modalities['elec']}],
                     value=current_modality,
                     id='tabs'
+                ),
+
+                dcc.Checklist(
+                    options=[{'label': 'custom', 'value': '1'}],
+                    values=['0', '1']
                 ),
 
                 html.Table([
@@ -324,15 +327,14 @@ app.layout = html.Div([
                         )
                     ], className='slider-row')
                 ], id='US-table', className='table', hidden=0)
+            ], open=1, className='panel'),
 
-            ], className='panel'),
 
-
-            # Output metrics panel
-            html.Div([
-                html.H5('Output metrics', className='panel-title'),
+            # Output metrics panel (collapsable)
+            html.Details([
+                html.Summary('Output metrics', className='panel-title'),
                 html.Table(id='info-table', className='table')
-            ], className='panel'),
+            ], open=1, className='panel'),
 
         ], id='left-div', className='grid-div'),
 
@@ -342,10 +344,15 @@ app.layout = html.Div([
             # Graphs panel
             html.Div(
                 [
-                    html.H5('Neural response', className='panel-title'),
+                    html.H5('Neural response', className='panel-title', id='output-panel-title'),
 
                     *[html.Div(
                         [
+
+                            # html.Summary('graph {}'.format(i + 1), className='add-graph'),
+
+                            html.Hr(className='graph-separator') if i > 0 else None,
+
                             # Dropdown list
                             dcc.Dropdown(
                                 id='output-dropdown-{}'.format(i + 1),
@@ -355,7 +362,7 @@ app.layout = html.Div([
                                      'value': v['label']}
                                     for v in neurons[default_cell['neuron']][default_vars]
                                 ],
-                                value=neurons[default_cell['neuron']][default_vars][i]['label']
+                                value=neurons[default_cell['neuron']][default_vars][i]['label'],
                             ),
 
                             # Graph
@@ -368,10 +375,8 @@ app.layout = html.Div([
                                     'modeBarButtonsToRemove': ['sendDataToCloud', 'displaylogo']
                                 }
                             ),
-
-                            # Horizontal line
-                            html.Hr(className='graph-separator'),
                         ],
+                        # open=1 if i < 1 else 0,
                         id='output-{}'.format(i),
                         className='graph-div')
                       for i in range(ngraphs)],
