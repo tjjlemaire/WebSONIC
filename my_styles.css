@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-01-18 22:13:05
+* @Last Modified time: 2018-01-19 11:15:43
 */
 
 
@@ -122,6 +122,7 @@ p {
 
 summary {
 	outline: none;
+	cursor: pointer;
 }
 
 .panel-title {
@@ -177,6 +178,10 @@ summary {
 
 .input-row {
 	height: 4em;
+}
+
+.input-box {
+	width: 10em;
 }
 
 .input-div {

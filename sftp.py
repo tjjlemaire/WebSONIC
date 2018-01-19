@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 07:47:05
+# @Last Modified time: 2018-01-19 11:30:03
 
 
 ''' Open SFTP channel and set the root of the remote DATA directory. '''
@@ -12,7 +12,7 @@
 import base64
 import pysftp
 
-data_root = 'WebNICE_data'
+remoteroot = 'WebNICE_data'
 
 # server information
 host_b64 = b'MTI4LjE3OC44NC45Mg=='  # IP address of data server (base-64 encoded)
