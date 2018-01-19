@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-19 15:26:54
+# @Last Modified time: 2018-01-19 15:52:18
 
 ''' Layout and callbacks of the web app. '''
 
@@ -671,8 +671,6 @@ def propagateInputs(mech_type, i_diam, i_modality, is_custom,
     global is_submit
     global iprop
 
-    print('call to propagateInputs')
-
     idx = int(dd_str[-1])
     colors = colorset[2 * idx - 2: 2 * idx]
 
@@ -762,9 +760,6 @@ def updateCurve(mech_type, diameter, Fdrive, Astim, tstim, PRF, DF, varname, col
         'PRF': PRF,
         'DF': DF
     }
-
-    print(current_stim)
-    print(stim_new)
 
     # Load new data if parameters have changed
     if cell_new != current_cell or stim_new != current_stim:
@@ -866,8 +861,6 @@ def updateData(cell_params, stim_params):
         :return: the simulation data for that specific cell and stimulation parameters.
     '''
 
-    print('call to updateData')
-
     global df
     global localfilepath
 
@@ -920,8 +913,7 @@ def updateData(cell_params, stim_params):
                                    stim_params['amp'] * 1e3, stim_params['dur'] * 1e-3,
                                    (350 - stim_params['dur']) * 1e-3, stim_params['PRF'] * 1e3,
                                    stim_params['DF'])
-        print(outfilepath)
-        print(localfilepath)
+
         assert outfilepath == localfilepath, 'Local filepath not matching'
 
     # Standard parameters -> retrieve file from server
