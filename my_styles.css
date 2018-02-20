@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-01-22 16:35:20
+* @Last Modified time: 2018-02-20 11:35:09
 */
 
 
@@ -75,38 +75,36 @@ p {
 }
 
 
-/* Container
+/* Content
 -----------------------------------------*/
 
-#container {
+#content {
 	margin: 0 auto;
 	padding: 0;
 	width: 100%;
 	overflow-x: hidden;
 }
 
-.grid-div {
+.content-column {
     float: left;
     width: 100%;
     padding: 0;
 }
 
 @media (min-width:60em){
-    #left-div {
+    #left-col {
     	width: 35em;
     }
-    #right-div {
+    #right-col {
     	width: calc(100% - 35em);
     }
 }
 
 @media (min-width:100em){
-    #container {
-    	padding-left: 10em;
-    	padding-right: 10em;
+    #content {
+    	width: 100em;
     }
 }
-
 
 
 /* Panel

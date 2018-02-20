@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-19 15:52:18
+# @Last Modified time: 2018-02-20 11:13:50
 
 ''' Layout and callbacks of the web app. '''
 
@@ -417,7 +417,7 @@ app.layout = html.Div([
                 html.Table(id='info-table', className='table')
             ], open=1, className='panel'),
 
-        ], id='left-div', className='grid-div'),
+        ], id='left-col', className='content-column'),
 
         # Right side
         html.Div([
@@ -473,9 +473,9 @@ app.layout = html.Div([
                 className='panel'
             )
 
-        ], id='right-div', className='grid-div')
+        ], id='right-col', className='content-column')
 
-    ], id='container'),
+    ], id='content'),
 
     html.Br(),
     html.Hr(className='separator'),
