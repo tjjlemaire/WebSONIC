@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-02-20 11:13:50
+# @Last Modified time: 2018-02-20 16:09:06
 
 ''' Layout and callbacks of the web app. '''
 
@@ -248,10 +248,14 @@ app.layout = html.Div([
                     id='modality-tabs'
                 ),
 
-                dcc.Checklist(
-                    options=[{'label': 'custom', 'value': 'custom'}],
-                    values=[],
-                    id='custom-params-check'
+                dcc.RadioItems(
+                    id='toggle-custom',
+                    options=[
+                        {'label': 'Standard    ', 'value': True},
+                        {'label': 'Custom   ', 'value': False},
+                    ],
+                    value=True,
+                    labelStyle={'display': 'inline-block'}
                 ),
 
                 html.Table([
@@ -502,9 +506,9 @@ def updateImgSrc(value):
 
 @app.callback(
     Output('US-slider-table', 'hidden'),
-    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
-def toggleSliderTableUS(mod_value, is_custom):
-    if mod_value == 1 and is_custom == []:
+    [Input('modality-tabs', 'value'), Input('toggle-custom', 'value')])
+def toggleSliderTableUS(mod_value, is_standard):
+    if mod_value == 1 and is_standard:
         hide = 0
     else:
         hide = 1
@@ -513,9 +517,9 @@ def toggleSliderTableUS(mod_value, is_custom):
 
 @app.callback(
     Output('US-input-table', 'hidden'),
-    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
-def toggleInputTableUS(mod_value, is_custom):
-    if mod_value == 1 and is_custom == ['custom']:
+    [Input('modality-tabs', 'value'), Input('toggle-custom', 'value')])
+def toggleInputTableUS(mod_value, is_standard):
+    if mod_value == 1 and not is_standard:
         hide = 0
     else:
         hide = 1
@@ -524,9 +528,9 @@ def toggleInputTableUS(mod_value, is_custom):
 
 @app.callback(
     Output('elec-slider-table', 'hidden'),
-    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
-def toggleSliderTableElec(mod_value, is_custom):
-    if mod_value == 2 and is_custom == []:
+    [Input('modality-tabs', 'value'), Input('toggle-custom', 'value')])
+def toggleSliderTableElec(mod_value, is_standard):
+    if mod_value == 2 and is_standard:
         hide = 0
     else:
         hide = 1
@@ -535,19 +539,19 @@ def toggleSliderTableElec(mod_value, is_custom):
 
 @app.callback(
     Output('elec-input-table', 'hidden'),
-    [Input('modality-tabs', 'value'), Input('custom-params-check', 'values')])
-def toggleInputTableElec(mod_value, is_custom):
-    if mod_value == 2 and is_custom == ['custom']:
+    [Input('modality-tabs', 'value'), Input('toggle-custom', 'value')])
+def toggleInputTableElec(mod_value, is_standard):
+    if mod_value == 2 and not is_standard:
         hide = 0
     else:
         hide = 1
     return hide
 
 
-@app.callback(Output('custom-params-check', 'values'),
+@app.callback(Output('toggle-custom', 'value'),
               [Input('modality-tabs', 'value'), Input('mechanism-type', 'value')])
-def uncheckCustomParams(*_):
-    return []
+def resetStandardParams(*_):
+    return True
 
 
 # -------------------------------- US SLIDERS CALLBACKS --------------------------------
@@ -652,7 +656,7 @@ for i in range(ngraphs):
 
 # -------------------------------- OUTPUT GRAPHS CALLBACKS --------------------------------
 
-def propagateInputs(mech_type, i_diam, i_modality, is_custom,
+def propagateInputs(mech_type, i_diam, i_modality, is_standard,
                     i_US_freq, i_US_amp, i_US_dur, i_US_PRF, i_US_DF,
                     i_elec_amp, i_elec_dur, i_elec_PRF, i_elec_DF,
                     n_US_submits, n_elec_submits,
@@ -956,7 +960,7 @@ for i in range(ngraphs):
         [Input('mechanism-type', 'value'),
          Input('diam-slider', 'value'),
          Input('modality-tabs', 'value'),
-         Input('custom-params-check', 'values'),
+         Input('toggle-custom', 'value'),
          Input('US-freq-slider', 'value'),
          Input('US-amp-slider', 'value'),
          Input('US-dur-slider', 'value'),

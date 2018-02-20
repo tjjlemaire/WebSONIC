@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-02-20 11:35:09
+* @Last Modified time: 2018-02-20 16:09:11
 */
 
 
@@ -188,6 +188,12 @@ summary {
 
 .submit-button {
 	margin-top: 1em;
+}
+
+
+#toggle-custom {
+	font-weight: bold;
+	text-align: center;
 }
 
 
