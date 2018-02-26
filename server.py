@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:41:07
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 20:41:07
+# @Last Modified time: 2018-02-26 18:13:15
 
 ''' Create a Flask server instance '''
 import os
@@ -27,7 +27,8 @@ css_route = '/css/'
 css_directory = os.getcwd()
 stylesheets = ['dash_styles.css', 'my_styles.css']
 
-
+# Serve local static image files
+# e.g. <IP_adress>:<port>/static/RS_mech.png
 @server.route('{}<image_path>'.format(static_route))
 def serve_image(image_path):
     image_name = image_path
@@ -43,6 +44,7 @@ def serve_stylesheet(stylesheet):
     return send_from_directory(css_directory, stylesheet)
 
 
-@server.route('{}icon'.format(static_route))
+@server.route('/favicon.ico')
 def favicon():
-    return send_from_directory(image_directory, 'nbls.ico')
+    return send_from_directory(os.path.join(server.root_path, 'img'), 'nbls.svg',
+                               mimetype='image/vnd.microsoft.icon')
