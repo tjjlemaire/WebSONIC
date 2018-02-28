@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-02-26 18:13:02
+# @Last Modified time: 2018-02-28 14:32:24
 
 ''' Layout and callbacks of the web app. '''
 
@@ -652,6 +652,15 @@ for i in range(ngraphs):
 
 # -------------------------------- OUTPUT GRAPHS CALLBACKS --------------------------------
 
+def validate(inputs):
+    ''' Validate user-entered numerical inputs. '''
+
+    values = [float(x) for x in inputs]
+    values[-1] /= 1e2  # correcting DF unit
+    return values
+
+
+
 def propagateInputs(mech_type, i_diam, i_modality, is_standard,
                     i_US_freq, i_US_amp, i_US_dur, i_US_PRF, i_US_DF,
                     i_elec_amp, i_elec_dur, i_elec_PRF, i_elec_DF,
@@ -692,8 +701,7 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
         # Callback comes from a submit event
         if is_submit:
             US_inputs = (US_freq_input, US_amp_input, US_dur_input, US_PRF_input, US_DF_input)
-            US_values = [float(x) for x in US_inputs]
-            US_values[-1] /= 1e2  # correcting DF unit
+            US_values = validate(US_inputs)
             return updateCurve(mech_type, diams[i_diam], *US_values, varname, colors)
 
         # Callback comes from input slider or output dropdown change
@@ -719,8 +727,7 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
         # Callback comes from a submit event
         if is_submit:
             elec_inputs = (elec_amp_input, elec_dur_input, elec_PRF_input, elec_DF_input)
-            elec_values = [float(x) for x in elec_inputs]
-            elec_values[-1] /= 1e2  # correcting DF unit
+            elec_values = validate(elec_inputs)
             return updateCurve(mech_type, diams[i_diam], None, *elec_values, varname, colors)
 
         # Callback comes from input slider or output dropdown change
