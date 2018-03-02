@@ -12,9 +12,6 @@ conf.py
 # PKL files
 *.pkl
 
-# Excel files
-*.xlsx
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
