@@ -3,8 +3,8 @@
 # @Author: Theo Lemaire
 # @Date:   2017-06-13 09:40:02
 # @Email: theo.lemaire@epfl.ch
-# @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-16 20:36:33
+# @Last Modified by:   ThÃ©o Lemaire
+# @Last Modified time: 2018-03-05 14:12:57
 
 from setuptools import setup
 
@@ -35,12 +35,12 @@ setup(name='WebNICE',
       packages=['WebNICE'],
       scripts=['run.py'],
       install_requires=[
-          'dash>=0.19.0',
-          'dash-html-components>=0.8.0',
-          'dash-core-components==0.15.0rc1',
-          'dash-renderer>=0.11.2',
+          'dash>=0.21.0',
+          'dash-html-components>=0.9.0',
+          'dash-core-components==0.21.0rc1',
+          'dash-renderer>=0.11.3',
           'dash-auth>=0.0.10'
-          'plotly>=2.2.3',
+          'plotly>=2.4.1',
           'numpy>=1.10',
           'pandas>=0.20.3',
           'colorlover>=0.2.1',

@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   ThÃ©o Lemaire
-# @Last Modified time: 2018-03-05 14:06:43
+# @Last Modified time: 2018-03-05 14:45:23
 
 ''' Layout and callbacks of the web app. '''
 
@@ -1044,7 +1044,6 @@ for i in range(ngraphs):
 def updateInfoTable(_):
 
     # Spike detection
-    global data
     if data:
         if 'Qm' in data:
             n_spikes, lat, sr = detectSpikes(data['t'], data['Qm'], SPIKE_MIN_QAMP, SPIKE_MIN_DT)
@@ -1094,3 +1093,12 @@ def update_download_content(_):
 def update_download_name(_):
     filecode = os.path.splitext(os.path.basename(localfilepath))[0]
     return '{}.csv'.format(filecode)
+
+
+
+@app.callback(Output('elec-input-submit', 'style'), [Input('output-curve-1', 'figure')])
+def changeSubmitStyle(_):
+    if data:
+        return {'backgroundColor': 'white'}
+    else:
+        return {'animation': 'redflash 300ms linear'}
