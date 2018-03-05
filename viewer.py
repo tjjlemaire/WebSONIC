@@ -3,8 +3,8 @@
 # @Author: Theo Lemaire
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
-# @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-02-28 14:32:24
+# @Last Modified by:   ThÃ©o Lemaire
+# @Last Modified time: 2018-03-05 14:06:43
 
 ''' Layout and callbacks of the web app. '''
 
@@ -117,9 +117,21 @@ default_elec = {'amp': 10, 'dur': 2, 'PRF': 3, 'DF': 7}
 modalities = {'US': 1, 'elec': 2}
 current_cell = default_cell
 current_modality = modalities['US']
-current_stim = default_US if current_modality == modalities['US'] else default_elec
+# current_stim = default_US if current_modality == modalities['US'] else default_elec
 default_vars = 'vars_US' if current_modality == modalities['US'] else 'vars_elec'
 current_stim = None
+
+# Define bounds for user-input parameters
+elec_bounds = [(-100.0, 100.0),  # amplitude (mA/m2)
+               (1.0, 350.0),  # duration (ms)
+               (0.001, 10.0),  # PRF
+               (1.0, 100.0)]  # DC
+
+US_bounds = [(100.0, 1000.0),  # Frequency (kHz)
+             (10.0, 600.0),  # amplitude (mA/m2)
+             (1.0, 350.0),  # duration (ms)
+             (0.001, 10.0),  # PRF
+             (1.0, 100.0)]  # DC
 
 # Initialize global variables
 localfilepath = None
@@ -299,23 +311,27 @@ app.layout = html.Div([
                         html.Tr([
                             html.Td('Amplitude (mA/m2)', style={'width': '30%'}),
                             html.Td(dcc.Input(id='elec-amp-input', className='input-box',
-                                              type='number', min=-100.0, max=100.0, value=10.0),
+                                              type='number', min=elec_bounds[0][0],
+                                              max=elec_bounds[0][1], value=10.0),
                                     style={'width': '70%'})
                         ], className='input-row'),
                         html.Tr([
                             html.Td('Duration (ms)'),
                             html.Td(dcc.Input(id='elec-dur-input', className='input-box',
-                                              type='number', min=0.0, max=350.0, value=50.0))
+                                              type='number', min=elec_bounds[1][0],
+                                              max=elec_bounds[1][1], value=50.0))
                         ], className='input-row'),
                         html.Tr([
                             html.Td('PRF (kHz)'),
                             html.Td(dcc.Input(id='elec-PRF-input', className='input-box',
-                                              type='number', min=0.001, max=10.0, value=0.1))
+                                              type='number', min=elec_bounds[2][0],
+                                              max=elec_bounds[2][1], value=0.1))
                         ], className='input-row'),
                         html.Tr([
                             html.Td('Duty cycle (%)'),
                             html.Td(dcc.Input(id='elec-DF-input', className='input-box',
-                                              type='number', min=0.0, max=100.0, value=100.0))
+                                              type='number', min=elec_bounds[3][0],
+                                              max=elec_bounds[3][1], value=100.0))
                         ], className='input-row')
                     ], className='table'),
 
@@ -379,28 +395,33 @@ app.layout = html.Div([
                         html.Tr([
                             html.Td('Frequency (kHz)', style={'width': '30%'}),
                             html.Td(dcc.Input(id='US-freq-input', className='input-box',
-                                              type='number', min=100.0, max=1000.0, value=100.0),
+                                              type='number', min=US_bounds[0][0],
+                                              max=US_bounds[0][1], value=100.0),
                                     style={'width': '70%'})
                         ], className='input-row'),
                         html.Tr([
                             html.Td('Amplitude (kPa)'),
                             html.Td(dcc.Input(id='US-amp-input', className='input-box',
-                                              type='number', min=0.0, max=650.0, value=100.0))
+                                              type='number', min=US_bounds[1][0],
+                                              max=US_bounds[1][1], value=100.0))
                         ], className='input-row'),
                         html.Tr([
                             html.Td('Duration (ms)'),
                             html.Td(dcc.Input(id='US-dur-input', className='input-box',
-                                              type='number', min=0.0, max=350.0, value=50.0))
+                                              type='number', min=US_bounds[2][0],
+                                              max=US_bounds[2][1], value=50.0))
                         ], className='input-row'),
                         html.Tr([
                             html.Td('PRF (kHz)'),
                             html.Td(dcc.Input(id='US-PRF-input', className='input-box',
-                                              type='number', min=0.001, max=10.0, value=0.1))
+                                              type='number', min=US_bounds[3][0],
+                                              max=US_bounds[3][1], value=0.1))
                         ], className='input-row'),
                         html.Tr([
                             html.Td('Duty cycle (%)'),
                             html.Td(dcc.Input(id='US-DF-input', className='input-box',
-                                              type='number', min=0.0, max=100.0, value=100.0))
+                                              type='number', min=US_bounds[4][0],
+                                              max=US_bounds[4][1], value=100.0))
                         ], className='input-row'),
                     ], className='table'),
 
@@ -655,8 +676,23 @@ for i in range(ngraphs):
 def validate(inputs):
     ''' Validate user-entered numerical inputs. '''
 
+    # converting to float
     values = [float(x) for x in inputs]
-    values[-1] /= 1e2  # correcting DF unit
+
+    # determine reference bounds
+    if len(values) == 5:  # US_case
+        ref_bounds = US_bounds
+    else:  # elec case
+        ref_bounds = elec_bounds
+
+    # checking parameters against reference bounds
+    for x, bound in zip(values, ref_bounds):
+        if x < bound[0] or x > bound[1]:
+            raise ValueError('Input value {} out of [{}, {}] range'.format(x, bound[0], bound[1]))
+
+    # correcting DF unit
+    values[-1] /= 1e2
+
     return values
 
 
@@ -701,8 +737,13 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
         # Callback comes from a submit event
         if is_submit:
             US_inputs = (US_freq_input, US_amp_input, US_dur_input, US_PRF_input, US_DF_input)
-            US_values = validate(US_inputs)
-            return updateCurve(mech_type, diams[i_diam], *US_values, varname, colors)
+            try:
+                US_values = validate(US_inputs)
+                return updateCurve(mech_type, diams[i_diam], *US_values, varname, colors)
+            except ValueError:
+                print('Error in US custom inputs')
+                return updateCurve(current_cell['neuron'], current_cell['diameter'],
+                                   *[None] * 5, varname, colors)
 
         # Callback comes from input slider or output dropdown change
         else:
@@ -727,8 +768,13 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
         # Callback comes from a submit event
         if is_submit:
             elec_inputs = (elec_amp_input, elec_dur_input, elec_PRF_input, elec_DF_input)
-            elec_values = validate(elec_inputs)
-            return updateCurve(mech_type, diams[i_diam], None, *elec_values, varname, colors)
+            try:
+                elec_values = validate(elec_inputs)
+                return updateCurve(mech_type, diams[i_diam], None, *elec_values, varname, colors)
+            except ValueError:
+                print('Error in Elec custom inputs')
+                return updateCurve(current_cell['neuron'], current_cell['diameter'],
+                                   *[None] * 5, varname, colors)
 
         # Callback comes from input slider or output dropdown change
         else:
@@ -768,8 +814,12 @@ def updateCurve(mech_type, diameter, Fdrive, Astim, tstim, PRF, DF, varname, col
         'DF': DF
     }
 
+    # Handle incorrect submissions
+    if all([v is None for v in stim_new.values()]):
+        data = None
+
     # Load new data if parameters have changed
-    if cell_new != current_cell or stim_new != current_stim:
+    elif cell_new != current_cell or stim_new != current_stim:
         data = updateData(cell_new, stim_new)
         current_cell = cell_new
         current_stim = stim_new
