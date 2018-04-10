@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-03-08 18:04:03
+# @Last Modified time: 2018-04-10 21:39:24
 
 ''' Layout and callbacks of the web app. '''
 
@@ -1105,7 +1105,7 @@ def updateInfoTable(_):
         rows.append(
             html.Tr([
                 html.Td('Firing rate'),
-                html.Td('{:.2f} kHz'.format(sr * 1e-3) if isinstance(sr, float) else '---')
+                html.Td('{:.1f} Hz'.format(sr) if isinstance(sr, float) else '---')
             ])
         )
 
