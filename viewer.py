@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-04-10 21:39:24
+# @Last Modified time: 2018-07-03 15:41:43
 
 ''' Layout and callbacks of the web app. '''
 
@@ -26,10 +26,10 @@ from server import server, static_route, stylesheets
 from sftp import connectSSH
 from login import VALID_USERNAME_PASSWORD_PAIRS
 
-from PointNICE.solvers import SolverElec, SolverUS, detectSpikes, runEStim, runAStim
+from PointNICE.solvers import SolverElec, SolverUS, findPeaks, runEStim, runAStim
 from PointNICE.utils import getNeuronsDict
 from PointNICE.plt import getPatchesLoc
-from PointNICE.constants import SPIKE_MIN_DT, SPIKE_MIN_QAMP, SPIKE_MIN_VAMP
+from PointNICE.constants import *
 
 
 # -------------------------------- PLOT VARIABLES --------------------------------
@@ -1077,12 +1077,16 @@ def updateInfoTable(_):
 
     # Spike detection
     if data:
+        t = data['t']
+        dt = t[1] - t[0]
+        mpd = int(np.ceil(SPIKE_MIN_DT / dt))
         if 'Qm' in data:
-            n_spikes, lat, sr = detectSpikes(data['t'], data['Qm'], SPIKE_MIN_QAMP, SPIKE_MIN_DT)
+            ipeaks, *_ = findPeaks(data['Qm'], SPIKE_MIN_QAMP, mpd, SPIKE_MIN_QPROM)
         elif 'Vm' in data:
-            n_spikes, lat, sr = detectSpikes(data['t'], data['Vm'], SPIKE_MIN_VAMP, SPIKE_MIN_DT)
-        else:
-            n_spikes, lat, sr = (0, None, None)
+            ipeaks, *_ = findPeaks(data['Vm'], SPIKE_MIN_VAMP, mpd, SPIKE_MIN_VPROM)
+        n_spikes = ipeaks.size
+        lat = t[ipeaks[0]] if n_spikes > 0 else None
+        sr = np.mean(1 / np.diff(t[ipeaks])) if n_spikes > 1 else None
     else:
         n_spikes = 0
         lat = None
