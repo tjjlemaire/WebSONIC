@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-07-04 15:46:57
+# @Last Modified time: 2018-07-05 12:18:20
 
 ''' Layout and callbacks of the web app. '''
 
@@ -86,22 +86,23 @@ neurons = {
     },
     'FS': {
         'desc': 'Cortical fast-spiking neuron',
-        'vars_US': [charge, deflection, gas, iNa_gates, iK_gate, iM_gate],
+        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate]
     },
     'LTS': {
         'desc': 'Cortical, low-threshold spiking neuron',
-        'vars_US': [charge, deflection, gas, iNa_gates, iK_gate, iM_gate, iCa_gates],
+        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate, iCa_gates],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate, iCa_gates]
     },
     'RE': {
         'desc': 'Thalamic reticular neuron',
-        'vars_US': [charge, deflection, gas, iNa_gates, iK_gate, iCa_gates],
+        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iCa_gates],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates]
     },
     'TC': {
         'desc': 'Thalamo-cortical neuron',
-        'vars_US': [charge, deflection, gas, iNa_gates, iK_gate, iCa_gates, iH_reg_factor, Ca_conc],
+        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iCa_gates,
+                    iH_reg_factor, Ca_conc],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates, iH_reg_factor, Ca_conc]
     }
     # 'LeechT': {
