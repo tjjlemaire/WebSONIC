@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-07-05 12:18:20
+# @Last Modified time: 2018-07-05 13:51:30
 
 ''' Layout and callbacks of the web app. '''
 
@@ -505,7 +505,9 @@ app.layout = html.Div([
 
     # Footer
     html.Div([
-        'Translational Neural Engineering Lab, EPFL - 2017',
+        'Developed with the ', html.A('Dash', href='https://dash.plot.ly/'), ' framework.',
+        html.Br(),
+        'Translational Neural Engineering Lab, EPFL - 2018',
         html.Br(),
         'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch')
     ], id='footer')
