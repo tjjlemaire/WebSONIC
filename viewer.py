@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-07-05 13:51:30
+# @Last Modified time: 2018-07-09 10:36:14
 
 ''' Layout and callbacks of the web app. '''
 
@@ -82,28 +82,33 @@ neurons = {
     'RS': {
         'desc': 'Cortical regular-spiking neuron',
         'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate],
-        'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate]
+        'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate],
+        'Vm0': -71.9  # mV
     },
     'FS': {
         'desc': 'Cortical fast-spiking neuron',
         'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate],
-        'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate]
+        'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate],
+        'Vm0': -71.4  # mV
     },
     'LTS': {
         'desc': 'Cortical, low-threshold spiking neuron',
         'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate, iCa_gates],
-        'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate, iCa_gates]
+        'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate, iCa_gates],
+        'Vm0': -54.0  # mV
     },
     'RE': {
         'desc': 'Thalamic reticular neuron',
         'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iCa_gates],
-        'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates]
+        'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates],
+        'Vm0': -89.5  # mV
     },
     'TC': {
         'desc': 'Thalamo-cortical neuron',
         'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iCa_gates,
                     iH_reg_factor, Ca_conc],
-        'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates, iH_reg_factor, Ca_conc]
+        'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates, iH_reg_factor, Ca_conc],
+        'Vm0': -61.93  # mV
     }
     # 'LeechT': {
     #     'desc': 'Leech "touch" neuron',
@@ -843,15 +848,22 @@ def updateCurve(mech_type, diameter, Fdrive, Astim, PRF, DF, varname, colors):
         npatches, tpatch_on, tpatch_off = getPatchesLoc(t, states)
 
         # Add onset
-        t = np.insert(t, 0, tmin_plot * 1e-3)
-        varlist = [np.insert(var, 0, var[0]) for var in varlist]
+        dt = t[1] - t[0]
+        tplot = np.hstack((np.array([tmin_plot * 1e-3, -dt]), t))
+        varlistplot = []
+        for name, var in zip(pltvar['names'], varlist):
+            if name is 'Vm':
+                var0 = neurons[mech_type]['Vm0']
+            else:
+                var0 = var[0]
+            varlistplot.append(np.hstack((np.array([var0] * 2), var)))
 
         # Define curves
         curves = [
             {
                 'name': pltvar['names'][i],
-                'x': t * 1e3,
-                'y': varlist[i] * pltvar['factor'],
+                'x': tplot * 1e3,
+                'y': varlistplot[i] * pltvar['factor'],
                 'mode': 'lines',
                 'line': {'color': colors[i]},
                 'showlegend': True
