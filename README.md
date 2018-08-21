@@ -1,18 +1,14 @@
 Description
 ============
 
-**WebNICE** is an interactive web viewer built entirely in Python using the Dash framework that allows to compare the predicted responses of different types of neurons to both electrical and ultrasonic stimuli.
-These responses are computed using two types of point-neuron models:
-- ***Hodgkin-Huxley*** models for electrical stimulation
-- variants of a new, effective implementation of the ***Neuronal Intramembrane Cavitation Excitation (NICE)*** model by M. Plaksin, E. Kimmel and S. Shoham for ultrasonic stimulation</li>
+Interactive web application to view the predicted electrical response of the different neuron types to ultrasonic stimuli for various combinations of sonication parameters, computed with the SONIC model. A comparative module to explore predicted responses of the same neurons to electrical stimuli (computed with standard Hodgkin-Huxley equations) is also included.
 
-For a given neuron and modality, the interface allows to explore the stimulation parameter space in two ways: by moving sliders and loading precomputed results or by manually entering custom parameters and running point-neuron simulations on-the-fly using the **PointNICE** package.
-
+This application is built entirely in Python. It uses the Dash framework (https://dash.plot.ly/) for serving and client-side rendering, and the PySONIC package (https://c4science.ch/diffusion/4670/) for internal computations.
 
 Installation
 ==================
 
-WebNICE is currently not implemented as a package, meaning that dependencies must be installed manually.
+This application is currently not implemented as a package, meaning that dependencies must be installed manually.
 
 Open a terminal.
 
@@ -35,12 +31,12 @@ Install all remote dependencies from pip:
 	pip install colorlover==0.2.1  # graphing colors library
 	pip install pysftp==0.2.9  # python wrapper for SFTP connections
 
-Go to the PointNICE directory (where the setup.py file is located) and install it as a package:
+Go to the PySONIC directory (where the setup.py file is located) and install it as a package:
 
 	cd <path_to_directory>
 	pip install -e .
 
-The WebNICE app should be ready to use.
+The app should be ready to use.
 
 
 Usage
@@ -49,7 +45,7 @@ Usage
 Local use
 ----------
 
-To run the app locally, simply open a terminal at the location of the WebNICE directory and type in:
+To run the app locally, simply open a terminal at the location of the application directory and type in:
 
 	python run.py
 
@@ -59,7 +55,7 @@ Then, visit [http://127.0.0.1:8050/viewer](http://127.0.0.1:8050/viewer) in your
 Remote deployment (Linux)
 ---------------------------
 
-To deploy the WebNICE app on a pre-configured linux machine, the best way to go is to use a Green Unicorn server.
+To deploy the application on a pre-configured linux machine, the best way to go is to use a Green Unicorn server.
 
 Open a terminal.
 

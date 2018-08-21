@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-07-09 10:36:14
+# @Last Modified time: 2018-08-21 16:57:36
 
 ''' Layout and callbacks of the web app. '''
 
@@ -26,10 +26,10 @@ from server import server, static_route, stylesheets
 from sftp import connectSSH
 from login import VALID_USERNAME_PASSWORD_PAIRS
 
-from PointNICE.solvers import SolverElec, SolverUS, findPeaks, runEStim, runAStim
-from PointNICE.utils import getNeuronsDict, si_format
-from PointNICE.plt import getPatchesLoc
-from PointNICE.constants import *
+from PySONIC.solvers import SolverElec, SolverUS, findPeaks, EStimWorker, AStimWorker
+from PySONIC.utils import getNeuronsDict, si_format
+from PySONIC.plt import getPatchesLoc
+from PySONIC.constants import *
 
 
 # -------------------------------- PLOT VARIABLES --------------------------------
@@ -144,12 +144,12 @@ abs_elec_amps = np.array([2, 5, 10, 25])  # mA/m2
 elec_amps = np.hstack([-abs_elec_amps[::-1], abs_elec_amps])
 default_dur = 250  # ms
 PRFs = np.array([1e1, 1e2, 1e3, 1e4])  # Hz
-DFs = np.array([1, 5, 10, 25, 50, 75, 100]) * 1e-2
+DCs = np.array([1, 5, 10, 25, 50, 75, 100]) * 1e-2
 
 # Define default and initial parameters
 default_cell = {'neuron': 'RS', 'diameter': 1}
-default_US = {'freq': 2, 'amp': 3, 'PRF': 1, 'DF': 6}
-default_elec = {'amp': 6, 'PRF': 1, 'DF': 6}
+default_US = {'freq': 2, 'amp': 3, 'PRF': 1, 'DC': 6}
+default_elec = {'amp': 6, 'PRF': 1, 'DC': 6}
 modalities = {'US': 1, 'elec': 2}
 current_cell = default_cell
 current_modality = modalities['US']
@@ -326,8 +326,8 @@ app.layout = html.Div([
                         html.Td('Duty cycle'),
                         html.Td(
                             dcc.Slider(
-                                id='elec-DF-slider',
-                                min=0, max=len(DFs) - 1, step=1, value=default_elec['DF']
+                                id='elec-DC-slider',
+                                min=0, max=len(DCs) - 1, step=1, value=default_elec['DC']
                             )
                         )
                     ], className='slider-row')
@@ -351,7 +351,7 @@ app.layout = html.Div([
                         ], className='input-row'),
                         html.Tr([
                             html.Td('Duty cycle (%)'),
-                            html.Td(dcc.Input(id='elec-DF-input', className='input-box',
+                            html.Td(dcc.Input(id='elec-DC-input', className='input-box',
                                               type='number', min=elec_bounds[2][0],
                                               max=elec_bounds[2][1], value=100.0))
                         ], className='input-row')
@@ -395,8 +395,8 @@ app.layout = html.Div([
                         html.Td('Duty cycle'),
                         html.Td(
                             dcc.Slider(
-                                id='US-DF-slider',
-                                min=0, max=len(DFs) - 1, step=1, value=default_US['DF']
+                                id='US-DC-slider',
+                                min=0, max=len(DCs) - 1, step=1, value=default_US['DC']
                             )
                         )
                     ], className='slider-row')
@@ -426,7 +426,7 @@ app.layout = html.Div([
                         ], className='input-row'),
                         html.Tr([
                             html.Td('Duty cycle (%)'),
-                            html.Td(dcc.Input(id='US-DF-input', className='input-box',
+                            html.Td(dcc.Input(id='US-DC-input', className='input-box',
                                               type='number', min=US_bounds[3][0],
                                               max=US_bounds[3][1], value=100.0))
                         ], className='input-row'),
@@ -603,14 +603,14 @@ def updateUSPRFSlider(value):
     return updateSlider(PRFs, value, suffix='Hz')
 
 
-@app.callback(Output('US-DF-slider', 'marks'), [Input('US-DF-slider', 'value')])
+@app.callback(Output('US-DC-slider', 'marks'), [Input('US-DC-slider', 'value')])
 def updateUSDutySlider(value):
-    return updateSlider(DFs * 1e2, value, suffix='%')
+    return updateSlider(DCs * 1e2, value, suffix='%')
 
 
-@app.callback(Output('US-PRF-slider', 'disabled'), [Input('US-DF-slider', 'value')])
+@app.callback(Output('US-PRF-slider', 'disabled'), [Input('US-DC-slider', 'value')])
 def toggleUSPRFSlider(value):
-    return value == len(DFs) - 1
+    return value == len(DCs) - 1
 
 
 # -------------------------------- ELEC SLIDERS CALLBACKS --------------------------------
@@ -625,14 +625,14 @@ def updateElecPRFSlider(value):
     return updateSlider(PRFs, value, suffix='Hz')
 
 
-@app.callback(Output('elec-DF-slider', 'marks'), [Input('elec-DF-slider', 'value')])
+@app.callback(Output('elec-DC-slider', 'marks'), [Input('elec-DC-slider', 'value')])
 def updateElecDutySlider(value):
-    return updateSlider(DFs * 1e2, value, suffix='%')
+    return updateSlider(DCs * 1e2, value, suffix='%')
 
 
-@app.callback(Output('elec-PRF-slider', 'disabled'), [Input('elec-DF-slider', 'value')])
+@app.callback(Output('elec-PRF-slider', 'disabled'), [Input('elec-DC-slider', 'value')])
 def toggleElecPRFSlider(value):
-    return value == len(DFs) - 1
+    return value == len(DCs) - 1
 
 
 # -------------------------------- OUTPUT DROPDOWNS CALLBACKS --------------------------------
@@ -689,7 +689,7 @@ def validate(inputs):
         if x < bound[0] or x > bound[1]:
             raise ValueError('Input value {} out of [{}, {}] range'.format(x, bound[0], bound[1]))
 
-    # correcting DF unit
+    # correcting DC unit
     values[-1] /= 1e2
 
     return values
@@ -697,12 +697,12 @@ def validate(inputs):
 
 
 def propagateInputs(mech_type, i_diam, i_modality, is_standard,
-                    i_US_freq, i_US_amp, i_US_PRF, i_US_DF,
-                    i_elec_amp, i_elec_PRF, i_elec_DF,
+                    i_US_freq, i_US_amp, i_US_PRF, i_US_DC,
+                    i_elec_amp, i_elec_PRF, i_elec_DC,
                     n_US_submits, n_elec_submits,
                     varname,
-                    US_freq_input, US_amp_input, US_PRF_input, US_DF_input,
-                    elec_amp_input, elec_PRF_input, elec_DF_input,
+                    US_freq_input, US_amp_input, US_PRF_input, US_DC_input,
+                    elec_amp_input, elec_PRF_input, elec_DC_input,
                     dd_str):
 
     ''' Translate inputs components values into input parameters
@@ -735,7 +735,7 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
 
         # Callback comes from a submit event
         if is_submit:
-            US_inputs = (US_freq_input, US_amp_input, US_PRF_input, US_DF_input)
+            US_inputs = (US_freq_input, US_amp_input, US_PRF_input, US_DC_input)
             try:
                 US_values = validate(US_inputs)
                 return updateCurve(mech_type, diams[i_diam], US_values[0] * 1e3, US_values[1] * 1e3,
@@ -748,7 +748,7 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
         # Callback comes from input slider or output dropdown change
         else:
             return updateCurve(mech_type, diams[i_diam], US_freqs[i_US_freq], US_amps[i_US_amp],
-                               PRFs[i_US_PRF], DFs[i_US_DF], varname, colors)
+                               PRFs[i_US_PRF], DCs[i_US_DC], varname, colors)
 
     # Elec case
     else:
@@ -767,7 +767,7 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
 
         # Callback comes from a submit event
         if is_submit:
-            elec_inputs = (elec_amp_input, elec_PRF_input, elec_DF_input)
+            elec_inputs = (elec_amp_input, elec_PRF_input, elec_DC_input)
             try:
                 elec_values = validate(elec_inputs)
                 return updateCurve(mech_type, diams[i_diam], None, *elec_values, varname, colors)
@@ -779,10 +779,10 @@ def propagateInputs(mech_type, i_diam, i_modality, is_standard,
         # Callback comes from input slider or output dropdown change
         else:
             return updateCurve(mech_type, diams[i_diam], None, elec_amps[i_elec_amp],
-                               PRFs[i_elec_PRF], DFs[i_elec_DF], varname, colors)
+                               PRFs[i_elec_PRF], DCs[i_elec_DC], varname, colors)
 
 
-def updateCurve(mech_type, diameter, Fdrive, Astim, PRF, DF, varname, colors):
+def updateCurve(mech_type, diameter, Fdrive, Astim, PRF, DC, varname, colors):
     ''' Update curve based on new parameters.
 
         :param mech_type: type of channel mechanism (cell-type specific).
@@ -790,7 +790,7 @@ def updateCurve(mech_type, diameter, Fdrive, Astim, PRF, DF, varname, colors):
         :param Fdrive: driving frequency for acoustic stimuli (Hz), None for Elec stimuli.
         :param Astim: stimulus amplitude (Pa for acoustic, mA/m2 for Elec).
         :param PRF: Pulse-repetition frequency (Hz)
-        :param DF: stimulus duty factor.
+        :param DC: stimulus duty factor.
         :param varname: name of the output variable to display.
         :param colors: RGB colors for the variables to display.
         :return: variable curve, stimulus patches and graph and layout objects
@@ -810,7 +810,7 @@ def updateCurve(mech_type, diameter, Fdrive, Astim, PRF, DF, varname, colors):
         'amp': Astim,
         'dur': default_dur,
         'PRF': PRF,
-        'DF': DF
+        'DC': DC
     }
 
     # Handle incorrect submissions
@@ -935,24 +935,24 @@ def updateData(cell_params, stim_params):
     if stim_params['freq'] is None:
         vardict = neurons[mech_type]['vars_elec']
         remotedir = '{}/EL/{}'.format(remoteroot, mech_type)
-        if stim_params['DF'] == 1.0:
+        if stim_params['DC'] == 1.0:
             filecode = 'ESTIM_{}_CW_{:.1f}mA_per_m2_{:.0f}ms'.format(
                 mech_type, stim_params['amp'], stim_params['dur'])
         else:
             filecode = 'ESTIM_{}_PW_{:.1f}mA_per_m2_{:.0f}ms_PRF{:.2f}Hz_DC{:.2f}%'.format(
                 mech_type, stim_params['amp'], stim_params['dur'], stim_params['PRF'],
-                stim_params['DF'] * 1e2)
+                stim_params['DC'] * 1e2)
     else:
         vardict = neurons[mech_type]['vars_US']
         Fdrive = stim_params['freq']
         remotedir = '{}/US/{:.0f}nm/{}'.format(remoteroot, a * 1e9, mech_type)
-        if stim_params['DF'] == 1.0:
+        if stim_params['DC'] == 1.0:
             filecode = 'ASTIM_{}_CW_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms_effective'.format(
                 mech_type, a * 1e9, Fdrive * 1e-3, stim_params['amp'] * 1e-3, stim_params['dur'])
         else:
             filecode = 'ASTIM_{}_PW_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms_PRF{:.2f}Hz_DC{:.2f}%_effective'.format(
                 mech_type, a * 1e9, Fdrive * 1e-3, stim_params['amp'] * 1e-3, stim_params['dur'],
-                stim_params['PRF'], stim_params['DF'] * 1e2)
+                stim_params['PRF'], stim_params['DC'] * 1e2)
 
     localfilepath = '{}/{}.pkl'.format(localdir, filecode)
 
@@ -960,22 +960,23 @@ def updateData(cell_params, stim_params):
     if is_submit:
         mech = mechanisms[mech_type]()
         if stim_params['freq'] is None:  # ESTIM
-            print('running ESTIM simulation')
             logfilepath = '{}/log_ESTIM.xlsx'.format(localdir)
             t0 = time.time()
-            outfilepath = runEStim(localdir, logfilepath, solver_elec, mech, stim_params['amp'],
-                                   stim_params['dur'] * 1e-3, (350 - stim_params['dur']) * 1e-3,
-                                   stim_params['PRF'], stim_params['DF'])
+            worker = EStimWorker(1, localdir, logfilepath, solver_elec, mech, stim_params['amp'],
+                                 stim_params['dur'] * 1e-3, (350 - stim_params['dur']) * 1e-3,
+                                 stim_params['PRF'], stim_params['DC'], 1)
+            print(worker)
+            outfilepath = worker.__call__()
         else:  # ASTIM
-            print('running ASTIM simulation')
             logfilepath = '{}/log_ASTIM.xlsx'.format(localdir)
             Fdrive = stim_params['freq']
             t0 = time.time()
-            solver = SolverUS(a, mech, Fdrive)
-            outfilepath = runAStim(localdir, logfilepath, solver, mech, Fdrive,
-                                   stim_params['amp'], stim_params['dur'] * 1e-3,
-                                   (350 - stim_params['dur']) * 1e-3, stim_params['PRF'],
-                                   stim_params['DF'])
+            worker = AStimWorker(1, localdir, logfilepath, SolverUS(a, mech, Fdrive), mech,
+                                 Fdrive, stim_params['amp'], stim_params['dur'] * 1e-3,
+                                 (350 - stim_params['dur']) * 1e-3, stim_params['PRF'],
+                                 stim_params['DC'], 'effective', 1)
+            print(worker)
+            outfilepath = worker.__call__()
 
         assert outfilepath == localfilepath, 'Local filepath not matching'
 
@@ -1022,20 +1023,20 @@ for i in range(ngraphs):
          Input('US-freq-slider', 'value'),
          Input('US-amp-slider', 'value'),
          Input('US-PRF-slider', 'value'),
-         Input('US-DF-slider', 'value'),
+         Input('US-DC-slider', 'value'),
          Input('elec-amp-slider', 'value'),
          Input('elec-PRF-slider', 'value'),
-         Input('elec-DF-slider', 'value'),
+         Input('elec-DC-slider', 'value'),
          Input('US-input-submit', 'n_clicks'),
          Input('elec-input-submit', 'n_clicks'),
          Input('output-dropdown-{}'.format(i + 1), 'value')],
         [State('US-freq-input', 'value'),
          State('US-amp-input', 'value'),
          State('US-PRF-input', 'value'),
-         State('US-DF-input', 'value'),
+         State('US-DC-input', 'value'),
          State('elec-amp-input', 'value'),
          State('elec-PRF-input', 'value'),
-         State('elec-DF-input', 'value'),
+         State('elec-DC-input', 'value'),
          State('output-dropdown-{}'.format(i + 1), 'id')])(propagateInputs)
 
 
