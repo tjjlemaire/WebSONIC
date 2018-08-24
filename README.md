@@ -8,9 +8,7 @@ This application is built entirely in Python. It uses the Dash framework (https:
 Installation
 ==================
 
-Open a terminal.
-
-Activate a Python3 environment if needed:
+From a terminal, activate a Python3 environment if needed:
 
 	source <path_to_virtual_env>/bin activate
 
@@ -39,11 +37,13 @@ Usage
 Local use
 ----------
 
-To run the app locally, simply open a terminal at the location of the application directory and type in:
+You can run the application from a local terminal with a single command line (in the app directory):
 
-	python run.py
+	python run.py [-d]
 
-Then, visit [http://127.0.0.1:8050/viewer](http://127.0.0.1:8050/viewer) in your web browser. You should see the app displaying.
+The [-d] or [--debug] extra parameter is to run the application in "debug" mode (restarting upon file save).
+
+Then, open a browser at [http://127.0.0.1:8050/viewer](http://127.0.0.1:8050/viewer) to use the application.
 
 
 Remote deployment (Linux)
@@ -51,12 +51,9 @@ Remote deployment (Linux)
 
 To deploy the application on a pre-configured linux machine, the best way to go is to use a Green Unicorn server.
 
-Open a terminal.
-
-Activate a Python3 environment if needed:
+From a terminal, activate a Python3 environment if needed:
 
 	source <path_to_virtual_env>/bin activate
-
 
 Check that the appropriate version of pip is activated:
 

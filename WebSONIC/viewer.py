@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-24 16:43:14
+# @Last Modified time: 2018-08-24 19:47:19
 
 ''' Definition of the SONICViewer class. '''
 
@@ -195,6 +195,8 @@ class SONICViewer(dash.Dash):
                 dcc.Tab(label='Ultrasound', value='US'),
                 dcc.Tab(label='Electricity', value='elec')]),
 
+            html.Br(),
+
             dcc.RadioItems(id='toggle-custom', value=True, labelStyle={'display': 'inline-block'},
                            options=[{'label': 'Standard    ', 'value': True},
                                     {'label': 'Custom   ', 'value': False}]),
@@ -228,7 +230,7 @@ class SONICViewer(dash.Dash):
                     for mod_type in self.stim_params.keys()],
 
                 html.Div(id='inputs-submit-div', hidden=True, children=[
-                    html.Button('Submit', id='inputs-submit', className='submit-button')
+                    html.Button('Run', id='inputs-submit', className='submit-button')
                 ])
             ])
         ])
