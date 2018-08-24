@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-03-08 17:22:15
+# @Last Modified time: 2018-08-24 17:33:32
 
 
 ''' Open SFTP channel and set the root of the remote DATA directory. '''
@@ -25,8 +25,10 @@ def connectSSH():
     cnopts.hostkeys = None
 
     # opening sftp channel (but no closing it!)
-    return pysftp.Connection(host=base64.b64decode(host_b64).decode('utf-8'),
-                             port=442,
-                             username=base64.b64decode(user_b64).decode('utf-8'),
-                             password=base64.b64decode(passwd_b64).decode('utf-8'),
-                             cnopts=cnopts)
+    channel = pysftp.Connection(host=base64.b64decode(host_b64).decode('utf-8'),
+                                port=442,
+                                username=base64.b64decode(user_b64).decode('utf-8'),
+                                password=base64.b64decode(passwd_b64).decode('utf-8'),
+                                cnopts=cnopts)
+
+    return channel

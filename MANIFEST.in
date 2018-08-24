@@ -1,0 +1,4 @@
+include README.md
+include assets/*
+include tmp/*.xlsx
+indlude index.html

@@ -4,11 +4,11 @@
 # @Date:   2017-07-11 19:37:50
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-01-26 17:04:56
+# @Last Modified time: 2018-08-23 09:09:54
 
 ''' Define valid username & password pairs '''
 
-VALID_USERNAME_PASSWORD_PAIRS = [
+CREDENTIALS = [
     ['tlemaire', '31UUCxH1Pxbm'],
     ['smicera', '31zQ3FNwXK7Y'],
     ['eneufeld', '5L1S92kYLgRe'],
