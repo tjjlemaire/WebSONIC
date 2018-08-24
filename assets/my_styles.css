@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-08-24 19:46:43
+* @Last Modified time: 2018-08-24 20:32:43
 */
 
 
@@ -188,6 +188,7 @@ summary {
 
 .submit-button {
 	margin-top: 1em;
+	background-color: darkgrey;
 }
 
 

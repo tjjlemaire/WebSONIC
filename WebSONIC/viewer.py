@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-24 19:47:19
+# @Last Modified time: 2018-08-24 20:38:56
 
 ''' Definition of the SONICViewer class. '''
 
@@ -198,8 +198,8 @@ class SONICViewer(dash.Dash):
             html.Br(),
 
             dcc.RadioItems(id='toggle-custom', value=True, labelStyle={'display': 'inline-block'},
-                           options=[{'label': 'Standard    ', 'value': True},
-                                    {'label': 'Custom   ', 'value': False}]),
+                           options=[{'label': 'Standard', 'value': True},
+                                    {'label': 'Custom', 'value': False}]),
 
             *[labeledSlidersTable(
                 '{}-slider-table'.format(mod_type),
@@ -336,11 +336,6 @@ class SONICViewer(dash.Dash):
                 [State('mechanism-type', 'value'),
                  State('modality-tabs', 'value'),
                  State('out{}-graph'.format(i), 'id')])(self.updateGraph)
-
-            # self.callback(
-            #     Output('out{}-graph'.format(i), 'figure'),
-            #     [Input('out0-graph', 'relayoutData')],
-            #     [State('out{}-graph'.format(i), 'relayoutData')])(self.crossFilterTime)
 
         # Downbload link
         self.callback(
