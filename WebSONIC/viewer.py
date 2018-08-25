@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-24 20:38:56
+# @Last Modified time: 2018-08-25 02:24:32
 
 ''' Definition of the SONICViewer class. '''
 
@@ -488,7 +488,7 @@ class SONICViewer(dash.Dash):
                 logfilepath = '{}/log_ASTIM.xlsx'.format(self.tmpdir)
                 worker = AStimWorker(1, self.tmpdir, logfilepath, SolverUS(a, neuron, Fdrive), neuron,
                                      Fdrive, A, tstim * 1e-3, (tstop - tstim) * 1e-3, PRF, DC,
-                                     'effective', 1)
+                                     'sonic', 1)
             t0 = time.time()
             print(worker)
             outfilepath = worker.__call__()
