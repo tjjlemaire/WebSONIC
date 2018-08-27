@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:58:23
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-24 19:32:04
+# @Last Modified time: 2018-08-27 16:20:02
 
 ''' Run the application on the flask server. '''
 
@@ -16,12 +16,15 @@ from flask import Flask
 
 from WebSONIC import SONICViewer, connectSSH
 from credentials import CREDENTIALS
+import dash_auth
 
 
 def main():
 
     ap = ArgumentParser()
     ap.add_argument('-d', '--debug', default=False, action='store_true', help='Run in Debug Mode')
+    ap.add_argument('-o', '--opened', default=False, action='store_true',
+                    help='Run without HTTP Authentification')
     args = ap.parse_args()
 
     # Create server instance
@@ -51,13 +54,19 @@ def main():
 
     # Create app instance
     app = SONICViewer(server, tmpdir, remoteroot, channel, inputs, pltparams,
-                      ngraphs=ngraphs, credentials=CREDENTIALS)
+                      ngraphs=ngraphs)
     print('Created {}'.format(app))
 
+    # Protect app with/without HTTP authentification (activated by default)
+    if not args.opened:
+        app.authentifier = dash_auth.BasicAuth(app, CREDENTIALS)
+        print('Protected app with HTTP authentification')
+
+    # Run app in standard mode (default, for production) or debug mode (for development)
     if args.debug:
-        app.run_server(debug=True)  # run in debug mode (restarts upon every file save)
+        app.run_server(debug=True)
     else:
-        server.run(host='0.0.0.0', port=8050)  # run in standard mode (for production)
+        server.run(host='0.0.0.0', port=8050)
 
 
 if __name__ == '__main__':

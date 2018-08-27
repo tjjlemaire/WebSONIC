@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-25 02:24:32
+# @Last Modified time: 2018-08-27 17:31:36
 
 ''' Definition of the SONICViewer class. '''
 
@@ -17,7 +17,6 @@ import numpy as np
 import dash
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
-import dash_auth
 
 from PySONIC.plt import getPatchesLoc
 from PySONIC.solvers import SolverElec, SolverUS, EStimWorker, AStimWorker, findPeaks
@@ -32,11 +31,7 @@ class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
     def __init__(self, server, tmpdir, remoteroot, ssh_channel, inputs, pltparams,
-                 name='viewer', title='SONIC viewer', ngraphs=1, credentials=None):
-
-        self.tmpdir = tmpdir
-        self.remoteroot = remoteroot
-        self.ssh_channel = ssh_channel
+                 name='viewer', title='SONIC viewer', ngraphs=1):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
@@ -45,30 +40,28 @@ class SONICViewer(dash.Dash):
             url_base_pathname='/{}/'.format(name),
             csrf_protect=True
         )
-
-        self.prefixes = {v: k for k, v in si_prefixes.items()}
-
-        # Protecting app with authentifier if credentials provided
-        if credentials is not None:
-            self.authentifier = dash_auth.BasicAuth(self, credentials)
-        else:
-            self.authentifier = None
-
         self.title = title
+
+        # Initialize constant parameters
+        self.ssh_channel = ssh_channel
+        self.remoteroot = remoteroot
+        self.tmpdir = tmpdir
+        self.prefixes = {v: k for k, v in si_prefixes.items()}
         self.ngraphs = ngraphs
         self.colorset = pltparams['colorset']
         self.tbounds = pltparams['tbounds']  # ms
 
-        self.neurons = {key: getNeuronsDict()[key]() for key in neuronvars.keys()}
+        # Initialize parameters that will change upon requests
+        self.localfilepath = ''
+        self.prev_nsubmits = 0
+        self.current_params = None
+        self.data = None
 
+        # Initialize cell and stimulation parameters
+        self.neurons = {key: getNeuronsDict()[key]() for key in neuronvars.keys()}
         self.cell_params = {
             'mech': dict(label='Cell Type', values=list(neuronvars.keys()), idef=0),
-            'diam': dict(label='Sonophore diameter', values=inputs['diams'], idef=1),
-        }
-        self.default_cell = self.cell_params['mech']['values'][self.cell_params['mech']['idef']]
-
-        self.stimmod = 'US'
-
+            'diam': dict(label='Sonophore diameter', values=inputs['diams'], idef=1)}
         self.stim_params = {
             'US': {
                 'freq': dict(label='Frequency', values=inputs['US_freqs'],
@@ -76,35 +69,28 @@ class SONICViewer(dash.Dash):
                 'amp': dict(label='Amplitude', values=inputs['US_amps'],
                             unit='Pa', factor=1e-3, idef=3),
                 'PRF': dict(label='PRF', values=inputs['PRFs'], unit='Hz', idef=1),
-                'DC': dict(label='Duty Cycle', values=inputs['DCs'], unit='%', idef=6)
-            },
+                'DC': dict(label='Duty Cycle', values=inputs['DCs'], unit='%', idef=6)},
             'elec': {
                 'amp': dict(label='Amplitude', values=inputs['elec_amps'], unit='mA/m2', idef=6),
                 'PRF': dict(label='PRF', values=inputs['PRFs'], unit='Hz', idef=1),
-                'DC': dict(label='Duty Cycle', values=inputs['DCs'], unit='%', idef=6)
-            }
-        }
+                'DC': dict(label='Duty Cycle', values=inputs['DCs'], unit='%', idef=6)}}
         self.tstim = inputs['tstim']
 
-        self.prev_nsubmits = 0
-        self.current_params = None
-        self.data = None
-        self.localfilepath = ''
+        # Initialize UI layout components
+        default_cell = self.cell_params['mech']['values'][self.cell_params['mech']['idef']]
+        default_mod = 'US'
+        self.setLayout(default_cell, default_mod)
 
-        self.setLayout()
+        # Link UI components callbacks to appropriate functions
         self.registerCallbacks()
 
 
     def __str__(self):
-        return '{} app ({}) with {} graphs'.format(
-            self.title,
-            'password protected' if self.authentifier is not None else 'unprotected',
-            self.ngraphs
-        )
+        return '{} app with {} graphs'.format(self.title, self.ngraphs)
 
     # ------------------------------------------ LAYOUT ------------------------------------------
 
-    def setLayout(self):
+    def setLayout(self, default_cell, default_mod):
         ''' Set app layout. '''
         self.layout = html.Div(id='body', children=[
             # # Favicon
@@ -118,14 +104,14 @@ class SONICViewer(dash.Dash):
             html.Div(id='content', children=[
                 # Left side
                 html.Div(id='left-col', className='content-column', children=[
-                    self.cellPanel(),
-                    self.stimPanel(),
+                    self.cellPanel(default_cell),
+                    self.stimPanel(default_mod),
                     self.metricsPanel(),
                 ]),
 
                 # Right side
                 html.Div(id='right-col', className='content-column', children=[
-                    self.outputPanel()
+                    self.outputPanel(default_cell, default_mod)
                 ])
             ]),
 
@@ -163,7 +149,7 @@ class SONICViewer(dash.Dash):
             'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch')
         ])
 
-    def cellPanel(self):
+    def cellPanel(self, default_cell):
         ''' Construct cell parameters panel. '''
         return collapsablePanel('Cell parameters', children=[
             html.Table(className='table', children=[
@@ -173,7 +159,7 @@ class SONICViewer(dash.Dash):
                         dcc.Dropdown(
                             id='mechanism-type',
                             options=[{'label': v['desc'], 'value': k} for k, v in neuronvars.items()],
-                            value=self.default_cell)
+                            value=default_cell)
                     ])]),
                 html.Tr([
                     html.Td('Membrane mechanism'),
@@ -186,12 +172,12 @@ class SONICViewer(dash.Dash):
             ])
         ])
 
-    def stimPanel(self):
+    def stimPanel(self, default_mod):
         ''' Construct stimulation parameters panel. '''
 
         return collapsablePanel('Stimulation parameters', children=[
 
-            dcc.Tabs(id='modality-tabs', value=self.stimmod, children=[
+            dcc.Tabs(id='modality-tabs', value=default_mod, children=[
                 dcc.Tab(label='Ultrasound', value='US'),
                 dcc.Tab(label='Electricity', value='elec')]),
 
@@ -239,10 +225,10 @@ class SONICViewer(dash.Dash):
         return collapsablePanel('Output metrics', children=[
             html.Table(id='info-table', className='table')])
 
-    def outputPanel(self):
+    def outputPanel(self, default_cell, default_mod):
         ddgraphpanels = []
         for i in range(self.ngraphs):
-            graphvars = neuronvars[self.default_cell]['vars_{}'.format(self.stimmod)]
+            graphvars = neuronvars[default_cell]['vars_{}'.format(default_mod)]
             ddgraphpanels.append(collapsablePanel(title=None, children=[ddGraph(
                 id='out{}'.format(i),
                 labels=[v['desc'] for v in graphvars],
@@ -493,7 +479,9 @@ class SONICViewer(dash.Dash):
             print(worker)
             outfilepath = worker.__call__()
 
-            assert outfilepath == self.localfilepath, 'Local filepath not matching'
+            assert outfilepath == self.localfilepath,\
+                'Local filepath ("{}") not matching simulation output file ("{}")'.format(
+                    self.localfilepath, outfilepath)
 
         # Load data from downloaded/generated local file and delete it afterwards
         with open(self.localfilepath, 'rb') as pkl_file:
@@ -517,21 +505,14 @@ class SONICViewer(dash.Dash):
             :param DC: duty cycle (-)
             :return: filename
         '''
+        PW_str = '_PRF{:.2f}Hz_DC{:.2f}%'.format(PRF, DC * 1e2) if DC < 1.0 else ''
+        W_str = 'PW' if DC < 1.0 else 'CW'
         if mod_type == 'elec':
-            if DC == 1.0:
-                filecode = 'ESTIM_{}_CW_{:.1f}mA_per_m2_{:.0f}ms'.format(mech_type, A, tstim)
-            else:
-                filecode = 'ESTIM_{}_PW_{:.1f}mA_per_m2_{:.0f}ms_PRF{:.2f}Hz_DC{:.2f}%'.format(
-                    mech_type, A, tstim, PRF, DC * 1e2)
+            filecode = 'ESTIM_{}_{}_{:.1f}mA_per_m2_{:.0f}ms{}'.format(
+                mech_type, W_str, A, tstim, PW_str)
         else:
-            if DC == 1.0:
-                filecode = 'ASTIM_{}_CW_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms_effective'.format(
-                    mech_type, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim)
-            else:
-                filecode = ('ASTIM_{}_PW_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms' +
-                            '_PRF{:.2f}Hz_DC{:.2f}%_effective').format(mech_type, a * 1e9,
-                                                                       Fdrive * 1e-3, A * 1e-3, tstim,
-                                                                       PRF, DC * 1e2)
+            filecode = 'ASTIM_{}_{}_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}_sonic'.format(
+                mech_type, W_str, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
         return '{}.pkl'.format(filecode)
 
 
