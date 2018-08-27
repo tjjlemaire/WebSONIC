@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-27 17:31:36
+# @Last Modified time: 2018-08-27 18:15:22
 
 ''' Definition of the SONICViewer class. '''
 
@@ -318,12 +318,13 @@ class SONICViewer(dash.Dash):
             self.callback(
                 Output('out{}-graph'.format(i), 'figure'),
                 [Input('out0-graph', 'figure'),
+                 Input('out{}-graph'.format(0), 'relayoutData'),
                  Input('out{}-dropdown'.format(i), 'value')],
                 [State('mechanism-type', 'value'),
                  State('modality-tabs', 'value'),
                  State('out{}-graph'.format(i), 'id')])(self.updateGraph)
 
-        # Downbload link
+        # Download link
         self.callback(
             Output('download-link', 'href'),
             [Input('out0-graph', 'figure')])(self.updateDownloadContent)
@@ -440,7 +441,7 @@ class SONICViewer(dash.Dash):
             self.getData(*self.current_params)
 
         # Update graph accordingly
-        return self.updateGraph(None, varname, mech_type, mod_type, 'out0-graph')
+        return self.updateGraph(None, None, varname, mech_type, mod_type, 'out0-graph')
 
     def getData(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Update data either by loading a pre-computed simulation file from the remote server
@@ -530,10 +531,11 @@ class SONICViewer(dash.Dash):
             return '{}/US/{:.0f}nm/{}'.format(self.remoteroot, a * 1e9, mech_type)
 
 
-    def updateGraph(self, _, varname, mech_type, mod_type, id):
+    def updateGraph(self, _, relayout_data, varname, mech_type, mod_type, id):
         ''' Update graph with new data.
 
-            :param _: 1st vgraph figure content (used to trigger callback for subsequent graphs)
+            :param _: input graph figure content (used to trigger callback for subsequent graphs)
+            :param relayout_data: input graph relayout data
             :param varname: name of the output variable to display
             :param mech_type: type of ssh_channel mechanism (cell-type specific)
             :param mod_type: type of stimulation modality (US or elec)
@@ -541,13 +543,27 @@ class SONICViewer(dash.Dash):
             :return: graph content
         '''
 
+        # Get the x-range of the zoomed in data
+        startx = 'xaxis.range[0]' in relayout_data if relayout_data else None
+        endx = 'xaxis.range[1]' in relayout_data if relayout_data else None
+        sliderange = 'xaxis.range' in relayout_data if relayout_data else None
+        if startx and endx:
+            xrange = [relayout_data['xaxis.range[0]'], relayout_data['xaxis.range[1]']]
+        elif startx and not endx:
+            xrange = [relayout_data['xaxis.range[0]'], thedates.max()]
+        elif not startx and endx:
+            xrange = [thedates.min(), relayout_data['xaxis.range[1]']]
+        elif sliderange:
+            xrange = relayout_data['xaxis.range']
+        else:
+            xrange = None
+
         # Get graph-specific colorset
         igraph = int(id[3])
         colors = self.colorset[2 * igraph: 2 * (igraph + 1)]
 
         # Get info about variables to plot
         varlist = neuronvars[mech_type]['vars_{}'.format(mod_type)]
-
         vargroups = [v['label'] for v in varlist]
         if varname not in vargroups:
             varname = vargroups[0]
@@ -616,7 +632,7 @@ class SONICViewer(dash.Dash):
             xaxis={
                 'type': 'linear',
                 'title': 'time (ms)',
-                'range': self.tbounds,
+                'range': self.tbounds if xrange is None else xrange,
                 'zeroline': False
             },
             yaxis={
@@ -631,39 +647,6 @@ class SONICViewer(dash.Dash):
 
         # Return curve, patches and layout objects
         return {'data': [*curves, *patches], 'layout': layout}
-
-
-    # def crossFilterTime(self, input_relayout, self_relayout):
-
-    #     # If no input relayout -> no changes
-    #     if input_relayout is None:
-    #         output_layout = self_layout
-    #     else:
-    #         print(input_layout)
-
-    #         # if input layout on autosize or autorange -> return autosize
-    #         if input_layout in [
-    #             {'autosize': True},
-    #             {'xaxis.autorange': True, 'yaxis.autorange': True}
-    #         ]:
-    #             print('autosized input -> autosize output')
-    #             return {'autosize': True}
-
-    #         # if xaxis range is specified in input layout -> return this xaxis range (but not yaxis)
-    #         elif 'xaxis.range[0]' in input_layout:
-    #             print('x-ranged input -> x-ranged output')
-    #             tmin = input_layout['xaxis.range[0]']
-    #             tmax = input_layout['xaxis.range[1]']
-    #             return{'xaxis.range[0]': tmin, 'xaxis.range[1]': tmax}
-    #         #     print('time range: {:.0f} - {:.0f} ms'.format(tmin, tmax))
-
-    #         # if not handled -> return self_layout
-    #         else:
-    #             print('not handled !!!')
-    #             output_layout = self_layout
-
-    #     return self_figure
-
 
     def updateInfoTable(self, _):
         ''' Update the content of the output metrics table on neuron/modality/stimulation change. '''
