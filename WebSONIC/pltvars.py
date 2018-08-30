@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-23 09:20:33
+# @Last Modified time: 2018-08-30 15:40:48
 
 ''' Definition of neuron-specific plotting variables and their parameters. '''
 
@@ -65,43 +65,43 @@ Ca_conc = {'names': ['C_Ca'], 'desc': 'sumbmembrane Ca2+ concentration', 'label'
 neuronvars = {
     'RS': {
         'desc': 'Cortical regular-spiking neuron',
-        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate],
+        'vars_US': [charge, potential, iNa_gates, iK_gate, iM_gate],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate],
         'Vm0': -71.9  # mV
     },
     'FS': {
         'desc': 'Cortical fast-spiking neuron',
-        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate],
+        'vars_US': [charge, potential, iNa_gates, iK_gate, iM_gate],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate],
         'Vm0': -71.4  # mV
     },
     'LTS': {
         'desc': 'Cortical, low-threshold spiking neuron',
-        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iM_gate, iCa_gates],
+        'vars_US': [charge, potential, iNa_gates, iK_gate, iM_gate, iCa_gates],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iM_gate, iCa_gates],
         'Vm0': -54.0  # mV
     },
     'RE': {
         'desc': 'Thalamic reticular neuron',
-        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iCa_gates],
+        'vars_US': [charge, potential, iNa_gates, iK_gate, iCa_gates],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates],
         'Vm0': -89.5  # mV
     },
     'TC': {
         'desc': 'Thalamo-cortical neuron',
-        'vars_US': [charge, potential, deflection, gas, iNa_gates, iK_gate, iCa_gates,
+        'vars_US': [charge, potential, iNa_gates, iK_gate, iCa_gates,
                     iH_reg_factor, Ca_conc],
         'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gates, iH_reg_factor, Ca_conc],
         'Vm0': -61.93  # mV
     }
     # 'LeechT': {
     #     'desc': 'Leech "touch" neuron',
-    #     'vars_US': [charge, deflection, gas, iNa_gates, iK_gate, iCa_gate, NaPump_reg, iKCa_reg],
+    #     'vars_US': [charge, iNa_gates, iK_gate, iCa_gate, NaPump_reg, iKCa_reg],
     #     'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gate, NaPump_reg, iKCa_reg]
     # },
     # 'LeechP': {
     #     'desc': 'Leech "pressure" neuron',
-    #     'vars_US': [charge, deflection, gas, iNa_gates, iK_gate, iCa_gate, iKCa2_gate,
+    #     'vars_US': [charge, iNa_gates, iK_gate, iCa_gate, iKCa2_gate,
     #                 NaPump2_reg, CaPump2_reg],
     #     'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gate, iKCa2_gate, NaPump2_reg,
     #                   CaPump2_reg]

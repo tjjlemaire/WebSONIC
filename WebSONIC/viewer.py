@@ -4,24 +4,25 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-27 18:15:22
+# @Last Modified time: 2018-08-30 18:12:50
 
 ''' Definition of the SONICViewer class. '''
 
 import os
 import time
-import pickle
 import urllib
 import numpy as np
+import pandas as pd
 
 import dash
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 
 from PySONIC.plt import getPatchesLoc
-from PySONIC.solvers import SolverElec, SolverUS, EStimWorker, AStimWorker, findPeaks
+from PySONIC.solvers import findPeaks
 from PySONIC.constants import *
 from PySONIC.utils import getNeuronsDict, si_prefixes, checkNumBounds
+from ExSONIC._0D import Sonic0D
 
 from .components import *
 from .pltvars import neuronvars
@@ -30,8 +31,7 @@ from .pltvars import neuronvars
 class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
-    def __init__(self, server, tmpdir, remoteroot, ssh_channel, inputs, pltparams,
-                 name='viewer', title='SONIC viewer', ngraphs=1):
+    def __init__(self, server, inputs, pltparams, name='viewer', title='SONIC viewer', ngraphs=1):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
@@ -43,16 +43,12 @@ class SONICViewer(dash.Dash):
         self.title = title
 
         # Initialize constant parameters
-        self.ssh_channel = ssh_channel
-        self.remoteroot = remoteroot
-        self.tmpdir = tmpdir
         self.prefixes = {v: k for k, v in si_prefixes.items()}
         self.ngraphs = ngraphs
         self.colorset = pltparams['colorset']
         self.tbounds = pltparams['tbounds']  # ms
 
         # Initialize parameters that will change upon requests
-        self.localfilepath = ''
         self.prev_nsubmits = 0
         self.current_params = None
         self.data = None
@@ -93,8 +89,6 @@ class SONICViewer(dash.Dash):
     def setLayout(self, default_cell, default_mod):
         ''' Set app layout. '''
         self.layout = html.Div(id='body', children=[
-            # # Favicon
-            # html.Link(rel='shortcut icon', href='/favicon.ico'),
 
             # Header
             self.header(),
@@ -428,8 +422,6 @@ class SONICViewer(dash.Dash):
             Fdrive = A = PRF = DC = None
         new_params = [mech_type, a, mod_type, Fdrive, A, self.tstim, PRF, DC * 1e-2]
 
-        # print('current params: {}, new params: {}'.format(self.current_params, new_params))
-
         # Handle incorrect submissions
         if A is None:
             self.data = None
@@ -444,59 +436,9 @@ class SONICViewer(dash.Dash):
         return self.updateGraph(None, None, varname, mech_type, mod_type, 'out0-graph')
 
     def getData(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
-        ''' Update data either by loading a pre-computed simulation file from the remote server
-            or by running a custom simulation locally. '''
+        ''' Run NEURON simulaiton to update data.
 
-        # Get file name from parameters
-        filename = self.getFileName(mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC)
-        self.localfilepath = '{}/{}'.format(self.tmpdir, filename)
-
-        # Check file existence on server
-        remotedir = self.getRemoteDir(mech_type, a, mod_type)
-        remotefilepath = '{}/{}'.format(remotedir, filename)
-        remotefileexists = self.ssh_channel.isfile(remotefilepath)
-
-        # Download if available
-        if remotefileexists:
-            print('downloading "{}.pkl" file from server...'.format(filename))
-            t0 = time.time()
-            self.ssh_channel.get(remotefilepath, localpath=self.localfilepath)
-
-        # Otherwise run simulation
-        else:
-            print('"{}" file not found on server'.format(remotefilepath))
-            neuron = self.neurons[mech_type]
-            tstop = self.tbounds[1]
-            if mod_type == 'elec':
-                logfilepath = '{}/log_ESTIM.xlsx'.format(self.tmpdir)
-                worker = EStimWorker(1, self.tmpdir, logfilepath, SolverElec(), neuron,
-                                     A, tstim * 1e-3, (tstop - tstim) * 1e-3, PRF, DC, 1)
-            else:
-                logfilepath = '{}/log_ASTIM.xlsx'.format(self.tmpdir)
-                worker = AStimWorker(1, self.tmpdir, logfilepath, SolverUS(a, neuron, Fdrive), neuron,
-                                     Fdrive, A, tstim * 1e-3, (tstop - tstim) * 1e-3, PRF, DC,
-                                     'sonic', 1)
-            t0 = time.time()
-            print(worker)
-            outfilepath = worker.__call__()
-
-            assert outfilepath == self.localfilepath,\
-                'Local filepath ("{}") not matching simulation output file ("{}")'.format(
-                    self.localfilepath, outfilepath)
-
-        # Load data from downloaded/generated local file and delete it afterwards
-        with open(self.localfilepath, 'rb') as pkl_file:
-            frame = pickle.load(pkl_file)
-            self.data = frame['data']
-        if os.path.isfile(self.localfilepath):
-            os.remove(self.localfilepath)
-            print('file data loaded in {}s'.format(si_format((time.time() - t0), space=' ')))
-
-
-    def getFileName(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
-        ''' Get simulation filename for the given parameters.
-
-            :param mech_type: type of ssh_channel mechanism (cell-type specific)
+            :param mech_type: type of mechanism (cell-type specific)
             :param a: Sonophore diameter (m)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
@@ -504,7 +446,44 @@ class SONICViewer(dash.Dash):
             :param tstim: Stimulus duration (s)
             :param PRF: Pulse-repetition frequency (Hz)
             :param DC: duty cycle (-)
-            :return: filename
+        '''
+        tstart = time.time()
+
+        # Initialize 0D NEURON model
+        neuron = self.neurons[mech_type]
+        tstop = self.tbounds[1]
+        if mod_type == 'elec':
+            model = Sonic0D(neuron)
+            model.setAstim(A)
+        else:
+            model = Sonic0D(neuron, a=a, Fdrive=Fdrive)
+            model.setAdrive(A * 1e-3)  # kPa
+
+        # Run simulation
+        (t, y, stimon) = model.simulate(tstim * 1e-3, (tstop - tstim) * 1e-3, PRF, DC)
+        Qm, Vm, *states = y
+
+        # Store output in dataframe
+        self.data = pd.DataFrame({'t': t, 'states': stimon, 'Qm': Qm, 'Vm': Vm})
+        for j in range(len(neuron.states_names)):
+            self.data[neuron.states_names[j]] = states[j]
+
+        tcomp = time.time() - tstart
+        print('data loaded in {}s'.format(si_format(tcomp, space=' ')))
+
+
+    def getFileCode(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
+        ''' Get simulation filecode for the given parameters.
+
+            :param mech_type: type of mechanism (cell-type specific)
+            :param a: Sonophore diameter (m)
+            :param mod_type: stimulation modality ('US' or 'elec')
+            :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
+            :param A: Acoustic amplitude (Pa) for A-STIM / electrical amplitude (mA/m2) for E-STIM
+            :param tstim: Stimulus duration (s)
+            :param PRF: Pulse-repetition frequency (Hz)
+            :param DC: duty cycle (-)
+            :return: filecode
         '''
         PW_str = '_PRF{:.2f}Hz_DC{:.2f}%'.format(PRF, DC * 1e2) if DC < 1.0 else ''
         W_str = 'PW' if DC < 1.0 else 'CW'
@@ -512,16 +491,16 @@ class SONICViewer(dash.Dash):
             filecode = 'ESTIM_{}_{}_{:.1f}mA_per_m2_{:.0f}ms{}'.format(
                 mech_type, W_str, A, tstim, PW_str)
         else:
-            filecode = 'ASTIM_{}_{}_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}_sonic'.format(
+            filecode = 'ASTIM_{}_{}_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
                 mech_type, W_str, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
-        return '{}.pkl'.format(filecode)
+        return filecode
 
 
     def getRemoteDir(self, mech_type, a, mod_type):
         ''' Get remote directory that potentially holds the simulation file corresponding to
             the given parameters.
 
-            :param mech_type: type of ssh_channel mechanism (cell-type specific)
+            :param mech_type: type of mechanism (cell-type specific)
             :param a: Sonophore diameter (m)
             :param mod_type: stimulation modality ('US' or 'elec')
         '''
@@ -537,7 +516,7 @@ class SONICViewer(dash.Dash):
             :param _: input graph figure content (used to trigger callback for subsequent graphs)
             :param relayout_data: input graph relayout data
             :param varname: name of the output variable to display
-            :param mech_type: type of ssh_channel mechanism (cell-type specific)
+            :param mech_type: type of mechanism (cell-type specific)
             :param mod_type: type of stimulation modality (US or elec)
             :param id: id of the graph to update
             :return: graph content
@@ -677,5 +656,4 @@ class SONICViewer(dash.Dash):
 
     def updateDownloadName(self, _):
         ''' Update the name of the downloadable pandas dataframe. '''
-        filecode = os.path.splitext(os.path.basename(self.localfilepath))[0]
-        return '{}.csv'.format(filecode)
+        return '{}.csv'.format(self.getFileCode(*self.current_params))

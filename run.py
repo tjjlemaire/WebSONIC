@@ -4,17 +4,16 @@
 # @Date:   2017-07-11 18:58:23
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-27 16:20:02
+# @Last Modified time: 2018-08-30 18:14:38
 
 ''' Run the application on the flask server. '''
 
-import os
 from argparse import ArgumentParser
 import numpy as np
 import colorlover as cl
 from flask import Flask
 
-from WebSONIC import SONICViewer, connectSSH
+from WebSONIC import SONICViewer
 from credentials import CREDENTIALS
 import dash_auth
 
@@ -29,11 +28,6 @@ def main():
 
     # Create server instance
     server = Flask('server')
-
-    # Set up SSH channel
-    channel = connectSSH()
-    remoteroot = 'WebNICE_data'
-    tmpdir = os.path.join(os.getcwd(), 'tmp')
 
     # Set input parameters
     inputs = {
@@ -53,13 +47,13 @@ def main():
     }
 
     # Create app instance
-    app = SONICViewer(server, tmpdir, remoteroot, channel, inputs, pltparams,
+    app = SONICViewer(server, inputs, pltparams,
                       ngraphs=ngraphs)
     print('Created {}'.format(app))
 
     # Protect app with/without HTTP authentification (activated by default)
     if not args.opened:
-        app.authentifier = dash_auth.BasicAuth(app, CREDENTIALS)
+        dash_auth.BasicAuth(app, CREDENTIALS)
         print('Protected app with HTTP authentification')
 
     # Run app in standard mode (default, for production) or debug mode (for development)
