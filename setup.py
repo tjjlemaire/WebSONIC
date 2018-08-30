@@ -4,7 +4,7 @@
 # @Date:   2017-06-13 09:40:02
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-24 18:20:04
+# @Last Modified time: 2018-08-30 18:24:53
 
 from setuptools import setup
 
@@ -43,7 +43,6 @@ setup(
         'dash-html-components==0.11.0'
         'dash-core-components==0.27.1',
         'dash-auth==1.0.0',
-        'pysftp==0.2.9',
         'colorlover==0.2.1'
     ],
     zip_safe=False
