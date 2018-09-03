@@ -4,7 +4,7 @@
 # @Date:   2017-06-13 09:40:02
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-30 18:24:53
+# @Last Modified time: 2018-09-03 13:24:09
 
 from setuptools import setup
 
@@ -40,7 +40,7 @@ setup(
     install_requires=[
         'dash==0.24.0',
         'dash-renderer==0.13.0',
-        'dash-html-components==0.11.0'
+        'dash-html-components==0.11.0',
         'dash-core-components==0.27.1',
         'dash-auth==1.0.0',
         'colorlover==0.2.1'
