@@ -4,10 +4,12 @@
 # @Date:   2017-07-11 18:58:23
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-05 13:41:32
+# @Last Modified time: 2018-09-05 15:09:49
 
-''' Run the application on the flask server. '''
+''' Main script to run the application. '''
 
+import os
+import psutil
 from argparse import ArgumentParser
 import numpy as np
 import colorlover as cl
@@ -16,12 +18,21 @@ from WebSONIC import SONICViewer
 from credentials import CREDENTIALS
 import dash_auth
 
+# If app is served via gunicorn -> use "production" settings
+if psutil.Process(os.getppid()).name() == 'gunicorn':
+    print('Serving via gunicorn')
+    debug = False
+    protect = True
 
-ap = ArgumentParser()
-ap.add_argument('-d', '--debug', default=False, action='store_true', help='Run in Debug Mode')
-ap.add_argument('-o', '--opened', default=False, action='store_true',
-                help='Run without HTTP Authentification')
-args = ap.parse_args()
+# Otherwise -> determine settings by parsing command line arguments
+else:
+    ap = ArgumentParser()
+    ap.add_argument('-d', '--debug', default=False, action='store_true', help='Run in Debug Mode')
+    ap.add_argument('-o', '--opened', default=False, action='store_true',
+                    help='Run without HTTP Authentification')
+    args = ap.parse_args()
+    debug = args.debug
+    protect = not args.opened
 
 # Set input parameters
 inputs = {
@@ -46,10 +57,10 @@ server = app.server
 print('Created {}'.format(app))
 
 # Protect app with/without HTTP authentification (activated by default)
-if not args.opened:
+if protect:
     dash_auth.BasicAuth(app, CREDENTIALS)
     print('Protected app with HTTP authentification')
 
 if __name__ == '__main__':
     # Run app in standard mode (default, for production) or debug mode (for development)
-    app.run_server(debug=args.debug)
+    app.run_server(debug=debug)
