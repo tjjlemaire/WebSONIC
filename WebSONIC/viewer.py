@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-05 12:09:12
+# @Last Modified time: 2018-09-05 13:41:36
 
 ''' Definition of the SONICViewer class. '''
 
@@ -31,12 +31,11 @@ from .pltvars import neuronvars
 class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
-    def __init__(self, server, inputs, pltparams, name='viewer', title='SONIC viewer', ngraphs=1):
+    def __init__(self, inputs, pltparams, name='viewer', title='SONIC viewer', ngraphs=1):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
             name=name,
-            server=server,
             url_base_pathname='/{}/'.format(name),
             csrf_protect=True
         )
