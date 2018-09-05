@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-30 18:12:50
+# @Last Modified time: 2018-09-05 12:09:12
 
 ''' Definition of the SONICViewer class. '''
 
@@ -457,7 +457,7 @@ class SONICViewer(dash.Dash):
             model.setAstim(A)
         else:
             model = Sonic0D(neuron, a=a, Fdrive=Fdrive)
-            model.setAdrive(A * 1e-3)  # kPa
+            model.setAdrive(A)
 
         # Run simulation
         (t, y, stimon) = model.simulate(tstim * 1e-3, (tstop - tstim) * 1e-3, PRF, DC)
@@ -494,21 +494,6 @@ class SONICViewer(dash.Dash):
             filecode = 'ASTIM_{}_{}_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
                 mech_type, W_str, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
         return filecode
-
-
-    def getRemoteDir(self, mech_type, a, mod_type):
-        ''' Get remote directory that potentially holds the simulation file corresponding to
-            the given parameters.
-
-            :param mech_type: type of mechanism (cell-type specific)
-            :param a: Sonophore diameter (m)
-            :param mod_type: stimulation modality ('US' or 'elec')
-        '''
-        if mod_type == 'elec':
-            return '{}/EL/{}'.format(self.remoteroot, mech_type)
-        else:
-            return '{}/US/{:.0f}nm/{}'.format(self.remoteroot, a * 1e9, mech_type)
-
 
     def updateGraph(self, _, relayout_data, varname, mech_type, mod_type, id):
         ''' Update graph with new data.
