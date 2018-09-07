@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-08-24 17:39:31
+# @Last Modified time: 2018-09-07 13:28:23
 
 ''' Extension of dash components. '''
 
@@ -106,7 +106,7 @@ def ddGraph(id, labels, values, default=None, sep=False):
             style={'height': '15em'},
             animate=False,
             config={
-                'editable': True,
-                'modeBarButtonsToRemove': ['sendDataToCloud', 'displaylogo']
+                'editable': False,
+                'modeBarButtonsToRemove': ['sendDataToCloud', 'displaylogo', 'toggleSpikelines']
             })
     ])

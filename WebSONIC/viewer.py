@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-05 13:41:36
+# @Last Modified time: 2018-09-07 14:16:27
 
 ''' Definition of the SONICViewer class. '''
 
@@ -558,36 +558,32 @@ class SONICViewer(dash.Dash):
 
             # Define curves
             curves = [
-                {
-                    'name': pltvar['names'][i],
-                    'x': tplot * 1e3,
-                    'y': varlistplot[i] * pltvar['factor'],
-                    'mode': 'lines',
-                    'line': {'color': colors[i]},
-                    'showlegend': True
-                } for i in range(len(varlist))
+                go.Scatter(
+                    x=tplot * 1e3,
+                    y=varlistplot[i] * pltvar['factor'],
+                    mode='lines',
+                    name=pltvar['names'][i],
+                    line={'color': colors[i]},
+                    showlegend=True
+                ) for i in range(len(varlist))
             ]
 
             # Define stimulus patches
             patches = [
-                {
-                    'x': np.array([tpatch_on[i], tpatch_off[i], tpatch_off[i], tpatch_on[i]]) * 1e3,
-                    'y': np.array([pltvar['min'], pltvar['min'], pltvar['max'], pltvar['max']]),
-                    'mode': 'none',
-                    'fill': 'toself',
-                    'fillcolor': 'grey',
-                    'opacity': 0.2,
-                    'showlegend': False
-                } for i in range(npatches)
+                go.Scatter(
+                    x=np.array([tpatch_on[i], tpatch_off[i], tpatch_off[i], tpatch_on[i]]) * 1e3,
+                    y=np.array([pltvar['min'], pltvar['min'], pltvar['max'], pltvar['max']]),
+                    mode='none',
+                    fill='toself',
+                    fillcolor='grey',
+                    opacity=0.2,
+                    showlegend=False
+                ) for i in range(npatches)
             ]
 
         # If file does not exist, define empty curve and patches
         else:
-            curves = [{
-                'name': pltvar['label'],
-                'mode': 'none',
-                'showlegend': False
-            }]
+            curves = []
             patches = []
 
         # Set axes layout
