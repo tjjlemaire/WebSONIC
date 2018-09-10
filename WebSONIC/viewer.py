@@ -4,11 +4,10 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-07 14:16:27
+# @Last Modified time: 2018-09-10 16:16:58
 
 ''' Definition of the SONICViewer class. '''
 
-import os
 import time
 import urllib
 import numpy as np
@@ -21,8 +20,10 @@ import plotly.graph_objs as go
 from PySONIC.plt import getPatchesLoc
 from PySONIC.solvers import findPeaks
 from PySONIC.constants import *
-from PySONIC.utils import getNeuronsDict, si_prefixes, checkNumBounds
+from PySONIC.utils import getNeuronsDict, si_prefixes, checkNumBounds, getDefaultIndexes
 from ExSONIC._0D import Sonic0D
+
+import my_dash_components as mdc
 
 from .components import *
 from .pltvars import neuronvars
@@ -31,15 +32,15 @@ from .pltvars import neuronvars
 class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
-    def __init__(self, inputs, pltparams, name='viewer', title='SONIC viewer', ngraphs=1):
+    def __init__(self, inputparams, inputdefaults, pltparams, ngraphs=1):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
-            name=name,
-            url_base_pathname='/{}/'.format(name),
+            name='viewer',
+            url_base_pathname='/viewer/',
             csrf_protect=True
         )
-        self.title = title
+        self.title = 'SONIC viewer'
 
         # Initialize constant parameters
         self.prefixes = {v: k for k, v in si_prefixes.items()}
@@ -53,23 +54,28 @@ class SONICViewer(dash.Dash):
         self.data = None
 
         # Initialize cell and stimulation parameters
+        idefs = getDefaultIndexes(inputparams, inputdefaults)
         self.neurons = {key: getNeuronsDict()[key]() for key in neuronvars.keys()}
         self.cell_params = {
             'mech': dict(label='Cell Type', values=list(neuronvars.keys()), idef=0),
-            'diam': dict(label='Sonophore diameter', values=inputs['diams'], idef=1)}
+            'diam': dict(label='Sonophore diameter', values=inputparams['diams'],
+                         idef=idefs['diams'])}
         self.stim_params = {
             'US': {
-                'freq': dict(label='Frequency', values=inputs['US_freqs'],
-                             unit='Hz', factor=1e-3, idef=2),
-                'amp': dict(label='Amplitude', values=inputs['US_amps'],
-                            unit='Pa', factor=1e-3, idef=3),
-                'PRF': dict(label='PRF', values=inputs['PRFs'], unit='Hz', idef=1),
-                'DC': dict(label='Duty Cycle', values=inputs['DCs'], unit='%', idef=6)},
+                'freq': dict(label='Frequency', values=inputparams['US_freqs'],
+                             unit='Hz', factor=1e-3, idef=idefs['US_freqs']),
+                'amp': dict(label='Amplitude', values=inputparams['US_amps'],
+                            unit='Pa', factor=1e-3, idef=idefs['US_amps']),
+                'PRF': dict(label='PRF', values=inputparams['PRFs'], unit='Hz', idef=idefs['PRFs']),
+                'DC': dict(label='Duty Cycle', values=inputparams['DCs'], unit='%',
+                           idef=idefs['DCs'])},
             'elec': {
-                'amp': dict(label='Amplitude', values=inputs['elec_amps'], unit='mA/m2', idef=6),
-                'PRF': dict(label='PRF', values=inputs['PRFs'], unit='Hz', idef=1),
-                'DC': dict(label='Duty Cycle', values=inputs['DCs'], unit='%', idef=6)}}
-        self.tstim = inputs['tstim']
+                'amp': dict(label='Amplitude', values=inputparams['elec_amps'], unit='mA/m2',
+                            idef=idefs['elec_amps']),
+                'PRF': dict(label='PRF', values=inputparams['PRFs'], unit='Hz', idef=idefs['PRFs']),
+                'DC': dict(label='Duty Cycle', values=inputparams['DCs'], unit='%',
+                           idef=idefs['DCs'])}}
+        self.tstim = inputparams['tstim']
 
         # Initialize UI layout components
         default_cell = self.cell_params['mech']['values'][self.cell_params['mech']['idef']]
@@ -170,15 +176,16 @@ class SONICViewer(dash.Dash):
 
         return collapsablePanel('Stimulation parameters', children=[
 
-            dcc.Tabs(id='modality-tabs', value=default_mod, children=[
+            dcc.Tabs(id='modality-tabs', className='tabs', value=default_mod, children=[
                 dcc.Tab(label='Ultrasound', value='US'),
                 dcc.Tab(label='Electricity', value='elec')]),
 
-            html.Br(),
-
-            dcc.RadioItems(id='toggle-custom', value=True, labelStyle={'display': 'inline-block'},
-                           options=[{'label': 'Standard', 'value': True},
-                                    {'label': 'Custom', 'value': False}]),
+            mdc.SwitchButton(
+                id='toggle-custom',
+                labelLeft='Standard',
+                labelRight='Custom',
+                checked=False
+            ),
 
             *[labeledSlidersTable(
                 '{}-slider-table'.format(mod_type),
@@ -248,15 +255,15 @@ class SONICViewer(dash.Dash):
         for table_mod in ['US', 'elec']:
             for table_type in ['slider', 'input']:
                 key = '{}-{}' .format(table_mod, table_type)
-                is_standard = table_type == 'slider'
+                is_standard_table = table_type == 'slider'
                 self.callback(
                     Output('{}-table'.format(key), 'hidden'),
                     [Input('modality-tabs', 'value'),
-                     Input('toggle-custom', 'value')])(self.showTable(table_mod, is_standard))
+                     Input('toggle-custom', 'checked')])(self.showTable(table_mod, is_standard_table))
 
         self.callback(
             Output('inputs-submit-div', 'hidden'),
-            [Input('toggle-custom', 'value')])(self.hideSubmitButton)
+            [Input('toggle-custom', 'checked')])(self.hideSubmitButton)
 
         # Stimulation panel: sliders
         for mod_type, refparams in self.stim_params.items():
@@ -288,7 +295,7 @@ class SONICViewer(dash.Dash):
             [Input('mechanism-type', 'value'),
              Input('diam-slider', 'value'),
              Input('modality-tabs', 'value'),
-             Input('toggle-custom', 'value'),
+             Input('toggle-custom', 'checked'),
              Input('US-freq-slider', 'value'),
              Input('US-amp-slider', 'value'),
              Input('US-PRF-slider', 'value'),
@@ -329,16 +336,16 @@ class SONICViewer(dash.Dash):
         ''' Update the image of neuron mechanism on neuron switch. '''
         return '/assets/{}_mech.png'.format(value)
 
-    def showTableGeneric(self, stim_mod, is_standard, table_mod, is_standard_table):
-        return not (stim_mod == table_mod and is_standard == is_standard_table)
+    def showTableGeneric(self, stim_mod, is_custom, table_mod, is_standard_table):
+        return not (stim_mod == table_mod and is_custom != is_standard_table)
 
     def showTable(self, table_mod, is_standard_table):
         ''' For correct assignment of updateSlider functions with lambda expressions. '''
         return lambda x, y: self.showTableGeneric(x, y, table_mod, is_standard_table)
 
-    def hideSubmitButton(self, is_standard):
+    def hideSubmitButton(self, is_custom):
         ''' Show submit button only when stimulation panel is in input mode. '''
-        return is_standard
+        return not is_custom
 
     def updateSliderGeneric(self, values, curr, factor=1, precision=0, suffix=''):
         ''' Generic function to update a slider value. '''
@@ -389,7 +396,7 @@ class SONICViewer(dash.Dash):
         else:
             return False
 
-    def propagateInputs(self, mech_type, i_diam, mod_type, is_standard, i_US_freq, i_US_amp,
+    def propagateInputs(self, mech_type, i_diam, mod_type, is_custom, i_US_freq, i_US_amp,
                         i_US_PRF, i_US_DC, i_elec_amp, i_elec_PRF, i_elec_DC, nsubmits, varname,
                         US_freq_input, US_amp_input, US_PRF_input, US_DC_input, elec_amp_input,
                         elec_PRF_input, elec_DC_input):

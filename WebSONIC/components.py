@@ -2,12 +2,13 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-07 13:28:23
+# @Last Modified time: 2018-09-10 14:10:26
 
 ''' Extension of dash components. '''
 
 import dash_html_components as html
 import dash_core_components as dcc
+
 from PySONIC.utils import si_format
 
 

@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2018-08-24 20:32:43
+* @Last Modified time: 2018-09-10 15:24:50
 */
 
 
@@ -129,12 +129,23 @@ summary {
 	letter-spacing: -.05rem;
 	margin-bottom: 0.6rem;
 	margin-top: 0.6rem;
-	/*outline: none;*/
 }
 
-#output-panel-title {
-	text-align: center;
+
+/* Tabs & switches
+---------------------------------------- */
+
+.tabs {
+	height: 4em;
+	margin-bottom: 1em;
 }
+
+
+.rsbc-switch-button label {
+	display: inline;
+	font-weight: bold;
+}
+
 
 
 /* Graph
@@ -193,7 +204,7 @@ summary {
 
 
 #toggle-custom {
-	font-weight: bold;
+	background-color: blue;
 	text-align: center;
 }
 
