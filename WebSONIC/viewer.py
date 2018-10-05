@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-10 16:16:58
+# @Last Modified time: 2018-09-27 11:30:17
 
 ''' Definition of the SONICViewer class. '''
 
@@ -17,16 +17,42 @@ import dash
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 
-from PySONIC.plt import getPatchesLoc
-from PySONIC.solvers import findPeaks
+from PySONIC.postpro import findPeaks
 from PySONIC.constants import *
-from PySONIC.utils import getNeuronsDict, si_prefixes, checkNumBounds, getDefaultIndexes
+from PySONIC.neurons import getNeuronsDict
+from PySONIC.utils import si_prefixes, getStimPulses
 from ExSONIC._0D import Sonic0D
 
 import my_dash_components as mdc
 
 from .components import *
 from .pltvars import neuronvars
+
+
+def checkNumBounds(values, bounds):
+    ''' Check if a set of numbers is within predefined bounds. '''
+
+    # checking parameters against reference bounds
+    for x, bound in zip(values, bounds):
+        if x < bound[0] or x > bound[1]:
+            raise ValueError('Input value {} out of [{}, {}] range'.format(x, bound[0], bound[1]))
+    pass
+
+
+def getDefaultIndexes(params, defaults):
+    ''' Return the indexes of default values found in lists of parameters.
+
+        :param params: dictionary of parameter arrays
+        :param defaults: dictionary of default values
+        :return: dictionary of resolved default indexes
+    '''
+    idefs = {}
+    for key, default in defaults.items():
+        if default not in params[key]:
+            raise Exception('default {} ({}) not found in parameter values'.format(key, default))
+        idefs[key] = np.where(params[key] == default)[0][0]
+    return idefs
+
 
 
 class SONICViewer(dash.Dash):
@@ -141,7 +167,8 @@ class SONICViewer(dash.Dash):
     def footer(self):
         ''' Set app footer. '''
         return html.Div(id='footer', children=[
-            'Developed with the ', html.A('Dash', href='https://dash.plot.ly/'), ' framework.',
+            'Developed with ', html.A('Dash', href='https://dash.plot.ly/'), '. ',
+            'Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '. ',
             html.Br(),
             'Translational Neural Engineering Lab, EPFL - 2018',
             html.Br(),
@@ -550,7 +577,7 @@ class SONICViewer(dash.Dash):
             states = self.data['states'].values
 
             # Determine patches location
-            npatches, tpatch_on, tpatch_off = getPatchesLoc(t, states)
+            npatches, tpatch_on, tpatch_off = getStimPulses(t, states)
 
             # Add onset
             dt = t[1] - t[0]
