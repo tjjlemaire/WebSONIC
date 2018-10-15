@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-10-15 15:10:52
+# @Last Modified time: 2018-10-16 01:28:52
 
 ''' Definition of applicaiton parameters. '''
 
@@ -12,7 +12,7 @@ import colorlover as cl
 # Input parameters
 inputparams = dict(
     coverages=np.linspace(20.0, 100.0, 5),  # %
-    diams=np.logspace(np.log10(16.0), np.log10(64.0), 7) * 1e-9,  # m
+    diams=np.logspace(np.log10(16.0), np.log10(64.0), 3) * 1e-9,  # m
     US_freqs=np.array([20e3, 100e3, 500e3, 1e6, 2e6, 3e6, 4e6]),  # Hz
     US_amps=np.array([10, 20, 40, 60, 80, 100, 300, 600]) * 1e3,  # Pa
     elec_amps=np.array([-25, -10, -5, -2, 2, 5, 10, 25]),  # mA/m2

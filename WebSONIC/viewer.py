@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-10-15 15:10:42
+# @Last Modified time: 2018-10-16 01:27:01
 
 ''' Definition of the SONICViewer class. '''
 
@@ -504,7 +504,7 @@ class SONICViewer(dash.Dash):
         neuron = self.neurons[mech_type]
         tstop = self.tbounds[1]
         if mod_type == 'elec':
-            model = Sonic0D(neuron)
+            model = Sonic0D(neuron, fs=0)
             model.setAstim(A)
         else:
             model = Sonic0D(neuron, fs=fs, a=a, Fdrive=Fdrive)
