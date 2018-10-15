@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-27 11:30:17
+# @Last Modified time: 2018-10-15 15:10:42
 
 ''' Definition of the SONICViewer class. '''
 
@@ -48,9 +48,11 @@ def getDefaultIndexes(params, defaults):
     '''
     idefs = {}
     for key, default in defaults.items():
-        if default not in params[key]:
-            raise Exception('default {} ({}) not found in parameter values'.format(key, default))
-        idefs[key] = np.where(params[key] == default)[0][0]
+        imatches = np.where(np.isclose(params[key], default, rtol=1e-9, atol=1e-16))[0]
+        if len(imatches) == 0:
+            raise ValueError('default {} ({}) not found in parameter values'.format(key, default))
+        else:
+            idefs[key] = imatches[0]
     return idefs
 
 
@@ -84,8 +86,11 @@ class SONICViewer(dash.Dash):
         self.neurons = {key: getNeuronsDict()[key]() for key in neuronvars.keys()}
         self.cell_params = {
             'mech': dict(label='Cell Type', values=list(neuronvars.keys()), idef=0),
+            'coverage': dict(label='% sonophore coverage', values=inputparams['coverages'],
+                             idef=idefs['coverages'], unit='%'),
             'diam': dict(label='Sonophore diameter', values=inputparams['diams'],
-                         idef=idefs['diams'])}
+                         idef=idefs['diams'], unit='m')
+        }
         self.stim_params = {
             'US': {
                 'freq': dict(label='Frequency', values=inputparams['US_freqs'],
@@ -100,7 +105,8 @@ class SONICViewer(dash.Dash):
                             idef=idefs['elec_amps']),
                 'PRF': dict(label='PRF', values=inputparams['PRFs'], unit='Hz', idef=idefs['PRFs']),
                 'DC': dict(label='Duty Cycle', values=inputparams['DCs'], unit='%',
-                           idef=idefs['DCs'])}}
+                           idef=idefs['DCs'])}
+        }
         self.tstim = inputparams['tstim']
 
         # Initialize UI layout components
@@ -191,10 +197,13 @@ class SONICViewer(dash.Dash):
                     html.Td('Membrane mechanism'),
                     html.Td(html.Img(id='neuron-mechanism', style={'width': '100%'}))]),
 
+                labeledSliderRow(self.cell_params['coverage']['label'], 'coverage-slider',
+                                 len(self.cell_params['coverage']['values']),
+                                 value=self.cell_params['coverage']['idef']),
+
                 labeledSliderRow(self.cell_params['diam']['label'], 'diam-slider',
                                  len(self.cell_params['diam']['values']),
-                                 value=self.cell_params['diam']['idef'],
-                                 disabled=True)
+                                 value=self.cell_params['diam']['idef'])
             ])
         ])
 
@@ -278,6 +287,12 @@ class SONICViewer(dash.Dash):
             Output('neuron-mechanism', 'src'),
             [Input('mechanism-type', 'value')])(self.updateImgSrc)
 
+        # Cell panel: sliders
+        for p in ['coverage', 'diam']:
+            id = '{}-slider'.format(p)
+            self.callback(Output(id, 'marks'), [Input(id, 'value')])(self.updateSlider(
+                self.cell_params[p]))
+
         # Stimulation panel: tables visibility
         for table_mod in ['US', 'elec']:
             for table_type in ['slider', 'input']:
@@ -320,6 +335,7 @@ class SONICViewer(dash.Dash):
         self.callback(
             Output('out0-graph', 'figure'),
             [Input('mechanism-type', 'value'),
+             Input('coverage-slider', 'value'),
              Input('diam-slider', 'value'),
              Input('modality-tabs', 'value'),
              Input('toggle-custom', 'checked'),
@@ -423,7 +439,7 @@ class SONICViewer(dash.Dash):
         else:
             return False
 
-    def propagateInputs(self, mech_type, i_diam, mod_type, is_custom, i_US_freq, i_US_amp,
+    def propagateInputs(self, mech_type, i_cov, i_diam, mod_type, is_custom, i_US_freq, i_US_amp,
                         i_US_PRF, i_US_DC, i_elec_amp, i_elec_PRF, i_elec_DC, nsubmits, varname,
                         US_freq_input, US_amp_input, US_PRF_input, US_DC_input, elec_amp_input,
                         elec_PRF_input, elec_DC_input):
@@ -433,6 +449,7 @@ class SONICViewer(dash.Dash):
         refparams = self.stim_params[mod_type]
 
         # Determine parameters
+        fs = self.cell_params['coverage']['values'][i_cov]
         a = self.cell_params['diam']['values'][i_diam]
         try:
             if mod_type == 'US':
@@ -453,7 +470,7 @@ class SONICViewer(dash.Dash):
         except ValueError:
             print('Error in custom inputs')
             Fdrive = A = PRF = DC = None
-        new_params = [mech_type, a, mod_type, Fdrive, A, self.tstim, PRF, DC * 1e-2]
+        new_params = [mech_type, fs * 1e-2, a, mod_type, Fdrive, A, self.tstim, PRF, DC * 1e-2]
 
         # Handle incorrect submissions
         if A is None:
@@ -468,10 +485,11 @@ class SONICViewer(dash.Dash):
         # Update graph accordingly
         return self.updateGraph(None, None, varname, mech_type, mod_type, 'out0-graph')
 
-    def getData(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
+    def getData(self, mech_type, fs, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Run NEURON simulaiton to update data.
 
             :param mech_type: type of mechanism (cell-type specific)
+            :param fs: fraction of membrane covered by sonophores (-)
             :param a: Sonophore diameter (m)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
@@ -489,7 +507,7 @@ class SONICViewer(dash.Dash):
             model = Sonic0D(neuron)
             model.setAstim(A)
         else:
-            model = Sonic0D(neuron, a=a, Fdrive=Fdrive)
+            model = Sonic0D(neuron, fs=fs, a=a, Fdrive=Fdrive)
             model.setAdrive(A)
 
         # Run simulation
@@ -505,10 +523,11 @@ class SONICViewer(dash.Dash):
         print('data loaded in {}s'.format(si_format(tcomp, space=' ')))
 
 
-    def getFileCode(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
+    def getFileCode(self, mech_type, fs, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Get simulation filecode for the given parameters.
 
             :param mech_type: type of mechanism (cell-type specific)
+            :param fs: fraction of membrane covered by sonophores (-)
             :param a: Sonophore diameter (m)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
@@ -524,8 +543,8 @@ class SONICViewer(dash.Dash):
             filecode = 'ESTIM_{}_{}_{:.1f}mA_per_m2_{:.0f}ms{}'.format(
                 mech_type, W_str, A, tstim, PW_str)
         else:
-            filecode = 'ASTIM_{}_{}_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
-                mech_type, W_str, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
+            filecode = 'ASTIM_{}_{}_{:.1f}%cov_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
+                mech_type, W_str, fs * 1e2, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
         return filecode
 
     def updateGraph(self, _, relayout_data, varname, mech_type, mod_type, id):
