@@ -2,18 +2,23 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-09-10 14:10:26
+# @Last Modified time: 2019-03-01 15:13:02
 
 ''' Extension of dash components. '''
 
 import dash_html_components as html
 import dash_core_components as dcc
+import dash_daq as daq
 
 from PySONIC.utils import si_format
 
 
 def separator():
     return html.Hr(className='separator')
+
+
+def unorderedList(items):
+    return dcc.Markdown(className='ul', children=['''* {}'''.format('\r\n* '.join(items))])
 
 
 def linearSlider(id, noptions, value=0, disabled=False):
@@ -62,6 +67,18 @@ def labeledInputsTable(id, labels, ids, mins, maxs, values=None):
     for i in range(len(labels)):
         children.append(labeledInputRow(labels[i], ids[i], mins[i], maxs[i], values[i]))
     return html.Table(id=id, className='table', children=children)
+
+
+def labeledToggleSwitch(id, labelLeft='Left', labelRight='Right', value=False, boldLabels=False):
+    ''' Return a labelLeft - toggleSwitch - labelRight html div element. '''
+
+    return html.Div(className='toggle-switch-container', children=[
+        html.Span(children=[
+            labelLeft,
+            daq.ToggleSwitch(id=id, className='toggle-switch', value=value),
+            labelRight
+        ], style={'fontWeight': 'bold' if boldLabels else 'normal'})
+    ])
 
 
 def collapsablePanel(title, children):

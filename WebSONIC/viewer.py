@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2018-10-16 01:27:01
+# @Last Modified time: 2019-03-01 19:33:04
 
 ''' Definition of the SONICViewer class. '''
 
@@ -17,26 +17,15 @@ import dash
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 
+
 from PySONIC.postpro import findPeaks
 from PySONIC.constants import *
 from PySONIC.neurons import getNeuronsDict
-from PySONIC.utils import si_prefixes, getStimPulses
+from PySONIC.utils import si_prefixes, getStimPulses, isWithin
 from ExSONIC._0D import Sonic0D
 
-import my_dash_components as mdc
-
 from .components import *
-from .pltvars import neuronvars
-
-
-def checkNumBounds(values, bounds):
-    ''' Check if a set of numbers is within predefined bounds. '''
-
-    # checking parameters against reference bounds
-    for x, bound in zip(values, bounds):
-        if x < bound[0] or x > bound[1]:
-            raise ValueError('Input value {} out of [{}, {}] range'.format(x, bound[0], bound[1]))
-    pass
+from .pltvars import charge, potential, neuronvars, extractFromFormula
 
 
 def getDefaultIndexes(params, defaults):
@@ -81,13 +70,13 @@ class SONICViewer(dash.Dash):
         self.current_params = None
         self.data = None
 
+        self.spatialdist = False
+
         # Initialize cell and stimulation parameters
         idefs = getDefaultIndexes(inputparams, inputdefaults)
         self.neurons = {key: getNeuronsDict()[key]() for key in neuronvars.keys()}
         self.cell_params = {
             'mech': dict(label='Cell Type', values=list(neuronvars.keys()), idef=0),
-            'coverage': dict(label='% sonophore coverage', values=inputparams['coverages'],
-                             idef=idefs['coverages'], unit='%'),
             'diam': dict(label='Sonophore diameter', values=inputparams['diams'],
                          idef=idefs['diams'], unit='m')
         }
@@ -191,15 +180,10 @@ class SONICViewer(dash.Dash):
                         dcc.Dropdown(
                             id='mechanism-type',
                             options=[{'label': v['desc'], 'value': k} for k, v in neuronvars.items()],
-                            value=default_cell)
+                            value=default_cell),
+                        html.Br(),
+                        html.Div(id='membrane-currents'),
                     ])]),
-                html.Tr([
-                    html.Td('Membrane mechanism'),
-                    html.Td(html.Img(id='neuron-mechanism', style={'width': '100%'}))]),
-
-                labeledSliderRow(self.cell_params['coverage']['label'], 'coverage-slider',
-                                 len(self.cell_params['coverage']['values']),
-                                 value=self.cell_params['coverage']['idef']),
 
                 labeledSliderRow(self.cell_params['diam']['label'], 'diam-slider',
                                  len(self.cell_params['diam']['values']),
@@ -216,11 +200,12 @@ class SONICViewer(dash.Dash):
                 dcc.Tab(label='Ultrasound', value='US'),
                 dcc.Tab(label='Electricity', value='elec')]),
 
-            mdc.SwitchButton(
-                id='toggle-custom',
+            labeledToggleSwitch(
+                'toggle-stim-inputs',
                 labelLeft='Standard',
                 labelRight='Custom',
-                checked=False
+                value=False,
+                boldLabels=True
             ),
 
             *[labeledSlidersTable(
@@ -261,15 +246,24 @@ class SONICViewer(dash.Dash):
         return collapsablePanel('Output metrics', children=[
             html.Table(id='info-table', className='table')])
 
+    def getPltVars(self, cell_type):
+        ''' Return a list of variables that can be plotted for a given cell type. '''
+        gatingvars = []
+        for c in neuronvars[cell_type]['currents']:
+            if c.gates is not None:
+                gatingvars.append(c.gatingVariables())
+        return [charge, potential] + gatingvars
+
+
     def outputPanel(self, default_cell, default_mod):
         ddgraphpanels = []
+        graphvars = self.getPltVars(default_cell)
         for i in range(self.ngraphs):
-            graphvars = neuronvars[default_cell]['vars_{}'.format(default_mod)]
             ddgraphpanels.append(collapsablePanel(title=None, children=[ddGraph(
                 id='out{}'.format(i),
-                labels=[v['desc'] for v in graphvars],
-                values=[v['label'] for v in graphvars],
-                default=graphvars[i]['label'],
+                labels=[v.desc for v in graphvars],
+                values=[v.label for v in graphvars],
+                default=graphvars[i].label,
                 sep=False)]))
 
         return html.Div(children=[
@@ -284,11 +278,11 @@ class SONICViewer(dash.Dash):
 
         # Cell panel: mechanism type
         self.callback(
-            Output('neuron-mechanism', 'src'),
-            [Input('mechanism-type', 'value')])(self.updateImgSrc)
+            Output('membrane-currents', 'children'),
+            [Input('mechanism-type', 'value')])(self.updateMembraneCurrents)
 
         # Cell panel: sliders
-        for p in ['coverage', 'diam']:
+        for p in ['diam']:
             id = '{}-slider'.format(p)
             self.callback(Output(id, 'marks'), [Input(id, 'value')])(self.updateSlider(
                 self.cell_params[p]))
@@ -301,11 +295,11 @@ class SONICViewer(dash.Dash):
                 self.callback(
                     Output('{}-table'.format(key), 'hidden'),
                     [Input('modality-tabs', 'value'),
-                     Input('toggle-custom', 'checked')])(self.showTable(table_mod, is_standard_table))
+                     Input('toggle-stim-inputs', 'value')])(self.showTable(table_mod, is_standard_table))
 
         self.callback(
             Output('inputs-submit-div', 'hidden'),
-            [Input('toggle-custom', 'checked')])(self.hideSubmitButton)
+            [Input('toggle-stim-inputs', 'value')])(self.hideSubmitButton)
 
         # Stimulation panel: sliders
         for mod_type, refparams in self.stim_params.items():
@@ -324,21 +318,19 @@ class SONICViewer(dash.Dash):
             # drop-down list
             self.callback(
                 Output('out{}-dropdown'.format(i), 'options'),
-                [Input('mechanism-type', 'value'),
-                 Input('modality-tabs', 'value')])(self.updateOutputOptions)
+                [Input('mechanism-type', 'value')])(self.updateOutputOptions)
             self.callback(
                 Output('out{}-dropdown'.format(i), 'value'),
-                [Input('mechanism-type', 'value'), Input('modality-tabs', 'value')],
+                [Input('mechanism-type', 'value')],
                 state=[State('out{}-dropdown'.format(i), 'value')])(self.updateOutputVar)
 
         # 1st graph
         self.callback(
             Output('out0-graph', 'figure'),
             [Input('mechanism-type', 'value'),
-             Input('coverage-slider', 'value'),
              Input('diam-slider', 'value'),
              Input('modality-tabs', 'value'),
-             Input('toggle-custom', 'checked'),
+             Input('toggle-stim-inputs', 'value'),
              Input('US-freq-slider', 'value'),
              Input('US-amp-slider', 'value'),
              Input('US-PRF-slider', 'value'),
@@ -364,7 +356,6 @@ class SONICViewer(dash.Dash):
                  Input('out{}-graph'.format(0), 'relayoutData'),
                  Input('out{}-dropdown'.format(i), 'value')],
                 [State('mechanism-type', 'value'),
-                 State('modality-tabs', 'value'),
                  State('out{}-graph'.format(i), 'id')])(self.updateGraph)
 
         # Download link
@@ -375,9 +366,10 @@ class SONICViewer(dash.Dash):
             Output('download-link', 'download'),
             [Input('out0-graph', 'figure')])(self.updateDownloadName)
 
-    def updateImgSrc(self, value):
-        ''' Update the image of neuron mechanism on neuron switch. '''
-        return '/assets/{}_mech.png'.format(value)
+    def updateMembraneCurrents(self, cell_type):
+        ''' Update the list of membrane currents on neuron switch. '''
+        currents = neuronvars[cell_type]['currents']
+        return unorderedList(['{} ({})'.format(c.desc, c.name) for c in currents])
 
     def showTableGeneric(self, stim_mod, is_custom, table_mod, is_standard_table):
         return not (stim_mod == table_mod and is_custom != is_standard_table)
@@ -399,16 +391,13 @@ class SONICViewer(dash.Dash):
             ''' For correct assignment of updateSlider functions with lambda expressions. '''
             return lambda x: self.updateSliderGeneric(p['values'], x, suffix=p['unit'])
 
-    def getVars(self, cell_type, mod_type):
-        return neuronvars[cell_type]['vars_{}'.format(mod_type)]
-
-    def updateOutputOptions(self, cell_type, mod_type):
+    def updateOutputOptions(self, cell_type):
         ''' Update the list of available variables in a graph dropdown menu on neuron switch. '''
-        return [{'label': v['desc'], 'value': v['label']} for v in self.getVars(cell_type, mod_type)]
+        return [{'label': v.desc, 'value': v.label} for v in self.getPltVars(cell_type)]
 
-    def updateOutputVar(self, cell_type, mod_type, varname):
+    def updateOutputVar(self, cell_type, varname):
         ''' Update the selected variable in a graph dropdown menu on neuron switch. '''
-        vargroups = [v['label'] for v in self.getVars(cell_type, mod_type)]
+        vargroups = [v.label for v in self.getPltVars(cell_type)]
         if varname not in vargroups:
             varname = vargroups[0]
         return varname
@@ -416,15 +405,17 @@ class SONICViewer(dash.Dash):
     def validateInputs(self, inputs, refparams):
         ''' Convert inputs to float and check validity. '''
 
-        # converting to float and optional rescaling
+        # Convert to float and optional rescaling
         values = [float(x) / p.get('factor', 1)
                   for x, p in zip(inputs, refparams.values())]
+        mins = [min(p['values']) for p in refparams.values()]
+        maxs = [max(p['values']) for p in refparams.values()]
 
-        mins = [min(p['values']) for p in refparams.values()],
-        maxs = [max(p['values']) for p in refparams.values()],
-        mins = mins[0]
-        maxs = maxs[0]
-        checkNumBounds(values, list(zip(mins, maxs)))
+        # Check parameters against reference bounds
+        for i in range(len(values)):
+            values[i] = isWithin('', values[i], (mins[i], maxs[i]))
+
+        # Return values
         return values
 
     def getSlidersValues(self, inputs, refparams):
@@ -439,7 +430,7 @@ class SONICViewer(dash.Dash):
         else:
             return False
 
-    def propagateInputs(self, mech_type, i_cov, i_diam, mod_type, is_custom, i_US_freq, i_US_amp,
+    def propagateInputs(self, mech_type, i_diam, mod_type, is_custom, i_US_freq, i_US_amp,
                         i_US_PRF, i_US_DC, i_elec_amp, i_elec_PRF, i_elec_DC, nsubmits, varname,
                         US_freq_input, US_amp_input, US_PRF_input, US_DC_input, elec_amp_input,
                         elec_PRF_input, elec_DC_input):
@@ -449,7 +440,6 @@ class SONICViewer(dash.Dash):
         refparams = self.stim_params[mod_type]
 
         # Determine parameters
-        fs = self.cell_params['coverage']['values'][i_cov]
         a = self.cell_params['diam']['values'][i_diam]
         try:
             if mod_type == 'US':
@@ -470,7 +460,7 @@ class SONICViewer(dash.Dash):
         except ValueError:
             print('Error in custom inputs')
             Fdrive = A = PRF = DC = None
-        new_params = [mech_type, fs * 1e-2, a, mod_type, Fdrive, A, self.tstim, PRF, DC * 1e-2]
+        new_params = [mech_type, a, mod_type, Fdrive, A, self.tstim, PRF, DC * 1e-2]
 
         # Handle incorrect submissions
         if A is None:
@@ -483,13 +473,12 @@ class SONICViewer(dash.Dash):
             self.getData(*self.current_params)
 
         # Update graph accordingly
-        return self.updateGraph(None, None, varname, mech_type, mod_type, 'out0-graph')
+        return self.updateGraph(None, None, varname, mech_type, 'out0-graph')
 
-    def getData(self, mech_type, fs, a, mod_type, Fdrive, A, tstim, PRF, DC):
+    def getData(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Run NEURON simulaiton to update data.
 
             :param mech_type: type of mechanism (cell-type specific)
-            :param fs: fraction of membrane covered by sonophores (-)
             :param a: Sonophore diameter (m)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
@@ -504,11 +493,11 @@ class SONICViewer(dash.Dash):
         neuron = self.neurons[mech_type]
         tstop = self.tbounds[1]
         if mod_type == 'elec':
-            model = Sonic0D(neuron, fs=0)
-            model.setAstim(A)
+            model = Sonic0D(neuron)
+            model.setIinj(A)
         else:
-            model = Sonic0D(neuron, fs=fs, a=a, Fdrive=Fdrive)
-            model.setAdrive(A)
+            model = Sonic0D(neuron, a=a * 1e9, Fdrive=Fdrive * 1e-3)
+            model.setUSdrive(A * 1e-3)
 
         # Run simulation
         (t, y, stimon) = model.simulate(tstim * 1e-3, (tstop - tstim) * 1e-3, PRF, DC)
@@ -523,11 +512,10 @@ class SONICViewer(dash.Dash):
         print('data loaded in {}s'.format(si_format(tcomp, space=' ')))
 
 
-    def getFileCode(self, mech_type, fs, a, mod_type, Fdrive, A, tstim, PRF, DC):
+    def getFileCode(self, mech_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Get simulation filecode for the given parameters.
 
             :param mech_type: type of mechanism (cell-type specific)
-            :param fs: fraction of membrane covered by sonophores (-)
             :param a: Sonophore diameter (m)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
@@ -543,18 +531,17 @@ class SONICViewer(dash.Dash):
             filecode = 'ESTIM_{}_{}_{:.1f}mA_per_m2_{:.0f}ms{}'.format(
                 mech_type, W_str, A, tstim, PW_str)
         else:
-            filecode = 'ASTIM_{}_{}_{:.1f}%cov_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
-                mech_type, W_str, fs * 1e2, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
+            filecode = 'ASTIM_{}_{}_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
+                mech_type, W_str, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
         return filecode
 
-    def updateGraph(self, _, relayout_data, varname, mech_type, mod_type, id):
+    def updateGraph(self, _, relayout_data, varname, mech_type, id):
         ''' Update graph with new data.
 
             :param _: input graph figure content (used to trigger callback for subsequent graphs)
             :param relayout_data: input graph relayout data
             :param varname: name of the output variable to display
             :param mech_type: type of mechanism (cell-type specific)
-            :param mod_type: type of stimulation modality (US or elec)
             :param id: id of the graph to update
             :return: graph content
         '''
@@ -579,12 +566,12 @@ class SONICViewer(dash.Dash):
         colors = self.colorset[2 * igraph: 2 * (igraph + 1)]
 
         # Get info about variables to plot
-        varlist = neuronvars[mech_type]['vars_{}'.format(mod_type)]
-        vargroups = [v['label'] for v in varlist]
+        varlist = self.getPltVars(mech_type)
+        vargroups = [v.label for v in varlist]
         if varname not in vargroups:
             varname = vargroups[0]
         for v in varlist:
-            if v['label'] == varname:
+            if v.label == varname:
                 pltvar = v
                 break
 
@@ -592,7 +579,14 @@ class SONICViewer(dash.Dash):
 
             # Get time, states and output variable vectors
             t = self.data['t'].values
-            varlist = [self.data[v].values for v in pltvar['names']]
+            varlist = []
+            for v in pltvar.names:
+                if '=' in v:
+                    _, vexp = extractFromFormula(v, wrapleft='self.data["', wrapright='"].values')
+                    varlist.append(eval(vexp))
+                else:
+                    varlist.append(self.data[v].values)
+
             states = self.data['states'].values
 
             # Determine patches location
@@ -602,7 +596,7 @@ class SONICViewer(dash.Dash):
             dt = t[1] - t[0]
             tplot = np.hstack((np.array([self.tbounds[0] * 1e-3, -dt]), t))
             varlistplot = []
-            for name, var in zip(pltvar['names'], varlist):
+            for name, var in zip(pltvar.names, varlist):
                 if name is 'Vm':
                     var0 = neuronvars[mech_type]['Vm0']
                 else:
@@ -613,9 +607,9 @@ class SONICViewer(dash.Dash):
             curves = [
                 go.Scatter(
                     x=tplot * 1e3,
-                    y=varlistplot[i] * pltvar['factor'],
+                    y=varlistplot[i] * pltvar.factor,
                     mode='lines',
-                    name=pltvar['names'][i],
+                    name=pltvar.names[i],
                     line={'color': colors[i]},
                     showlegend=True
                 ) for i in range(len(varlist))
@@ -625,7 +619,7 @@ class SONICViewer(dash.Dash):
             patches = [
                 go.Scatter(
                     x=np.array([tpatch_on[i], tpatch_off[i], tpatch_off[i], tpatch_on[i]]) * 1e3,
-                    y=np.array([pltvar['min'], pltvar['min'], pltvar['max'], pltvar['max']]),
+                    y=np.array([pltvar.bounds[0]] * 2 + [pltvar.bounds[1]] * 2),
                     mode='none',
                     fill='toself',
                     fillcolor='grey',
@@ -649,8 +643,8 @@ class SONICViewer(dash.Dash):
             },
             yaxis={
                 'type': 'linear',
-                'title': '{} ({})'.format(pltvar['label'], pltvar['unit']),
-                'range': [pltvar['min'], pltvar['max']],
+                'title': '{} ({})'.format(pltvar.label, pltvar.unit),
+                'range': pltvar.bounds,
                 'zeroline': False
             },
             margin={'l': 60, 'b': 40, 't': 10, 'r': 10},
