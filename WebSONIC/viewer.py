@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 16:26:54
+# @Last Modified time: 2019-03-04 19:07:37
 
 ''' Definition of the SONICViewer class. '''
 
@@ -43,7 +43,6 @@ def getDefaultIndexes(params, defaults):
     return idefs
 
 
-
 class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
@@ -68,8 +67,6 @@ class SONICViewer(dash.Dash):
         self.prev_nsubmits = 0
         self.current_params = None
         self.data = None
-
-        self.spatialdist = False
 
         # Initialize cell and stimulation parameters
         idefs = getDefaultIndexes(inputparams, inputdefaults)
@@ -149,9 +146,10 @@ class SONICViewer(dash.Dash):
                        href='https://www.epfl.ch')]),
 
             html.Div(id='header-middle', children=[
-                html.H1('Ultrasound vs. Electrical stimulation', className='header-txt'),
-                html.H3(['Exploring predictions of the ', html.I('NICE'), ' and ',
-                         html.I('Hodgkin-Huxley'), ' models'], className='header-txt')]),
+                html.H1('multiScale Optimized Intramembrane Cavitation (SONIC) model:',
+                        className='header-txt'),
+                html.H3('predicted neural responses to Low-Intensity Focused Ultrasound Stimulation (LIFUS)',
+                        className='header-txt')]),
 
             html.Div(className='header-side', id='header-right', children=[
                 html.A(html.Img(src='/assets/ITIS.svg', className='logo'),
@@ -162,9 +160,9 @@ class SONICViewer(dash.Dash):
         ''' Set app footer. '''
         return html.Div(id='footer', children=[
             'Developed with ', html.A('Dash', href='https://dash.plot.ly/'), '. ',
-            'Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '. ',
+            'Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '.',
             html.Br(),
-            'Translational Neural Engineering Lab, EPFL - 2018',
+            'Translational Neural Engineering Lab, EPFL - 2019',
             html.Br(),
             'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch')
         ])
@@ -195,17 +193,20 @@ class SONICViewer(dash.Dash):
 
         return collapsablePanel('Stimulation parameters', children=[
 
-            dcc.Tabs(id='modality-tabs', className='tabs', value=default_mod, children=[
-                dcc.Tab(label='Ultrasound', value='US'),
-                dcc.Tab(label='Electricity', value='elec')]),
-
             labeledToggleSwitch(
                 'toggle-stim-inputs',
-                labelLeft='Standard',
-                labelRight='Custom',
+                labelLeft='Sliders',
+                labelRight='Inputs',
                 value=False,
                 boldLabels=True
             ),
+
+            html.Br(),
+
+            dcc.Tabs(id='modality-tabs', className='tabs', value=default_mod, children=[
+                dcc.Tab(label='LIFUS', value='US'),
+                dcc.Tab(label='Intracellular current', value='elec')]),
+
 
             *[labeledSlidersTable(
                 '{}-slider-table'.format(mod_type),

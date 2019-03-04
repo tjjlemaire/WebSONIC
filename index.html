@@ -20,8 +20,8 @@
 			<a href="https://www.epfl.ch"><img src="assets/EPFL.png" class="logo"></a>
 		</div>
 		<div id="header-middle">
-			<h1 class="header-txt">Ultrasound vs. Electrical stimulation</h1>
-			<h3 class="header-txt">Exploring predictions of the <i>NICE</i> and <i>Hodgkin-Huxley</i> models</h3>
+			<h1 class="header-txt">multiScale Optimized Intramembrane Cavitation (SONIC) model:</h1>
+			<h3 class="header-txt">predicted neural responses to Low-Intensity Focused Ultrasound Stimulation (LIFUS)</h3>
 		</div>
 		<div class="header-side" id="header-right">
 			<a href="https://www.itis.ethz.ch"><img src="assets/ITIS.svg" class="logo"></a>
@@ -36,11 +36,10 @@
 
 		<p>This website is a project initiated by the <a href="https://tne.epfl.ch">Translational Neural Engineering Laboratory</a>, member of the Center for Neuroprosthetics of EPFL, in collaboration with the <a href="https://www.itis.ethz.ch">IT'IS Foundation</a> for Research on Information Technologies in Society.</p>
 
-		<p>It hosts an interactive viewer that allows to compare the predicted responses of different types of neurons to both electrical and ultrasonic stimuli. These responses are computed using two types of point-neuron models:</p>
-		<ul>
-			<li><i>Hodgkin-Huxley</i> models<sup>1</sup> for electrical stimulation</li>
-			<li>variants of a new, effective implementation of the <i>Neuronal Intramembrane Cavitation Excitation (NICE)</i> model<sup>2,3,4</sup> by M. Plaksin, E. Kimmel and S. Shoham for ultrasonic stimulation</li>
-		</ul>
+		<p>It hosts an interactive web app that allows to visualize the responses of different types of neurons Low-Intensity Focused Ultrasound Stimulation (LIFUS), as predicted by the <i>multiScale Optimized Intramembrane Cavitation (SONIC)</i> model<sup>1</sup>. This model is a novel, effective implementation of the <i>Neuronal Intramembrane Cavitation Excitation (NICE)</i> model developed by M. Plaksin, E. Kimmel and S. Shoham<sup>2,3,4</sup>.</p>
+
+		<p>For comparison purposes, neural responses to injected intracellular currents (as predicted by point-neuron Hodgkin-Huxley models<sup>5</sup>) can also be visualized.</p>
+
 		<p>The viewer is meant as a comparative tool for researchers working on Ultrasound Neuromodulation applications, to quickly explore different combinations of stimulation parameters of specific cell types, and retrieve the mechanical and/or electrical responses predicted by the model (as well as all internal variables) for comparisons with their experimental findings. Alternative theoretical models should be added in the near future.</p>
 
 		<p><b>This tool is currently restricted to our collaborators until further notice hence the web page is password protected</b>. However if you are interested in collaboration don't hesitate to contact us (<u>theo.lemaire@epfl.ch</u>) to see how we can grant you access. <b>Any feedback is also welcome!</b></p>
@@ -56,10 +55,11 @@
 		<u>References:</u>
 		<i>
 			<ol>
-				<li>Pospischil, M., Toledo-Rodriguez, M., Monier, C., Piwkowska, Z., Bal, T., Fr&eacute;gnac, Y., Markram, H., and Destexhe, A. (2008). Minimal Hodgkin-Huxley type models for different classes of cortical and thalamic neurons. Biol Cybern 99, 427–441.</li>
+				<li>Lemaire, T., Neufeld, E., Kuster, N., Micera, S. (<i>in preparation</i>). Understanding ultrasound neuromodulation using a computationally efficient and interpretable model of intramembrane cavitation.
 				<li>Krasovitski, B., Frenkel, V., Shoham, S., and Kimmel, E. (2011). Intramembrane cavitation as a unifying mechanism for ultrasound-induced bioeffects. Proc. Natl. Acad. Sci. U. S. A. 108, 3258–3263.</li>
 				<li>Plaksin, M., Shoham, S., and Kimmel, E. (2014). Intramembrane Cavitation as a Predictive Bio-Piezoelectric Mechanism for Ultrasonic Brain Stimulation. Phys. Rev. X 4.</li>
 				<li>Plaksin, M., Kimmel, E., and Shoham, S. (2016). Cell-Type-Selective Effects of Intramembrane Cavitation as a Unifying Theoretical Framework for Ultrasonic Neuromodulation. ENeuro 3.</li>
+				<li>Pospischil, M., Toledo-Rodriguez, M., Monier, C., Piwkowska, Z., Bal, T., Fr&eacute;gnac, Y., Markram, H., and Destexhe, A. (2008). Minimal Hodgkin-Huxley type models for different classes of cortical and thalamic neurons. Biol Cybern 99, 427–441.</li>
 			</ol>
 		</i>
 	</div>
@@ -67,8 +67,8 @@
 	<hr class="separator"/>
 
     <div id="footer">
-    	Translational Neural Engineering Lab, EPFL - 2018
-    	<br/>
+    	Developed with <a href="https://dash.plot.ly/">Dash</a>. Powered by <a href="https://www.neuron.yale.edu/neuron/">NEURON</a>.<br/>
+    	Translational Neural Engineering Lab, EPFL - 2019<br/>
     	contact: <a href="mailto:theo.lemaire@epfl.ch">theo.lemaire@epfl.ch</a>
     </div>
 </body>
