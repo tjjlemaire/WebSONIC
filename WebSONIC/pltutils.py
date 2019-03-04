@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 15:27:04
+# @Last Modified time: 2019-03-04 16:05:05
 
 ''' Definition of neuron-specific plotting variables and their parameters. '''
 
@@ -85,32 +85,22 @@ class CellType:
         self.currents = currents
         self.Vm0 = Vm0  # mV
 
-        self.default_vars = [
+        # Populate list of variables that can be plotted for the cell type
+        self.pltvars = [
             PlotVariable(
                 'Qm', 'Membrane charge density', unit='nC/cm2', factor=1e5, bounds=(-90, 60)),
             PlotVariable(
                 'Vm', 'Membrane potential', unit='mV', bounds=(-150, 60), y0=Vm0)
         ]
-
-        self.pltvars = self.default_vars + self.getGatingVars()
-
-    def getGatingVars(self):
-        ''' Return a list of gating variables that can be plotted for a given cell type. '''
-        gating_vars = []
         for c in self.currents:
             if c.gates is not None:
-                gating_vars.append(c.gatingVariables())
-        return gating_vars
+                self.pltvars.append(c.gatingVariables())
+            if c.internals is not None:
+                self.pltvars += c.internals
 
 
-# --------------------------------- Other variables ---------------------------------
+# --------------------------------- Leech specific variables ---------------------------------
 
-iH_reg_factor = PlotVariable('P0', 'iH regulating factor activation', label='iH reg.')
-
-# Ca_conc = {'names': ['C_Ca'], 'desc': 'sumbmembrane Ca2+ concentration', 'label': '[Ca2+]',
-#            'unit': 'uM', 'factor': 1e6, 'min': 0, 'max': 150.0}
-
-# Leech specific variables
 # iCa_gate = {'names': ['s'], 'desc': 'iCa gate opening', 'label': 'iCa gate', 'unit': '-',
 #             'factor': 1, 'min': -0.1, 'max': 1.1}
 
@@ -138,7 +128,12 @@ iM = Current('iM', 'Slow non-inactivating Potassium current', gates=['p'])
 iCaT = Current('iCaT', 'Low-threshold (T-type) Calcium current', gates=['s', 'u'])
 iCaTs = Current('iCaTs', 'Low-threshold (Ts-type) Calcium current', gates=['s', 'u'])
 iH = Current('iH', 'Hyperpolarization-activated mixed cationic current',
-             gates=['O', 'OL = 1 - O - C'])
+             gates=['O', 'OL = 1 - O - C'],
+             internals=[
+                 PlotVariable('P0', 'iH regulating factor activation', label='iH reg.'),
+                 PlotVariable('C_Ca', 'Sumbmembrane Ca2+ concentration', label='[Ca2+]',
+                              unit='uM', factor=1e6, bounds=(0, 150.0))
+             ])
 iKleak = Current('iKleak', 'Leakage Potassium current')
 iLeak = Current('iLeak', 'Leakage current')
 
