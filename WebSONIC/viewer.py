@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 16:11:05
+# @Last Modified time: 2019-03-04 16:26:54
 
 ''' Definition of the SONICViewer class. '''
 
@@ -24,7 +24,6 @@ from PySONIC.utils import si_prefixes, getStimPulses, isWithin
 from ExSONIC._0D import Sonic0D
 
 from .components import *
-from .pltutils import celltypes
 
 
 def getDefaultIndexes(params, defaults):
@@ -48,7 +47,7 @@ def getDefaultIndexes(params, defaults):
 class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
-    def __init__(self, inputparams, inputdefaults, pltparams, ngraphs=1):
+    def __init__(self, inputparams, inputdefaults, pltparams, celltypes, ngraphs=1):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
@@ -63,6 +62,7 @@ class SONICViewer(dash.Dash):
         self.ngraphs = ngraphs
         self.colorset = pltparams['colorset']
         self.tbounds = pltparams['tbounds']  # ms
+        self.celltypes = celltypes
 
         # Initialize parameters that will change upon requests
         self.prev_nsubmits = 0
@@ -73,9 +73,9 @@ class SONICViewer(dash.Dash):
 
         # Initialize cell and stimulation parameters
         idefs = getDefaultIndexes(inputparams, inputdefaults)
-        self.neurons = {key: getNeuronsDict()[key]() for key in celltypes.keys()}
+        self.neurons = {key: getNeuronsDict()[key]() for key in self.celltypes.keys()}
         self.cell_params = {
-            'mech': dict(label='Cell Type', values=list(celltypes.keys()), idef=0),
+            'mech': dict(label='Cell Type', values=list(self.celltypes.keys()), idef=0),
             'diam': dict(label='Sonophore diameter', values=inputparams['diams'],
                          idef=idefs['diams'], unit='m')
         }
@@ -178,7 +178,7 @@ class SONICViewer(dash.Dash):
                     html.Td(style={'width': '65%'}, children=[
                         dcc.Dropdown(
                             id='mechanism-type',
-                            options=[{'label': v.desc, 'value': k} for k, v in celltypes.items()],
+                            options=[{'label': v.desc, 'value': k} for k, v in self.celltypes.items()],
                             value=default_cell),
                         html.Br(),
                         html.Div(id='membrane-currents'),
@@ -247,7 +247,7 @@ class SONICViewer(dash.Dash):
 
     def outputPanel(self, default_cell, default_mod):
         ddgraphpanels = []
-        pltvars = celltypes[default_cell].pltvars
+        pltvars = self.celltypes[default_cell].pltvars
         for i in range(self.ngraphs):
             ddgraphpanels.append(collapsablePanel(title=None, children=[ddGraph(
                 id='out{}'.format(i),
@@ -358,7 +358,7 @@ class SONICViewer(dash.Dash):
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch. '''
-        currents = celltypes[cell_type].currents
+        currents = self.celltypes[cell_type].currents
         return unorderedList(['{} ({})'.format(c.desc, c.name) for c in currents])
 
     def showTableGeneric(self, stim_mod, is_custom, table_mod, is_standard_table):
@@ -383,11 +383,11 @@ class SONICViewer(dash.Dash):
 
     def updateOutputOptions(self, cell_type):
         ''' Update the list of available variables in a graph dropdown menu on neuron switch. '''
-        return [{'label': v.desc, 'value': v.label} for v in celltypes[cell_type].pltvars]
+        return [{'label': v.desc, 'value': v.label} for v in self.celltypes[cell_type].pltvars]
 
     def updateOutputVar(self, cell_type, varname):
         ''' Update the selected variable in a graph dropdown menu on neuron switch. '''
-        varlabels = [v.label for v in celltypes[cell_type].pltvars]
+        varlabels = [v.label for v in self.celltypes[cell_type].pltvars]
         if varname not in varlabels:
             varname = varlabels[0]
         return varname
@@ -556,7 +556,7 @@ class SONICViewer(dash.Dash):
         colors = self.colorset[2 * igraph: 2 * (igraph + 1)]
 
         # Get info about variables to plot
-        varlist = celltypes[mech_type].pltvars
+        varlist = self.celltypes[mech_type].pltvars
         varlabels = [v.label for v in varlist]
         if varname not in varlabels:
             varname = varlabels[0]
@@ -588,7 +588,7 @@ class SONICViewer(dash.Dash):
                     mode='lines',
                     name=pltvar.names[i],
                     line={'color': colors[i]},
-                    showlegend=len(yplot) > 1
+                    showlegend=True
                 ) for i in range(len(yplot))
             ]
 

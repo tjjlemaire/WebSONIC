@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 16:08:45
+# @Last Modified time: 2019-03-04 16:24:53
 
 ''' Definition of neuron-specific plotting variables and their parameters. '''
 
@@ -97,60 +97,6 @@ class CellType:
                 self.pltvars.append(c.gatingVariables())
             if c.internals is not None:
                 self.pltvars += c.internals
-
-
-# --------------------------------- Leech specific variables ---------------------------------
-
-# iCa_gate = {'names': ['s'], 'desc': 'iCa gate opening', 'label': 'iCa gate', 'unit': '-',
-#             'factor': 1, 'min': -0.1, 'max': 1.1}
-
-# NaPump_reg = {'names': ['C_Na', 'A_Na'], 'desc': 'Sodium pump regulation',
-#               'label': 'iNaPump reg.', 'unit': '-', 'factor': 1, 'min': -0.001, 'max': 0.01}
-
-# iKCa_reg = {'names': ['C_Ca', 'A_Ca'], 'desc': 'Calcium-activated K+ current regulation',
-#             'label': 'iKCa reg.', 'unit': '-', 'factor': 1, 'min': -1e-5, 'max': 1e-4}
-
-# iKCa2_gate = {'names': ['c'], 'desc': 'iKCa gate opening', 'label': 'iKCa gate', 'unit': '-',
-#               'factor': 1, 'min': -0.1, 'max': 1.1}
-
-# NaPump2_reg = {'names': ['C_Na'], 'desc': 'Sodium pump regulation', 'label': '[Nai]',
-#                'unit': 'mM', 'factor': 1e3, 'min': -1.0, 'max': 20.0}
-
-# CaPump2_reg = {'names': ['C_Ca'], 'desc': 'Calcium pump regulation', 'label': '[Cai]',
-#                'unit': 'uM', 'factor': 1e6, 'min': -0.1, 'max': 1.0}
-
-
-# --------------------------------- Currents ---------------------------------
-
-iNa = Current('iNa', 'Depolarizing Sodium current', gates=['m', 'h'])
-iKd = Current('iKd', 'Delayed-recifier Potassium current', gates=['n'])
-iM = Current('iM', 'Slow non-inactivating Potassium current', gates=['p'])
-iCaT = Current('iCaT', 'Low-threshold (T-type) Calcium current', gates=['s', 'u'])
-iCaTs = Current('iCaTs', 'Low-threshold (Ts-type) Calcium current', gates=['s', 'u'])
-iH = Current('iH', 'Hyperpolarization-activated mixed cationic current',
-             gates=['O', 'OL = 1 - O - C'],
-             internals=[
-                 PlotVariable('P0', 'iH regulating factor  (P0)'),
-                 PlotVariable('C_Ca', 'Sumbmembrane Ca2+ concentration', label='[Ca2+]',
-                              unit='uM', factor=1e6, bounds=(0, 150.0))
-             ])
-iKleak = Current('iKleak', 'Leakage Potassium current')
-iLeak = Current('iLeak', 'Leakage current')
-
-
-# --------------------------------- Cell types ---------------------------------
-
-RS = CellType('RS', 'Cortical regular spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.9)
-FS = CellType('FS', 'Cortical fast spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.4)
-LTS = CellType('LTS', 'Cortical low-threshold spiking neuron', [iNa, iKd, iM, iCaT, iLeak], Vm0=-54.0)
-RE = CellType('RE', 'Thalamic reticular neuron', [iNa, iKd, iCaTs, iLeak], Vm0=-89.5)
-TC = CellType('TC', 'Thalamo-cortical neuron', [iNa, iKd, iCaT, iH, iKleak, iLeak], Vm0=-61.93)
-
-# LeechT = CellType('LeechT', 'Leech "touch" neuron', [???], Vm0=???)
-# LeechP = CellType('LeechP', 'Leech "pressure" neuron', [???], Vm0=???)
-
-# Neuron-specific variables dictionary
-celltypes = {cell.name: cell for cell in [RS, FS, LTS, RE, TC]}
 
 
 def extractFromFormula(exp, wrapleft='', wrapright=''):
