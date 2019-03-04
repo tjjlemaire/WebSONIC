@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 15:28:20
+# @Last Modified time: 2019-03-04 16:11:05
 
 ''' Definition of the SONICViewer class. '''
 
@@ -588,7 +588,7 @@ class SONICViewer(dash.Dash):
                     mode='lines',
                     name=pltvar.names[i],
                     line={'color': colors[i]},
-                    showlegend=True
+                    showlegend=len(yplot) > 1
                 ) for i in range(len(yplot))
             ]
 

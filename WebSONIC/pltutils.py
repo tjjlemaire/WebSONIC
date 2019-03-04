@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 16:05:05
+# @Last Modified time: 2019-03-04 16:08:45
 
 ''' Definition of neuron-specific plotting variables and their parameters. '''
 
@@ -130,7 +130,7 @@ iCaTs = Current('iCaTs', 'Low-threshold (Ts-type) Calcium current', gates=['s', 
 iH = Current('iH', 'Hyperpolarization-activated mixed cationic current',
              gates=['O', 'OL = 1 - O - C'],
              internals=[
-                 PlotVariable('P0', 'iH regulating factor activation', label='iH reg.'),
+                 PlotVariable('P0', 'iH regulating factor  (P0)'),
                  PlotVariable('C_Ca', 'Sumbmembrane Ca2+ concentration', label='[Ca2+]',
                               unit='uM', factor=1e6, bounds=(0, 150.0))
              ])
