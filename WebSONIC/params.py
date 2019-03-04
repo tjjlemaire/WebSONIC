@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 16:28:12
+# @Last Modified time: 2019-03-04 16:41:14
 
 ''' Definition of application parameters. '''
 
@@ -52,6 +52,7 @@ iKd = Current('iKd', 'Delayed-recifier Potassium current', gates=['n'])
 iM = Current('iM', 'Slow non-inactivating Potassium current', gates=['p'])
 iCaT = Current('iCaT', 'Low-threshold (T-type) Calcium current', gates=['s', 'u'])
 iCaTs = Current('iCaTs', 'Low-threshold (Ts-type) Calcium current', gates=['s', 'u'])
+iCaL = Current('iCaL', 'Long-lasting (L-type) Calcium current', gates=['q', 'r'])
 iH = Current('iH', 'Hyperpolarization-activated mixed cationic current',
              gates=['O', 'OL = 1 - O - C'],
              internals=[
@@ -68,6 +69,7 @@ iLeak = Current('iLeak', 'Leakage current')
 RS = CellType('RS', 'Cortical regular spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.9)
 FS = CellType('FS', 'Cortical fast spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.4)
 LTS = CellType('LTS', 'Cortical low-threshold spiking neuron', [iNa, iKd, iM, iCaT, iLeak], Vm0=-54.0)
+IB = CellType('IB', 'Cortical intrinsically bursting neuron', [iNa, iKd, iM, iCaL, iLeak], Vm0=-71.4)
 RE = CellType('RE', 'Thalamic reticular neuron', [iNa, iKd, iCaTs, iLeak], Vm0=-89.5)
 TC = CellType('TC', 'Thalamo-cortical neuron', [iNa, iKd, iCaT, iH, iKleak, iLeak], Vm0=-61.93)
 
@@ -75,7 +77,7 @@ TC = CellType('TC', 'Thalamo-cortical neuron', [iNa, iKd, iCaT, iH, iKleak, iLea
 # LeechP = CellType('LeechP', 'Leech "pressure" neuron', [???], Vm0=???)
 
 # Neuron-specific variables dictionary
-celltypes = {cell.name: cell for cell in [RS, FS, LTS, RE, TC]}
+celltypes = {cell.name: cell for cell in [RS, FS, LTS, IB, RE, TC]}
 
 
 # --------------------------------- Leech specific variables ---------------------------------
