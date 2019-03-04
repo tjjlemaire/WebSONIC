@@ -4,17 +4,18 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-01 19:22:38
+# @Last Modified time: 2019-03-04 15:27:04
 
 ''' Definition of neuron-specific plotting variables and their parameters. '''
 
 import re
+import numpy as np
 
 
 class PlotVariable:
     ''' Class representing a variable to plot. '''
 
-    def __init__(self, names, desc, label=None, unit='-', factor=1, bounds=(-0.1, 1.1)):
+    def __init__(self, names, desc, label=None, unit='-', factor=1, bounds=(-0.1, 1.1), y0=None):
         if isinstance(names, str):
             names = [names]
         self.names = names
@@ -29,6 +30,29 @@ class PlotVariable:
         self.unit = unit
         self.factor = factor
         self.bounds = bounds
+        self.y0 = y0
+
+    def getData(self, df, nonset=2):
+        data = []
+        for n in self.names:
+
+            # extract signal from dataframe
+            if '=' in n:
+                y = eval(extractFromFormula(n, wrapleft='df["', wrapright='"]')[1]).values
+            else:
+                y = df[n].values
+
+            # add onset
+            y0 = self.y0 if self.y0 is not None else y[0]
+            y = np.hstack((np.array([y0] * nonset), y))
+
+            # rescale with appropriate factor
+            y *= self.factor
+
+            # add to signals list
+            data.append(y)
+
+        return data
 
 
 class Current:
@@ -52,10 +76,31 @@ class Current:
             return None
 
 
-# --------------------------------- Generic variables ---------------------------------
+class CellType:
+    ''' Class representing a cell type with specific membrane currents and resting potential. '''
 
-charge = PlotVariable('Qm', 'Membrane charge density', unit='nC/cm2', factor=1e5, bounds=(-90, 60))
-potential = PlotVariable('Vm', 'Membrane potential', unit='mV', bounds=(-150, 60))
+    def __init__(self, name, desc, currents, Vm0=0.0):
+        self.name = name
+        self.desc = desc
+        self.currents = currents
+        self.Vm0 = Vm0  # mV
+
+        self.default_vars = [
+            PlotVariable(
+                'Qm', 'Membrane charge density', unit='nC/cm2', factor=1e5, bounds=(-90, 60)),
+            PlotVariable(
+                'Vm', 'Membrane potential', unit='mV', bounds=(-150, 60), y0=Vm0)
+        ]
+
+        self.pltvars = self.default_vars + self.getGatingVars()
+
+    def getGatingVars(self):
+        ''' Return a list of gating variables that can be plotted for a given cell type. '''
+        gating_vars = []
+        for c in self.currents:
+            if c.gates is not None:
+                gating_vars.append(c.gatingVariables())
+        return gating_vars
 
 
 # --------------------------------- Other variables ---------------------------------
@@ -98,48 +143,19 @@ iKleak = Current('iKleak', 'Leakage Potassium current')
 iLeak = Current('iLeak', 'Leakage current')
 
 
+# --------------------------------- Cell types ---------------------------------
+
+RS = CellType('RS', 'Cortical regular spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.9)
+FS = CellType('FS', 'Cortical fast spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.4)
+LTS = CellType('LTS', 'Cortical low-threshold spiking neuron', [iNa, iKd, iM, iCaT, iLeak], Vm0=-54.0)
+RE = CellType('RE', 'Thalamic reticular neuron', [iNa, iKd, iCaTs, iLeak], Vm0=-89.5)
+TC = CellType('TC', 'Thalamo-cortical neuron', [iNa, iKd, iCaT, iH, iKleak, iLeak], Vm0=-61.93)
+
+# LeechT = CellType('LeechT', 'Leech "touch" neuron', [???], Vm0=???)
+# LeechP = CellType('LeechP', 'Leech "pressure" neuron', [???], Vm0=???)
+
 # Neuron-specific variables dictionary
-neuronvars = {
-    'RS': {
-        'desc': 'Cortical regular-spiking neuron',
-        'currents': [iNa, iKd, iM, iLeak],
-        'Vm0': -71.9  # mV
-    },
-    'FS': {
-        'desc': 'Cortical fast-spiking neuron',
-        'currents': [iNa, iKd, iM, iLeak],
-        'Vm0': -71.4  # mV
-    },
-    'LTS': {
-        'desc': 'Cortical low-threshold spiking neuron',
-        'currents': [iNa, iKd, iM, iCaT, iLeak],
-        'Vm0': -54.0  # mV
-    },
-    'RE': {
-        'desc': 'Thalamic reticular neuron',
-        'currents': [iNa, iKd, iCaTs, iLeak],
-        'Vm0': -89.5  # mV
-    },
-    'TC': {
-        'desc': 'Thalamo-cortical neuron',
-        'currents': [iNa, iKd, iCaT, iH, iKleak, iLeak],
-        'Vm0': -61.93  # mV
-    }
-    # 'LeechT': {
-    #     'desc': 'Leech "touch" neuron',
-    #     'vars_US': [charge, iNa_gates, iK_gate, iCa_gate, NaPump_reg, iKCa_reg],
-    #     'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gate, NaPump_reg, iKCa_reg]
-    # },
-    # 'LeechP': {
-    #     'desc': 'Leech "pressure" neuron',
-    #     'vars_US': [charge, iNa_gates, iK_gate, iCa_gate, iKCa2_gate,
-    #                 NaPump2_reg, CaPump2_reg],
-    #     'vars_elec': [charge, potential, iNa_gates, iK_gate, iCa_gate, iKCa2_gate, NaPump2_reg,
-    #                   CaPump2_reg]
-    # }
-}
-
-
+celltypes = {cell.name: cell for cell in [RS, FS, LTS, RE, TC]}
 
 
 def extractFromFormula(exp, wrapleft='', wrapright=''):

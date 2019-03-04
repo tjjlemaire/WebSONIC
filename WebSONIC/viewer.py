@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-01 19:33:04
+# @Last Modified time: 2019-03-04 15:28:20
 
 ''' Definition of the SONICViewer class. '''
 
@@ -17,7 +17,6 @@ import dash
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 
-
 from PySONIC.postpro import findPeaks
 from PySONIC.constants import *
 from PySONIC.neurons import getNeuronsDict
@@ -25,7 +24,7 @@ from PySONIC.utils import si_prefixes, getStimPulses, isWithin
 from ExSONIC._0D import Sonic0D
 
 from .components import *
-from .pltvars import charge, potential, neuronvars, extractFromFormula
+from .pltutils import celltypes
 
 
 def getDefaultIndexes(params, defaults):
@@ -74,9 +73,9 @@ class SONICViewer(dash.Dash):
 
         # Initialize cell and stimulation parameters
         idefs = getDefaultIndexes(inputparams, inputdefaults)
-        self.neurons = {key: getNeuronsDict()[key]() for key in neuronvars.keys()}
+        self.neurons = {key: getNeuronsDict()[key]() for key in celltypes.keys()}
         self.cell_params = {
-            'mech': dict(label='Cell Type', values=list(neuronvars.keys()), idef=0),
+            'mech': dict(label='Cell Type', values=list(celltypes.keys()), idef=0),
             'diam': dict(label='Sonophore diameter', values=inputparams['diams'],
                          idef=idefs['diams'], unit='m')
         }
@@ -179,7 +178,7 @@ class SONICViewer(dash.Dash):
                     html.Td(style={'width': '65%'}, children=[
                         dcc.Dropdown(
                             id='mechanism-type',
-                            options=[{'label': v['desc'], 'value': k} for k, v in neuronvars.items()],
+                            options=[{'label': v.desc, 'value': k} for k, v in celltypes.items()],
                             value=default_cell),
                         html.Br(),
                         html.Div(id='membrane-currents'),
@@ -246,24 +245,15 @@ class SONICViewer(dash.Dash):
         return collapsablePanel('Output metrics', children=[
             html.Table(id='info-table', className='table')])
 
-    def getPltVars(self, cell_type):
-        ''' Return a list of variables that can be plotted for a given cell type. '''
-        gatingvars = []
-        for c in neuronvars[cell_type]['currents']:
-            if c.gates is not None:
-                gatingvars.append(c.gatingVariables())
-        return [charge, potential] + gatingvars
-
-
     def outputPanel(self, default_cell, default_mod):
         ddgraphpanels = []
-        graphvars = self.getPltVars(default_cell)
+        pltvars = celltypes[default_cell].pltvars
         for i in range(self.ngraphs):
             ddgraphpanels.append(collapsablePanel(title=None, children=[ddGraph(
                 id='out{}'.format(i),
-                labels=[v.desc for v in graphvars],
-                values=[v.label for v in graphvars],
-                default=graphvars[i].label,
+                labels=[v.desc for v in pltvars],
+                values=[v.label for v in pltvars],
+                default=pltvars[i].label,
                 sep=False)]))
 
         return html.Div(children=[
@@ -368,7 +358,7 @@ class SONICViewer(dash.Dash):
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch. '''
-        currents = neuronvars[cell_type]['currents']
+        currents = celltypes[cell_type].currents
         return unorderedList(['{} ({})'.format(c.desc, c.name) for c in currents])
 
     def showTableGeneric(self, stim_mod, is_custom, table_mod, is_standard_table):
@@ -393,13 +383,13 @@ class SONICViewer(dash.Dash):
 
     def updateOutputOptions(self, cell_type):
         ''' Update the list of available variables in a graph dropdown menu on neuron switch. '''
-        return [{'label': v.desc, 'value': v.label} for v in self.getPltVars(cell_type)]
+        return [{'label': v.desc, 'value': v.label} for v in celltypes[cell_type].pltvars]
 
     def updateOutputVar(self, cell_type, varname):
         ''' Update the selected variable in a graph dropdown menu on neuron switch. '''
-        vargroups = [v.label for v in self.getPltVars(cell_type)]
-        if varname not in vargroups:
-            varname = vargroups[0]
+        varlabels = [v.label for v in celltypes[cell_type].pltvars]
+        if varname not in varlabels:
+            varname = varlabels[0]
         return varname
 
     def validateInputs(self, inputs, refparams):
@@ -566,10 +556,10 @@ class SONICViewer(dash.Dash):
         colors = self.colorset[2 * igraph: 2 * (igraph + 1)]
 
         # Get info about variables to plot
-        varlist = self.getPltVars(mech_type)
-        vargroups = [v.label for v in varlist]
-        if varname not in vargroups:
-            varname = vargroups[0]
+        varlist = celltypes[mech_type].pltvars
+        varlabels = [v.label for v in varlist]
+        if varname not in varlabels:
+            varname = varlabels[0]
         for v in varlist:
             if v.label == varname:
                 pltvar = v
@@ -577,42 +567,29 @@ class SONICViewer(dash.Dash):
 
         if self.data is not None:
 
-            # Get time, states and output variable vectors
+            # Get time vector and add onset
             t = self.data['t'].values
-            varlist = []
-            for v in pltvar.names:
-                if '=' in v:
-                    _, vexp = extractFromFormula(v, wrapleft='self.data["', wrapright='"].values')
-                    varlist.append(eval(vexp))
-                else:
-                    varlist.append(self.data[v].values)
+            dt = t[1] - t[0]
+            tonset = np.array([self.tbounds[0] * 1e-3, -dt])
+            tplot = np.hstack((tonset, t))
 
+            # Get states vector and Determind patches location
             states = self.data['states'].values
-
-            # Determine patches location
             npatches, tpatch_on, tpatch_off = getStimPulses(t, states)
 
-            # Add onset
-            dt = t[1] - t[0]
-            tplot = np.hstack((np.array([self.tbounds[0] * 1e-3, -dt]), t))
-            varlistplot = []
-            for name, var in zip(pltvar.names, varlist):
-                if name is 'Vm':
-                    var0 = neuronvars[mech_type]['Vm0']
-                else:
-                    var0 = var[0]
-                varlistplot.append(np.hstack((np.array([var0] * 2), var)))
+            # Get vector(s) of variable(s) to plot, rescaled and with appropriate onset
+            yplot = pltvar.getData(self.data, nonset=len(tonset))
 
-            # Define curves
+            # Define curve objects
             curves = [
                 go.Scatter(
                     x=tplot * 1e3,
-                    y=varlistplot[i] * pltvar.factor,
+                    y=yplot[i],
                     mode='lines',
                     name=pltvar.names[i],
                     line={'color': colors[i]},
                     showlegend=True
-                ) for i in range(len(varlist))
+                ) for i in range(len(yplot))
             ]
 
             # Define stimulus patches
