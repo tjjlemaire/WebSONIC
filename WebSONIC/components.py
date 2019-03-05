@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-01 15:13:02
+# @Last Modified time: 2019-03-05 18:23:39
 
 ''' Extension of dash components. '''
 
@@ -29,8 +29,8 @@ def linearSlider(id, noptions, value=0, disabled=False):
 def labeledSliderRow(label, id, noptions, value=0, disabled=False):
     ''' Return a label:slider table row. '''
     return html.Tr(className='slider-row', children=[
-        html.Td(label, style={'width': '30%'}),
-        html.Td(style={'width': '70%'}, children=[linearSlider(id, noptions, value, disabled)])
+        html.Td(label, className='row-label'),
+        html.Td(className='row-data', children=[linearSlider(id, noptions, value, disabled)])
     ])
 
 
@@ -54,8 +54,8 @@ def numInputBox(id, min, max, value=None):
 def labeledInputRow(label, id, min, max, value=None):
     ''' Return a label:input table row. '''
     return html.Tr(className='input-row', children=[
-        html.Td(label, style={'width': '30%'}),
-        html.Td(style={'width': '70%'}, children=[numInputBox(id, min, max, value)])
+        html.Td(label, className='row-label'),
+        html.Td(className='row-data', children=[numInputBox(id, min, max, value)])
     ])
 
 
@@ -81,6 +81,11 @@ def labeledToggleSwitch(id, labelLeft='Left', labelRight='Right', value=False, b
     ])
 
 
+def panel(children):
+    ''' Return a panel with contents. '''
+    return html.Div(className='panel', children=children)
+
+
 def collapsablePanel(title, children):
     ''' Return a collapsable panel with title and contents. '''
     if title is None:
@@ -101,8 +106,8 @@ def dataRows(labels, values, units):
         else:
             datastr = '---'
         rows.append(html.Tr([
-            html.Td(label, style={'width': '30%'}),
-            html.Td(datastr, style={'width': '70%'})]))
+            html.Td(label, className='row-label'),
+            html.Td(datastr, className='row-data')]))
     return rows
 
 
@@ -121,7 +126,7 @@ def ddGraph(id, labels, values, default=None, sep=False):
         # Graph
         dcc.Graph(
             id='{}-graph'.format(id),
-            style={'height': '15em'},
+            className='graph',
             animate=False,
             config={
                 'editable': False,

@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 19:07:37
+# @Last Modified time: 2019-03-05 18:24:41
 
 ''' Definition of the SONICViewer class. '''
 
@@ -73,7 +73,7 @@ class SONICViewer(dash.Dash):
         self.neurons = {key: getNeuronsDict()[key]() for key in self.celltypes.keys()}
         self.cell_params = {
             'mech': dict(label='Cell Type', values=list(self.celltypes.keys()), idef=0),
-            'diam': dict(label='Sonophore diameter', values=inputparams['diams'],
+            'diam': dict(label='Sonophore radius', values=inputparams['diams'],
                          idef=idefs['diams'], unit='m')
         }
         self.stim_params = {
@@ -172,11 +172,12 @@ class SONICViewer(dash.Dash):
         return collapsablePanel('Cell parameters', children=[
             html.Table(className='table', children=[
                 html.Tr([
-                    html.Td(self.cell_params['mech']['label'], style={'width': '35%'}),
-                    html.Td(style={'width': '65%'}, children=[
+                    html.Td(self.cell_params['mech']['label'], className='row-label'),
+                    html.Td(className='row-data', children=[
                         dcc.Dropdown(
                             id='mechanism-type',
-                            options=[{'label': v.desc, 'value': k} for k, v in self.celltypes.items()],
+                            options=[{'label': '{} ({}) neuron'.format(v.desc, k), 'value': k}
+                                     for k, v in self.celltypes.items()],
                             value=default_cell),
                         html.Br(),
                         html.Div(id='membrane-currents'),
@@ -250,7 +251,7 @@ class SONICViewer(dash.Dash):
         ddgraphpanels = []
         pltvars = self.celltypes[default_cell].pltvars
         for i in range(self.ngraphs):
-            ddgraphpanels.append(collapsablePanel(title=None, children=[ddGraph(
+            ddgraphpanels.append(panel(children=[html.Br(), ddGraph(
                 id='out{}'.format(i),
                 labels=[v.desc for v in pltvars],
                 values=[v.label for v in pltvars],
@@ -421,20 +422,19 @@ class SONICViewer(dash.Dash):
         else:
             return False
 
-    def propagateInputs(self, mech_type, i_diam, mod_type, is_custom, i_US_freq, i_US_amp,
+    def propagateInputs(self, mech_type, i_diam, mod_type, is_input, i_US_freq, i_US_amp,
                         i_US_PRF, i_US_DC, i_elec_amp, i_elec_PRF, i_elec_DC, nsubmits, varname,
                         US_freq_input, US_amp_input, US_PRF_input, US_DC_input, elec_amp_input,
                         elec_PRF_input, elec_DC_input):
         ''' Translate inputs into parameters and propagate callback to updateCurve. '''
 
-        is_submit = self.isSubmitButtonTriggered(nsubmits)
         refparams = self.stim_params[mod_type]
 
         # Determine parameters
         a = self.cell_params['diam']['values'][i_diam]
         try:
             if mod_type == 'US':
-                if is_submit:
+                if is_input:
                     Fdrive, A, PRF, DC = self.validateInputs(
                         (US_freq_input, US_amp_input, US_PRF_input, US_DC_input), refparams)
                 else:
@@ -443,7 +443,7 @@ class SONICViewer(dash.Dash):
                         refparams)
             else:
                 Fdrive = None
-                if is_submit:
+                if is_input:
                     A, PRF, DC = self.validateInputs(
                         (elec_amp_input, elec_PRF_input, elec_DC_input), refparams)
                 else:
@@ -470,7 +470,7 @@ class SONICViewer(dash.Dash):
         ''' Run NEURON simulaiton to update data.
 
             :param mech_type: type of mechanism (cell-type specific)
-            :param a: Sonophore diameter (m)
+            :param a: Sonophore radius (m)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
             :param A: Acoustic amplitude (Pa) for A-STIM / electrical amplitude (mA/m2) for E-STIM
@@ -507,7 +507,7 @@ class SONICViewer(dash.Dash):
         ''' Get simulation filecode for the given parameters.
 
             :param mech_type: type of mechanism (cell-type specific)
-            :param a: Sonophore diameter (m)
+            :param a: Sonophore radius (m)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
             :param A: Acoustic amplitude (Pa) for A-STIM / electrical amplitude (mA/m2) for E-STIM
@@ -554,7 +554,7 @@ class SONICViewer(dash.Dash):
 
         # Get graph-specific colorset
         igraph = int(id[3])
-        colors = self.colorset[2 * igraph: 2 * (igraph + 1)]
+        colors = self.colorset[igraph]
 
         # Get info about variables to plot
         varlist = self.celltypes[mech_type].pltvars

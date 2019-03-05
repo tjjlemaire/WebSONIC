@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-03-01 15:14:58
+* @Last Modified time: 2019-03-05 13:54:01
 */
 
 
@@ -150,6 +150,14 @@ summary {
 	text-align: center;
 }
 
+.row-label {
+	width: 15%;
+}
+
+.row-data{
+	width: 75%;
+}
+
 /* Lists */
 
 .ul {
@@ -170,6 +178,10 @@ summary {
     color: #bfbfbf;
     background-color: #bfbfbf;
     /*display: inline-block;*/
+}
+
+.graph {
+	height: 15em;
 }
 
 

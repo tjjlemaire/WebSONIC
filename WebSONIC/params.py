@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 16:41:14
+# @Last Modified time: 2019-03-05 18:32:01
 
 ''' Definition of application parameters. '''
 
@@ -22,7 +22,7 @@ inputparams = dict(
     elec_amps=np.array([-25, -10, -5, -2, 2, 5, 10, 25]),  # mA/m2
     PRFs=np.array([1e1, 2e1, 5e1, 1e2, 2e2, 5e2, 1e3]),  # Hz
     DCs=np.array([1., 5., 10., 25., 50., 75., 100.]),  # %
-    tstim=250  # ms
+    tstim=1000.0  # ms
 )
 
 inputdefaults = dict(
@@ -37,16 +37,23 @@ inputdefaults = dict(
 
 # --------------------------------- Plotting parameters ---------------------------------
 
+ngraphs = 3
+colors = cl.scales['3']['seq']
 pltparams = dict(
-    tbounds=(-5., 300.),  # ms
-    colorset=[item for i, item in enumerate(cl.scales['8']['qual']['Set1']) if i != 5]
+    tbounds=(-5., 1.5 * inputparams['tstim']),  # ms
+    colorset=[colors['YlOrRd'][::-1], colors['YlGnBu'][::-1], colors['PuRd'][::-1]][:ngraphs]
 )
 
-ngraphs = 3
+# --------------------------------- Variables ---------------------------------
 
+C_Ca = PlotVariable('C_Ca', 'Sumbmembrane Ca2+ concentration', label='[Ca2+]', unit='uM',
+                    factor=1e6, bounds=(0, 150.0))
+C_Ca2 = PlotVariable('C_Ca', 'Sumbmembrane Ca2+ concentration', label='[Ca2+]', unit='uM',
+                     factor=1e6, bounds=(0, 0.4))
 
 # --------------------------------- Current types ---------------------------------
 
+# From Plaksin 2016
 iNa = Current('iNa', 'Depolarizing Sodium current', gates=['m', 'h'])
 iKd = Current('iKd', 'Delayed-recifier Potassium current', gates=['n'])
 iM = Current('iM', 'Slow non-inactivating Potassium current', gates=['p'])
@@ -55,29 +62,33 @@ iCaTs = Current('iCaTs', 'Low-threshold (Ts-type) Calcium current', gates=['s', 
 iCaL = Current('iCaL', 'Long-lasting (L-type) Calcium current', gates=['q', 'r'])
 iH = Current('iH', 'Hyperpolarization-activated mixed cationic current',
              gates=['O', 'OL = 1 - O - C'],
-             internals=[
-                 PlotVariable('P0', 'iH regulating factor (P0)'),
-                 PlotVariable('C_Ca', 'Sumbmembrane Ca2+ concentration', label='[Ca2+]',
-                              unit='uM', factor=1e6, bounds=(0, 150.0))
-             ])
+             internals=[PlotVariable('P0', 'iH regulating factor (P0)'), C_Ca])
 iKleak = Current('iKleak', 'Leakage Potassium current')
 iLeak = Current('iLeak', 'Leakage current')
+
+# From Tarnaud 2018
+iA = Current('iA', 'A-type Potassium current', gates=['a', 'b'])
+iCaT2 = Current('iCaT', 'Low-threshold (T-type) Calcium current', gates=['p', 'q'])
+iCaL2 = Current('iCaL', 'Long-lasting (L-type) Calcium current', gates=['c', 'd1', 'd2'],
+                internals=[C_Ca2])
+iCaK = Current('iCaK', 'Calcium activated Potassium current', gates=['r'])
 
 
 # --------------------------------- Cell types ---------------------------------
 
-RS = CellType('RS', 'Cortical regular spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.9)
-FS = CellType('FS', 'Cortical fast spiking neuron', [iNa, iKd, iM, iLeak], Vm0=-71.4)
-LTS = CellType('LTS', 'Cortical low-threshold spiking neuron', [iNa, iKd, iM, iCaT, iLeak], Vm0=-54.0)
-IB = CellType('IB', 'Cortical intrinsically bursting neuron', [iNa, iKd, iM, iCaL, iLeak], Vm0=-71.4)
-RE = CellType('RE', 'Thalamic reticular neuron', [iNa, iKd, iCaTs, iLeak], Vm0=-89.5)
-TC = CellType('TC', 'Thalamo-cortical neuron', [iNa, iKd, iCaT, iH, iKleak, iLeak], Vm0=-61.93)
+RS = CellType('RS', 'Cortical regular spiking', [iNa, iKd, iM, iLeak], Vm0=-71.9)
+FS = CellType('FS', 'Cortical fast spiking', [iNa, iKd, iM, iLeak], Vm0=-71.4)
+LTS = CellType('LTS', 'Cortical low-threshold spiking', [iNa, iKd, iM, iCaT, iLeak], Vm0=-54.0)
+IB = CellType('IB', 'Cortical intrinsically bursting', [iNa, iKd, iM, iCaL, iLeak], Vm0=-71.4)
+RE = CellType('RE', 'Thalamic reticular', [iNa, iKd, iCaTs, iLeak], Vm0=-89.5)
+TC = CellType('TC', 'Thalamo-cortical', [iNa, iKd, iCaT, iH, iKleak, iLeak], Vm0=-61.93)
+STN = CellType('STN', 'Sub-thalamic nucleus', [iNa, iKd, iA, iCaT2, iCaL2, iCaK, iLeak], Vm0=-58.0)
 
-# LeechT = CellType('LeechT', 'Leech "touch" neuron', [???], Vm0=???)
-# LeechP = CellType('LeechP', 'Leech "pressure" neuron', [???], Vm0=???)
+# LeechT = CellType('LeechT', 'Leech "touch"', [???], Vm0=???)
+# LeechP = CellType('LeechP', 'Leech "pressure"', [???], Vm0=???)
 
 # Neuron-specific variables dictionary
-celltypes = {cell.name: cell for cell in [RS, FS, LTS, IB, RE, TC]}
+celltypes = {cell.name: cell for cell in [RS, FS, LTS, IB, RE, TC, STN]}
 
 
 # --------------------------------- Leech specific variables ---------------------------------
