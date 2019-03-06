@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:58:23
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-04 16:25:51
+# @Last Modified time: 2019-03-06 14:31:58
 
 ''' Main script to run the application. '''
 
@@ -13,7 +13,7 @@ import psutil
 from argparse import ArgumentParser
 
 from WebSONIC import SONICViewer
-from WebSONIC.params import inputparams, inputdefaults, pltparams, ngraphs, celltypes
+from WebSONIC.params import inputparams, inputdefaults, celltypes
 from credentials import CREDENTIALS
 import dash_auth
 
@@ -32,12 +32,13 @@ else:
     ap.add_argument('-d', '--debug', default=False, action='store_true', help='Run in Debug Mode')
     ap.add_argument('-o', '--opened', default=False, action='store_true',
                     help='Run without HTTP Authentification')
+    ap.add_argument('-n', '--ngraphs', type=float, default=3, help='Number of parallel graphs')
     args = ap.parse_args()
     debug = args.debug
     protect = not args.opened
 
 # Create app instance
-app = SONICViewer(inputparams, inputdefaults, pltparams, celltypes, ngraphs=ngraphs)
+app = SONICViewer(inputparams, inputdefaults, celltypes, args.ngraphs)
 app.scripts.config.serve_locally = True
 print('Created {}'.format(app))
 

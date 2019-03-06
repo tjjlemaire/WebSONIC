@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-05 18:24:41
+# @Last Modified time: 2019-03-06 17:12:01
 
 ''' Definition of the SONICViewer class. '''
 
@@ -46,7 +46,7 @@ def getDefaultIndexes(params, defaults):
 class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
-    def __init__(self, inputparams, inputdefaults, pltparams, celltypes, ngraphs=1):
+    def __init__(self, inputparams, inputdefaults, celltypes, ngraphs):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
@@ -59,8 +59,7 @@ class SONICViewer(dash.Dash):
         # Initialize constant parameters
         self.prefixes = {v: k for k, v in si_prefixes.items()}
         self.ngraphs = ngraphs
-        self.colorset = pltparams['colorset']
-        self.tbounds = pltparams['tbounds']  # ms
+        self.tbounds = (-5., 1.5 * inputparams['tstim'])  # ms
         self.celltypes = celltypes
 
         # Initialize parameters that will change upon requests
@@ -552,10 +551,6 @@ class SONICViewer(dash.Dash):
         else:
             xrange = None
 
-        # Get graph-specific colorset
-        igraph = int(id[3])
-        colors = self.colorset[igraph]
-
         # Get info about variables to plot
         varlist = self.celltypes[mech_type].pltvars
         varlabels = [v.label for v in varlist]
@@ -579,7 +574,12 @@ class SONICViewer(dash.Dash):
             npatches, tpatch_on, tpatch_off = getStimPulses(t, states)
 
             # Get vector(s) of variable(s) to plot, rescaled and with appropriate onset
-            yplot = pltvar.getData(self.data, nonset=len(tonset))
+            names, yplot = pltvar.getData(self.neurons[mech_type], self.data, nonset=len(tonset))
+            colors = pltvar.colors
+            if pltvar.desc == 'Membrane currents':
+                yplot = np.vstack((yplot, np.sum(yplot, axis=0)))
+                names.append('iNet')
+                colors.append('black')
 
             # Define curve objects
             curves = [
@@ -587,7 +587,7 @@ class SONICViewer(dash.Dash):
                     x=tplot * 1e3,
                     y=yplot[i],
                     mode='lines',
-                    name=pltvar.names[i],
+                    name=names[i],
                     line={'color': colors[i]},
                     showlegend=True
                 ) for i in range(len(yplot))
