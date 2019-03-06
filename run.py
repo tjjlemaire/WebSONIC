@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:58:23
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-06 14:31:58
+# @Last Modified time: 2019-03-06 18:04:23
 
 ''' Main script to run the application. '''
 
@@ -25,6 +25,7 @@ if is_gunicorn:
     print('Serving via gunicorn')
     debug = False
     protect = True
+    ngraphs = 3
 
 # Otherwise -> determine settings by parsing command line arguments
 else:
@@ -32,13 +33,14 @@ else:
     ap.add_argument('-d', '--debug', default=False, action='store_true', help='Run in Debug Mode')
     ap.add_argument('-o', '--opened', default=False, action='store_true',
                     help='Run without HTTP Authentification')
-    ap.add_argument('-n', '--ngraphs', type=float, default=3, help='Number of parallel graphs')
+    ap.add_argument('-n', '--ngraphs', type=int, default=3, help='Number of parallel graphs')
     args = ap.parse_args()
     debug = args.debug
     protect = not args.opened
+    ngraphs = args.ngraphs
 
 # Create app instance
-app = SONICViewer(inputparams, inputdefaults, celltypes, args.ngraphs)
+app = SONICViewer(inputparams, inputdefaults, celltypes, ngraphs)
 app.scripts.config.serve_locally = True
 print('Created {}'.format(app))
 
