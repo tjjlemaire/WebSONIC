@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-06 16:23:35
+# @Last Modified time: 2019-03-06 17:47:01
 
 ''' Definition of application parameters. '''
 
@@ -49,7 +49,7 @@ iNa = Current('iNa', 'Depolarizing Sodium current', gates=['m', 'h'])
 iKd = Current('iKd', 'Delayed-recifier Potassium current', gates=['n'])
 iM = Current('iM', 'Slow non-inactivating Potassium current', gates=['p'])
 iCaT = Current('iCaT', 'Low-threshold (T-type) Calcium current', gates=['s', 'u'])
-iCaL = Current('iCaL', 'Long-lasting (L-type) Calcium current', gates=['q', 'r'])
+iCaL = Current('iCaL', 'High-threshold (L-type) Calcium current', gates=['q', 'r'])
 iH = Current('iH', 'Hyperpolarization-activated mixed cationic current', gates=['O', 'OL'],
              internals=[P0, C_Ca])
 iKLeak = Current('iKLeak', 'Leakage Potassium current')
@@ -58,9 +58,9 @@ iLeak = Current('iLeak', 'Leakage current')
 # From Tarnaud 2018
 iA = Current('iA', 'A-type Potassium current', gates=['a', 'b'])
 iCaT2 = Current('iCaT', 'Low-threshold (T-type) Calcium current', gates=['p', 'q'])
-iCaL2 = Current('iCaL', 'Long-lasting (L-type) Calcium current', gates=['c', 'd1', 'd2'],
+iCaL2 = Current('iCaL', 'High-threshold (L-type) Calcium current', gates=['c', 'd1', 'd2'],
                 internals=[C_Ca2])
-iCaK = Current('iCaK', 'Calcium activated Potassium current', gates=['r'])
+iKCa = Current('iKCa', 'Calcium activated Potassium current', gates=['r'])
 
 
 # --------------------------------- Cell types ---------------------------------
@@ -71,7 +71,7 @@ LTS = CellType('LTS', 'Cortical low-threshold spiking', [iNa, iKd, iM, iCaT, iLe
 IB = CellType('IB', 'Cortical intrinsically bursting', [iNa, iKd, iM, iCaL, iLeak], Vm0=-71.4)
 RE = CellType('RE', 'Thalamic reticular', [iNa, iKd, iCaT, iLeak], Vm0=-89.5)
 TC = CellType('TC', 'Thalamo-cortical', [iNa, iKd, iCaT, iH, iKLeak, iLeak], Vm0=-61.93)
-STN = CellType('STN', 'Sub-thalamic nucleus', [iNa, iKd, iA, iCaT2, iCaL2, iCaK, iLeak], Vm0=-58.0)
+STN = CellType('STN', 'Sub-thalamic nucleus', [iNa, iKd, iA, iCaT2, iCaL2, iKCa, iLeak], Vm0=-58.0)
 
 # Neuron-specific variables dictionary
 celltypes = {cell.name: cell for cell in [STN, RS, FS, LTS, IB, RE, TC]}
