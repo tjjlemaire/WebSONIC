@@ -4,7 +4,7 @@
 # @Date:   2017-07-11 18:58:23
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-06 18:04:23
+# @Last Modified time: 2019-03-18 16:26:57
 
 ''' Main script to run the application. '''
 
@@ -13,7 +13,7 @@ import psutil
 from argparse import ArgumentParser
 
 from WebSONIC import SONICViewer
-from WebSONIC.params import inputparams, inputdefaults, celltypes
+from WebSONIC.params import input_params, plt_params
 from credentials import CREDENTIALS
 import dash_auth
 
@@ -40,7 +40,7 @@ else:
     ngraphs = args.ngraphs
 
 # Create app instance
-app = SONICViewer(inputparams, inputdefaults, celltypes, ngraphs)
+app = SONICViewer(input_params, plt_params, ngraphs)
 app.scripts.config.serve_locally = True
 print('Created {}'.format(app))
 

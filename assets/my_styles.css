@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-03-05 13:54:01
+* @Last Modified time: 2019-03-12 18:00:19
 */
 
 
@@ -27,8 +27,9 @@ p {
 }
 
 #header-middle {
-	display: inline-block;
-	width: calc(100% - 24em);
+    float: none;
+    padding-left: 1em;
+    padding-right: 1em;
     text-align: center;
 }
 
