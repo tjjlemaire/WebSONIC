@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-18 17:50:55
+# @Last Modified time: 2019-03-20 17:14:12
 
 ''' Definition of the SONICViewer class. '''
 
@@ -137,7 +137,7 @@ class SONICViewer(dash.Dash):
         return html.Div(id='header', children=[
 
             html.Div(className='header-side', id='header-left', children=[
-                html.A(html.Img(src='/assets/EPFL.png', className='logo'),
+                html.A(html.Img(src='/assets/EPFL.svg', className='logo'),
                        href='https://www.epfl.ch')]),
 
             html.Div(className='header-side', id='header-right', children=[

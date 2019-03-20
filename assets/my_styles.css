@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-03-12 18:00:19
+* @Last Modified time: 2019-03-20 17:17:11
 */
 
 
@@ -53,8 +53,7 @@ p {
 }
 
 .logo {
-	/*width: 100%;*/
-	height: 6em;
+	height: 5em;
 	margin: 0 auto;
 }
 
