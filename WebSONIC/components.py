@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-22 19:18:47
+# @Last Modified time: 2019-03-22 19:53:34
 
 ''' Extension of dash components. '''
 
@@ -48,7 +48,7 @@ def numInputBox(id, min, max, value=None):
     ''' Return numerical input box with lwoer and upper bounds. '''
     if value is None:
         value = (min + max) / 2
-    return dcc.Input(id=id, className='input-box', type='number', min=min, max=max, value=value)
+    return daq.NumericInput(id=id, className='input-box', min=min, max=max, value=value, size=120)
 
 
 def labeledInputRow(label, id, min, max, value=None):

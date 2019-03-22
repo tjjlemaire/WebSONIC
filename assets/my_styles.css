@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-03-22 19:27:54
+* @Last Modified time: 2019-03-22 19:42:09
 */
 
 
@@ -151,11 +151,11 @@ summary {
 }
 
 .row-label {
-	width: 15%;
+	width: 30%;
 }
 
 .row-data{
-	width: 75%;
+	width: 70%;
 }
 
 

@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-18 17:51:59
+# @Last Modified time: 2019-03-22 19:43:12
 
 ''' Definition of application parameters. '''
 
@@ -35,7 +35,7 @@ input_params = {
         'label': 'Amplitude',
         'unit': 'Pa',
         'values': np.array([10, 20, 40, 60, 80, 100, 300, 600]) * 1e3,
-        'default': 80e3,
+        'default': 20e3,
         'factor': 1e-3
     },
     'A_elec': {

@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-22 19:30:54
+# @Last Modified time: 2019-03-22 19:38:59
 
 ''' Definition of the SONICViewer class. '''
 
@@ -195,7 +195,7 @@ class SONICViewer(dash.Dash):
                 'toggle-stim-inputs',
                 labelLeft='Sliders',
                 labelRight='Inputs',
-                value=False,
+                value=True,
                 boldLabels=True
             ),
 
