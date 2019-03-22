@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-05 18:23:39
+# @Last Modified time: 2019-03-22 19:18:47
 
 ''' Extension of dash components. '''
 
@@ -18,7 +18,7 @@ def separator():
 
 
 def unorderedList(items):
-    return dcc.Markdown(className='ul', children=['''* {}'''.format('\r\n* '.join(items))])
+    return dcc.Markdown(children=['''* {}'''.format('\r\n* '.join(items))])
 
 
 def linearSlider(id, noptions, value=0, disabled=False):
@@ -111,14 +111,13 @@ def dataRows(labels, values, units):
     return rows
 
 
-def ddGraph(id, labels, values, default=None, sep=False):
+def ddGraph(id, labels, values, default=None):
     ''' Return div with variable selection dropdown list and graph object. '''
     return html.Div(id='{}-ddgraph'.format(id), className='graph-div', children=[
-        # Optional separator
-        html.Hr(className='graph-separator') if sep else None,
 
         # Dropdown list
         dcc.Dropdown(
+            className='ddlist',
             id='{}-dropdown'.format(id),
             options=[{'label': label, 'value': value} for label, value in zip(labels, values)],
             value=default if default is not None else values[0]),

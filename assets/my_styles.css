@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-03-20 17:17:11
+* @Last Modified time: 2019-03-22 19:27:54
 */
 
 
@@ -111,7 +111,7 @@ p {
 -----------------------------------------*/
 
 .panel {
-	padding: 0 2em 1em 1em;
+	padding: 0em 1em 0.5em 1em;
 	margin: 1em;
 	background-color: white;
     box-shadow: 2px 2px 5px #888888;
@@ -158,26 +158,26 @@ summary {
 	width: 75%;
 }
 
-/* Lists */
 
-.ul {
+/* Lists
+-----------------------------------------*/
+
+li {
+	margin: 0.3em;
 	font-size: small;
 }
+
+.ddlist {
+	margin-bottom: 0.5em;
+}
+
 
 /* Graph
 -----------------------------------------*/
 
 .graph-div {
     width: 100%;
-}
-
-.graph-separator {
-	width: 100%;
-    border: none;
-	height: 2px;
-    color: #bfbfbf;
-    background-color: #bfbfbf;
-    /*display: inline-block;*/
+    padding-top: 0.5em;
 }
 
 .graph {
@@ -195,18 +195,16 @@ summary {
 /* Table
 -----------------------------------------*/
 
+tr {
+	padding:0;
+	margin: 0;
+	height: 4em;
+}
+
 .table {
 	width: 100%;
 	text-align: center;
-}
-
-.slider-row {
-	height: 4em;
-}
-
-
-.input-row {
-	height: 4em;
+	padding-top:0;
 }
 
 .input-box {

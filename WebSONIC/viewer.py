@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-20 17:14:12
+# @Last Modified time: 2019-03-22 19:30:54
 
 ''' Definition of the SONICViewer class. '''
 
@@ -127,7 +127,6 @@ class SONICViewer(dash.Dash):
             ]),
 
             # Footer
-            html.Br(),
             separator(),
             self.footer()
         ])
@@ -137,11 +136,11 @@ class SONICViewer(dash.Dash):
         return html.Div(id='header', children=[
 
             html.Div(className='header-side', id='header-left', children=[
-                html.A(html.Img(src='/assets/EPFL.svg', className='logo'),
+                html.A(html.Img(src='assets/EPFL.svg', className='logo'),
                        href='https://www.epfl.ch')]),
 
             html.Div(className='header-side', id='header-right', children=[
-                html.A(html.Img(src='/assets/ITIS.svg', className='logo'),
+                html.A(html.Img(src='assets/ITIS.svg', className='logo'),
                        href='https://www.itis.ethz.ch')]),
 
             html.Div(id='header-middle', children=[
@@ -170,13 +169,13 @@ class SONICViewer(dash.Dash):
                     html.Td(self.cell_params['cell_type']['label'], className='row-label'),
                     html.Td(className='row-data', children=[
                         dcc.Dropdown(
+                            className='ddlist',
                             id='cell_type-dropdown',
                             options=[{
                                 'label': '{} ({})'.format(self.neurons[name].getDesc(), name),
                                 'value': name
                             } for name in self.neurons.keys()],
                             value=default_cell),
-                        html.Br(),
                         html.Div(id='membrane-currents'),
                     ])]),
 
@@ -252,12 +251,11 @@ class SONICViewer(dash.Dash):
         labels = self.getOutputDropDownLabels()
 
         ddgraphpanels = [
-            panel(children=[html.Br(), ddGraph(
+            panel(children=[ddGraph(
                 id='out{}'.format(i),
                 values=values,
                 labels=labels,
-                default=values[i],
-                sep=False)])
+                default=values[i])])
             for i in range(self.ngraphs)]
 
         return html.Div(children=[
