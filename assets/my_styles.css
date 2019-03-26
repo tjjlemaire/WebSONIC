@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-03-22 19:42:09
+* @Last Modified time: 2019-03-26 15:07:11
 */
 
 
@@ -112,7 +112,7 @@ p {
 
 .panel {
 	padding: 0em 1em 0.5em 1em;
-	margin: 1em;
+	margin: 0.5em;
 	background-color: white;
     box-shadow: 2px 2px 5px #888888;
 }
@@ -137,7 +137,8 @@ summary {
 
 .tabs {
 	height: 4em;
-	margin-bottom: 1em;
+	margin-bottom: 0.5em;
+	margin-top: 0.5em;
 }
 
 .toggle-switch {
@@ -181,7 +182,7 @@ li {
 }
 
 .graph {
-	height: 15em;
+	height: 14em;
 }
 
 

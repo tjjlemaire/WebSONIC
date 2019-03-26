@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-22 19:38:59
+# @Last Modified time: 2019-03-26 15:06:18
 
 ''' Definition of the SONICViewer class. '''
 
@@ -198,8 +198,6 @@ class SONICViewer(dash.Dash):
                 value=True,
                 boldLabels=True
             ),
-
-            html.Br(),
 
             dcc.Tabs(id='modality-tabs', className='tabs', value=default_mod, children=[
                 dcc.Tab(label='LIFUS', value='US'),
