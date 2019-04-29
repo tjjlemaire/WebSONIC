@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-22 19:53:34
+# @Last Modified time: 2019-04-29 16:17:56
 
 ''' Extension of dash components. '''
 
@@ -11,6 +11,11 @@ import dash_core_components as dcc
 import dash_daq as daq
 
 from PySONIC.utils import si_format
+
+
+def about():
+    with open('about.md', encoding="utf8") as f:
+        return dcc.Markdown('''{}'''.format(f.read()), id='about')
 
 
 def separator():
@@ -90,7 +95,7 @@ def collapsablePanel(title, children):
     ''' Return a collapsable panel with title and contents. '''
     if title is None:
         title = ''
-    return html.Details(open=1, className='panel', children=[
+    return html.Details(open=True, className='panel', children=[
         html.Summary(title, className='panel-title'), *children])
 
 

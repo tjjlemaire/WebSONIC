@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-26 15:06:18
+# @Last Modified time: 2019-04-29 17:56:08
 
 ''' Definition of the SONICViewer class. '''
 
@@ -31,7 +31,7 @@ class SONICViewer(dash.Dash):
 
     tscale = 1e3  # time scaling factor
 
-    def __init__(self, input_params, plt_params, ngraphs):
+    def __init__(self, input_params, plt_params, ngraphs, no_run=False):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
@@ -44,9 +44,8 @@ class SONICViewer(dash.Dash):
         # Initialize constant parameters
         self.prefixes = {v: k for k, v in si_prefixes.items()}
         self.ngraphs = ngraphs
-        self.tstim = input_params.pop('tstim')  # s
-        self.tbounds = plt_params['tbounds']  # s
         self.colors = plt_params['colors']
+        self.no_run = no_run
 
         # Initialize parameters that will change upon requests
         self.prev_nsubmits = 0
@@ -66,11 +65,11 @@ class SONICViewer(dash.Dash):
         self.stim_params = {
             'US': {
                 x if '_US' in x else '{}_US'.format(x): self.parseParam(input_params[x])
-                for x in ['f_US', 'A_US', 'PRF', 'DC']
+                for x in ['f_US', 'A_US', 'tstim', 'PRF', 'DC']
             },
             'elec': {
                 x if '_elec' in x else '{}_elec'.format(x): self.parseParam(input_params[x])
-                for x in ['A_elec', 'PRF', 'DC']
+                for x in ['A_elec', 'tstim', 'PRF', 'DC']
             }
         }
 
@@ -150,6 +149,7 @@ class SONICViewer(dash.Dash):
                         className='header-txt')])
         ])
 
+
     def footer(self):
         ''' Set app footer. '''
         return html.Div(id='footer', children=[
@@ -158,7 +158,10 @@ class SONICViewer(dash.Dash):
             html.Br(),
             'Translational Neural Engineering Lab, EPFL - 2019',
             html.Br(),
-            'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch')
+            'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch'),
+            html.Br(),
+            html.Details(open=False, children=[
+                html.Summary('About', className='panel-title'), about()])
         ])
 
     def cellPanel(self, default_cell):
@@ -214,7 +217,7 @@ class SONICViewer(dash.Dash):
                 for mod_type in self.stim_params.keys()],
 
 
-            html.Div(id='inputs-form', className='input-div', hidden=0, children=[
+            html.Div(id='inputs-form', className='input-div', hidden=False, children=[
 
                 *[labeledInputsTable(
                     '{}-input-table'.format(mod_type),
@@ -323,18 +326,22 @@ class SONICViewer(dash.Dash):
              Input('toggle-stim-inputs', 'value'),
              Input('f_US-slider', 'value'),
              Input('A_US-slider', 'value'),
+             Input('tstim_US-slider', 'value'),
              Input('PRF_US-slider', 'value'),
              Input('DC_US-slider', 'value'),
              Input('A_elec-slider', 'value'),
+             Input('tstim_elec-slider', 'value'),
              Input('PRF_elec-slider', 'value'),
              Input('DC_elec-slider', 'value'),
              Input('inputs-submit', 'n_clicks'),
              Input('out0-dropdown', 'value')],
             [State('f_US-input', 'value'),
              State('A_US-input', 'value'),
+             State('tstim_US-input', 'value'),
              State('PRF_US-input', 'value'),
              State('DC_US-input', 'value'),
              State('A_elec-input', 'value'),
+             State('tstim_elec-input', 'value'),
              State('PRF_elec-input', 'value'),
              State('DC_elec-input', 'value')])(self.propagateInputs)
 
@@ -460,8 +467,9 @@ class SONICViewer(dash.Dash):
             return False
 
     def propagateInputs(self, cell_type, i_radius, mod_type, is_input, i_US_freq, i_US_amp,
-                        i_US_PRF, i_US_DC, i_elec_amp, i_elec_PRF, i_elec_DC, nsubmits, varname,
-                        US_freq_input, US_amp_input, US_PRF_input, US_DC_input, elec_amp_input,
+                        i_US_tstim, i_US_PRF, i_US_DC, i_elec_amp, i_elec_tstim, i_elec_PRF,
+                        i_elec_DC, nsubmits, varname, US_freq_input, US_amp_input, US_tstim_input,
+                        US_PRF_input, US_DC_input, elec_amp_input, elec_tstim_input,
                         elec_PRF_input, elec_DC_input):
         ''' Translate inputs into parameters and propagate callback to updateCurve. '''
 
@@ -472,23 +480,26 @@ class SONICViewer(dash.Dash):
         try:
             if mod_type == 'US':
                 if is_input:
-                    Fdrive, A, PRF, DC = self.validateInputs(
-                        (US_freq_input, US_amp_input, US_PRF_input, US_DC_input), refparams)
+                    Fdrive, A, tstim, PRF, DC = self.validateInputs(
+                        (US_freq_input, US_amp_input, US_tstim_input, US_PRF_input, US_DC_input),
+                        refparams)
                 else:
-                    Fdrive, A, PRF, DC = self.getSlidersValues(
-                        (i_US_freq, i_US_amp, i_US_PRF, i_US_DC),
+                    Fdrive, A, tstim, PRF, DC = self.getSlidersValues(
+                        (i_US_freq, i_US_amp, i_US_tstim, i_US_PRF, i_US_DC),
                         refparams)
             else:
                 Fdrive = None
                 if is_input:
-                    A, PRF, DC = self.validateInputs(
-                        (elec_amp_input, elec_PRF_input, elec_DC_input), refparams)
+                    A, tstim, PRF, DC = self.validateInputs(
+                        (elec_amp_input, elec_tstim_input, elec_PRF_input, elec_DC_input),
+                        refparams)
                 else:
-                    A, PRF, DC = self.getSlidersValues((i_elec_amp, i_elec_PRF, i_elec_DC), refparams)
+                    A, tstim, PRF, DC = self.getSlidersValues(
+                        (i_elec_amp, i_elec_tstim, i_elec_PRF, i_elec_DC), refparams)
         except ValueError:
             print('Error in custom inputs')
-            Fdrive = A = PRF = DC = None
-        new_params = [cell_type, a, mod_type, Fdrive, A, self.tstim, PRF, DC * 1e-2]
+            Fdrive = A = tstim = PRF = DC = None
+        new_params = [cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC * 1e-2]
 
         # Handle incorrect submissions
         if A is None:
@@ -501,15 +512,14 @@ class SONICViewer(dash.Dash):
 
         # Load new data if parameters have changed
         if new_params != self.current_params:
-            print('getting data for new set of parameters')
             self.current_params = new_params
-            self.getData(*self.current_params)
+            self.runSim(*self.current_params)
 
         # Update graph accordingly
         return self.updateGraph(None, None, varname, cell_type, 'out0-graph')
 
-    def getData(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
-        ''' Run NEURON simulaiton to update data.
+    def runSim(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
+        ''' Run NEURON simulation to update data.
 
             :param cell_type: cell type
             :param a: Sonophore radius (m)
@@ -524,17 +534,23 @@ class SONICViewer(dash.Dash):
 
         # Initialize 0D NEURON model
         neuron = self.neurons[cell_type]
-        tstop = self.tbounds[1]
-        if mod_type == 'elec':
-            model = Sonic0D(neuron)
-            model.setIinj(A)
-        else:
-            model = Sonic0D(neuron, a=a * 1e9, Fdrive=Fdrive * 1e-3)
-            model.setUSdrive(A * 1e-3)
+        toffset = 0.5 * tstim
 
-        # Run simulation
-        (t, y, stimon) = model.simulate(tstim, tstop - tstim, PRF, DC)
-        Qm, Vm, *states = y
+        if self.no_run:
+            t = np.array([0., tstim, tstim, tstim + toffset])
+            stimon = np.hstack((np.ones(2), np.zeros(2)))
+            Qm = neuron.Qm0() * np.ones(4)
+            Vm = neuron.Vm0 * np.ones(4)
+            states = 0.5 * np.ones((len(neuron.states), 4))
+        else:
+            if mod_type == 'elec':
+                model = Sonic0D(neuron, verbose=True)
+                model.setIinj(A)
+            else:
+                model = Sonic0D(neuron, a=a * 1e9, Fdrive=Fdrive * 1e-3, verbose=True)
+                model.setUSdrive(A * 1e-3)
+            t, y, stimon = model.simulate(tstim, toffset, PRF, DC)
+            Qm, Vm, *states = y
 
         # Store output in dataframe
         self.data = pd.DataFrame({'t': t, 'states': stimon, 'Qm': Qm, 'Vm': Vm})
@@ -542,7 +558,7 @@ class SONICViewer(dash.Dash):
             self.data[sname] = sdata
 
         tcomp = time.time() - tstart
-        print('data loaded in {}s'.format(si_format(tcomp, space=' ')))
+        print('simulation data loaded in {}s'.format(si_format(tcomp, space=' ')))
 
 
     def getFileCode(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
@@ -626,7 +642,7 @@ class SONICViewer(dash.Dash):
             npatches, tpatch_on, tpatch_off = getStimPulses(t, states)
 
             # Preset and rescale time vector
-            tonset = np.array([self.tbounds[0], 0.0])
+            tonset = np.array([-0.05 * np.ptp(t), 0.0])
             t = np.hstack((tonset, t))
             t *= self.tscale
 
@@ -669,7 +685,7 @@ class SONICViewer(dash.Dash):
             xaxis={
                 'type': 'linear',
                 'title': 'time (ms)',
-                'range': self.tbounds * self.tscale if xrange is None else xrange,
+                'range': (t.min(), t.max()) if xrange is None else xrange,
                 'zeroline': False
             },
             yaxis={

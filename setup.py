@@ -4,7 +4,7 @@
 # @Date:   2017-06-13 09:40:02
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-26 20:25:32
+# @Last Modified time: 2019-04-29 13:34:25
 
 from setuptools import setup
 
@@ -39,9 +39,6 @@ setup(
     scripts=['run.py'],
     install_requires=[
         'dash>=0.39.0',
-        'dash-renderer>=0.20.0',
-        'dash-html-components>=0.14.0',
-        'dash-core-components>=0.44.0',
         'dash-auth>=1.1.2',
         'dash-daq>=0.1.4',
         'plotly>=3.7.1',

@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-03-22 19:43:12
+# @Last Modified time: 2019-04-29 16:15:17
 
 ''' Definition of application parameters. '''
 
@@ -44,6 +44,13 @@ input_params = {
         'values': np.array([-25, -10, -5, -2, 2, 5, 10, 25]),
         'default': 10.
     },
+    'tstim': {
+        'label': 'Duration',
+        'unit': 's',
+        'values': np.array([20, 50, 100, 200, 500, 1000]) * 1e-3,
+        'factor': 1e3,
+        'default': 200e-3
+    },
     'PRF': {
         'label': 'PRF',
         'unit': 'Hz',
@@ -56,13 +63,11 @@ input_params = {
         'values': np.array([1., 5., 10., 25., 50., 75., 100.]),
         'default': 100.
     },
-    'tstim': 1.0  # s
 }
 
 
 # --------------------------------- Plot parameters ---------------------------------
 
 plt_params = {
-    'colors': [matplotlib.colors.rgb2hex(c) for c in matplotlib.cm.get_cmap('tab10').colors],
-    'tbounds': np.array([-5e-3, 1.5 * input_params['tstim']])  # s
+    'colors': [matplotlib.colors.rgb2hex(c) for c in matplotlib.cm.get_cmap('tab10').colors]
 }
