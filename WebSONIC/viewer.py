@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-04-30 10:28:39
+# @Last Modified time: 2019-04-30 11:15:04
 
 ''' Definition of the SONICViewer class. '''
 
@@ -31,7 +31,7 @@ class SONICViewer(dash.Dash):
 
     tscale = 1e3  # time scaling factor
 
-    def __init__(self, input_params, plt_params, ngraphs, no_run=False):
+    def __init__(self, input_params, plt_params, ngraphs, no_run=False, verbose=False):
 
         # Initialize Dash app
         super(SONICViewer, self).__init__(
@@ -46,6 +46,7 @@ class SONICViewer(dash.Dash):
         self.ngraphs = ngraphs
         self.colors = plt_params['colors']
         self.no_run = no_run
+        self.verbose = verbose
 
         # Initialize parameters that will change upon requests
         self.prev_nsubmits = 0
@@ -254,7 +255,7 @@ class SONICViewer(dash.Dash):
 
         ddgraphpanels = [
             panel(children=[ddGraph(
-                id='out{}'.format(i),
+                id=str(i + 1),
                 values=values,
                 labels=labels,
                 default=values[i])])
@@ -304,23 +305,23 @@ class SONICViewer(dash.Dash):
         # Output metrics table
         self.callback(
             Output('info-table', 'children'),
-            [Input('out0-graph', 'figure')])(self.updateInfoTable)
+            [Input('graph1', 'figure')])(self.updateInfoTable)
 
         # Output panels
         for i in range(self.ngraphs):
 
             # drop-down list
             self.callback(
-                Output('out{}-dropdown'.format(i), 'options'),
+                Output('graph{}-dropdown'.format(i + 1), 'options'),
                 [Input('cell_type-dropdown', 'value')])(self.updateOutputOptions)
             self.callback(
-                Output('out{}-dropdown'.format(i), 'value'),
+                Output('graph{}-dropdown'.format(i + 1), 'value'),
                 [Input('cell_type-dropdown', 'value')],
-                state=[State('out{}-dropdown'.format(i), 'value')])(self.updateOutputVar)
+                state=[State('graph{}-dropdown'.format(i + 1), 'value')])(self.updateOutputVar)
 
         # 1st graph
         self.callback(
-            Output('out0-graph', 'figure'),
+            Output('graph1', 'figure'),
             [Input('cell_type-dropdown', 'value'),
              Input('sonophore_radius-slider', 'value'),
              Input('modality-tabs', 'value'),
@@ -335,7 +336,7 @@ class SONICViewer(dash.Dash):
              Input('PRF_elec-slider', 'value'),
              Input('DC_elec-slider', 'value'),
              Input('inputs-submit', 'n_clicks'),
-             Input('out0-dropdown', 'value')],
+             Input('graph1-dropdown', 'value')],
             [State('f_US-input', 'value'),
              State('A_US-input', 'value'),
              State('tstim_US-input', 'value'),
@@ -349,20 +350,20 @@ class SONICViewer(dash.Dash):
         # from 2nd graph on
         for i in range(1, self.ngraphs):
             self.callback(
-                Output('out{}-graph'.format(i), 'figure'),
-                [Input('out0-graph', 'figure'),
-                 Input('out{}-graph'.format(0), 'relayoutData'),
-                 Input('out{}-dropdown'.format(i), 'value')],
+                Output('graph{}'.format(i + 1), 'figure'),
+                [Input('graph1', 'figure'),
+                 Input('graph1', 'relayoutData'),
+                 Input('graph{}-dropdown'.format(i + 1), 'value')],
                 [State('cell_type-dropdown', 'value'),
-                 State('out{}-graph'.format(i), 'id')])(self.updateGraph)
+                 State('graph{}'.format(i + 1), 'id')])(self.updateGraph)
 
         # Download link
         self.callback(
             Output('download-link', 'href'),
-            [Input('out0-graph', 'figure')])(self.updateDownloadContent)
+            [Input('graph1', 'figure')])(self.updateDownloadContent)
         self.callback(
             Output('download-link', 'download'),
-            [Input('out0-graph', 'figure')])(self.updateDownloadName)
+            [Input('graph1', 'figure')])(self.updateDownloadName)
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch. '''
@@ -513,7 +514,7 @@ class SONICViewer(dash.Dash):
             self.runSim(*self.current_params)
 
         # Update graph accordingly
-        return self.updateGraph(None, None, varname, cell_type, 'out0-graph')
+        return self.updateGraph(None, None, varname, cell_type, 'graph1')
 
     def runSim(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Run NEURON simulation to update data.
@@ -527,11 +528,18 @@ class SONICViewer(dash.Dash):
             :param PRF: Pulse-repetition frequency (Hz)
             :param DC: duty cycle (-)
         '''
-        tstart = time.time()
 
         # Initialize 0D NEURON model
         neuron = self.neurons[cell_type]
         toffset = 0.5 * tstim
+
+        if self.verbose:
+            print(('running {} simulation on {} neuron ({}A = {} {}, tstim = {} ms, ' +
+                   'PRF = {} Hz, DC = {})').format(
+                  mod_type, neuron.name,
+                  {'US': 'a = {} nm, f = {} kHz, '.format(a, Fdrive), 'elec': ''}[mod_type],
+                  A * {'US': 1e-3, 'elec': 1.}[mod_type], {'US': 'kPa', 'elec': 'mA/m2'}[mod_type],
+                  tstim * 1e3, PRF, DC))
 
         if self.no_run:
             t = np.array([0., tstim, tstim, tstim + toffset])
@@ -541,10 +549,10 @@ class SONICViewer(dash.Dash):
             states = 0.5 * np.ones((len(neuron.states), 4))
         else:
             if mod_type == 'elec':
-                model = Sonic0D(neuron, verbose=True)
+                model = Sonic0D(neuron, verbose=self.verbose)
                 model.setIinj(A)
             else:
-                model = Sonic0D(neuron, a=a * 1e9, Fdrive=Fdrive * 1e-3, verbose=True)
+                model = Sonic0D(neuron, a=a * 1e9, Fdrive=Fdrive * 1e-3, verbose=self.verbose)
                 model.setUSdrive(A * 1e-3)
             t, y, stimon = model.simulate(tstim, toffset, PRF, DC)
             Qm, Vm, *states = y
@@ -553,9 +561,6 @@ class SONICViewer(dash.Dash):
         self.data = pd.DataFrame({'t': t, 'states': stimon, 'Qm': Qm, 'Vm': Vm})
         for sname, sdata in zip(neuron.states, states):
             self.data[sname] = sdata
-
-        tcomp = time.time() - tstart
-        print('simulation data loaded in {}s'.format(si_format(tcomp, space=' ')))
 
 
     def getFileCode(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
@@ -609,7 +614,8 @@ class SONICViewer(dash.Dash):
 
         ax_varnames = self.pltscheme[group_name]
         ax_pltvars = [self.pltvars[k] for k in ax_varnames]
-        print('{}: plotting {} set: {}'.format(id, group_name, ax_varnames))
+        if self.verbose:
+            print('{}: plotting {} set: {}'.format(id, group_name, ax_varnames))
 
         # Determine y-axis bounds and unit if needed
         if 'bounds' in ax_pltvars[0]:

@@ -2,7 +2,7 @@
 # @Author: Theo Lemaire
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-04-29 16:17:56
+# @Last Modified time: 2019-04-30 11:00:03
 
 ''' Extension of dash components. '''
 
@@ -118,18 +118,18 @@ def dataRows(labels, values, units):
 
 def ddGraph(id, labels, values, default=None):
     ''' Return div with variable selection dropdown list and graph object. '''
-    return html.Div(id='{}-ddgraph'.format(id), className='graph-div', children=[
+    return html.Div(id='ddgraph{}'.format(id), className='graph-div', children=[
 
         # Dropdown list
         dcc.Dropdown(
             className='ddlist',
-            id='{}-dropdown'.format(id),
+            id='graph{}-dropdown'.format(id),
             options=[{'label': label, 'value': value} for label, value in zip(labels, values)],
             value=default if default is not None else values[0]),
 
         # Graph
         dcc.Graph(
-            id='{}-graph'.format(id),
+            id='graph{}'.format(id),
             className='graph',
             animate=False,
             config={
