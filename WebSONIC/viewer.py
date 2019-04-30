@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-04-29 17:56:08
+# @Last Modified time: 2019-04-30 10:28:39
 
 ''' Definition of the SONICViewer class. '''
 
@@ -143,25 +143,26 @@ class SONICViewer(dash.Dash):
                        href='https://www.itis.ethz.ch')]),
 
             html.Div(id='header-middle', children=[
-                html.H3('multiScale Optimized Intramembrane Cavitation (SONIC) model:',
-                        className='header-txt'),
-                html.H4('predicted neural responses to Low-Intensity Focused Ultrasound Stimulation (LIFUS)',
+                html.H1('Ultrasound Neuromodulation: exploring predictions of the SONIC model',
                         className='header-txt')])
         ])
-
 
     def footer(self):
         ''' Set app footer. '''
         return html.Div(id='footer', children=[
+            html.Span([
+                'Ref: Lemaire, T., Neufeld, E., Kuster, N., and Micera, S. (2019). ',
+                html.A(html.I('Understanding ultrasound neuromodulation using a computationally\
+                              efficient and interpretable model of intramembrane cavitation. '),
+                       href='https://iopscience.iop.org/article/10.1088/1741-2552/ab1685'),
+                'J. Neural Eng. '], id='ref'),
+            html.Br(),
             'Developed with ', html.A('Dash', href='https://dash.plot.ly/'), '. ',
             'Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '.',
             html.Br(),
             'Translational Neural Engineering Lab, EPFL - 2019',
             html.Br(),
-            'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch'),
-            html.Br(),
-            html.Details(open=False, children=[
-                html.Summary('About', className='panel-title'), about()])
+            'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch')
         ])
 
     def cellPanel(self, default_cell):
@@ -416,8 +417,6 @@ class SONICViewer(dash.Dash):
         values = list(self.pltscheme.keys())
         labels = self.getOutputDropDownLabels()
 
-        # print('updateOutputOptions: {}, {}'.format(values, labels))
-
         # Return dictionary
         return [{'label': lbl, 'value': val} for lbl, val in zip(labels, values)]
 
@@ -433,8 +432,6 @@ class SONICViewer(dash.Dash):
         values = list(self.pltscheme.keys())
         if varname not in values:
             varname = values[0]
-
-        # print('updateOutputVar: {}'.format(varname))
 
         return varname
 

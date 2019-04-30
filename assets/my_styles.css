@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-04-29 17:26:21
+* @Last Modified time: 2019-04-30 10:13:29
 */
 
 
@@ -35,8 +35,7 @@ p {
 
 .header-side {
 	display: inline-block;
-	width: 10em;
-	height: 100%;
+	height: 5em;
 }
 
 #header-left {
@@ -50,16 +49,13 @@ p {
 .header-txt {
 	margin-top: 0;
     margin-bottom: 0;
+    vertical-align: middle;
 }
 
 .logo {
-	height: 5em;
+	height: 90%;
 	margin: 0 auto;
-}
-
-
-#main-logo {
-	height: 5em;
+	float: right;
 }
 
 #footer {
