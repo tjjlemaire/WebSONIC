@@ -4,7 +4,7 @@
 # @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-04-30 11:15:04
+# @Last Modified time: 2019-06-07 14:00:48
 
 ''' Definition of the SONICViewer class. '''
 
@@ -20,7 +20,7 @@ from PySONIC.postpro import findPeaks
 from PySONIC.constants import *
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.utils import si_prefixes, isWithin, getIndex
-from PySONIC.plt import getStimPulses, extractPltVar
+from PySONIC.plt import SchemePlot, extractPltVar
 from ExSONIC._0D import Sonic0D
 
 from .components import *
@@ -544,7 +544,7 @@ class SONICViewer(dash.Dash):
         if self.no_run:
             t = np.array([0., tstim, tstim, tstim + toffset])
             stimon = np.hstack((np.ones(2), np.zeros(2)))
-            Qm = neuron.Qm0() * np.ones(4)
+            Qm = neuron.Qm0 * np.ones(4)
             Vm = neuron.Vm0 * np.ones(4)
             states = 0.5 * np.ones((len(neuron.states), 4))
         else:
@@ -642,7 +642,7 @@ class SONICViewer(dash.Dash):
             states = self.data['states'].values
 
             # Determine stimulus patch(es) from states
-            npatches, tpatch_on, tpatch_off = getStimPulses(t, states)
+            tpatch_on, tpatch_off = SchemePlot.getStimPulses(_, t, states)
 
             # Preset and rescale time vector
             tonset = np.array([-0.05 * np.ptp(t), 0.0])
@@ -676,7 +676,7 @@ class SONICViewer(dash.Dash):
                 'fillcolor': 'grey',
                 'line': {'color': 'grey'},
                 'opacity': 0.2
-            } for i in range(npatches)]
+            } for i in range(tpatch_on.size)]
 
         # If data does not exist, define empty timeseries and patches
         else:
