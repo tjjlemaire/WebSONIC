@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
-# @Date:   2017-06-22 16:57:14
 # @Email: theo.lemaire@epfl.ch
+# @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-06-07 14:00:48
+# @Last Modified time: 2019-06-27 16:04:48
 
 ''' Definition of the SONICViewer class. '''
 
@@ -20,8 +19,8 @@ from PySONIC.postpro import findPeaks
 from PySONIC.constants import *
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.utils import si_prefixes, isWithin, getIndex
-from PySONIC.plt import SchemePlot, extractPltVar
-from ExSONIC._0D import Sonic0D
+from PySONIC.plt import GroupedTimeSeries, extractPltVar
+from ExSONIC._0D import Node, SonicNode
 
 from .components import *
 
@@ -54,7 +53,7 @@ class SONICViewer(dash.Dash):
         self.data = None
 
         # Initialize neuron objects
-        self.neurons = {
+        self.pneurons = {
             key: getNeuronsDict()[key]()
             for key in input_params['cell_type']['values']}
 
@@ -76,8 +75,8 @@ class SONICViewer(dash.Dash):
 
         # Initialize plot variables and plot scheme
         default_cell = input_params['cell_type']['default']
-        self.pltvars = self.neurons[default_cell].getPltVars()
-        self.pltscheme = self.neurons[default_cell].getPltScheme()
+        self.pltvars = self.pneurons[default_cell].getPltVars()
+        self.pltscheme = self.pneurons[default_cell].getPltScheme()
 
         # Initialize UI layout components
         self.setLayout(default_cell, 'US')
@@ -177,9 +176,9 @@ class SONICViewer(dash.Dash):
                             className='ddlist',
                             id='cell_type-dropdown',
                             options=[{
-                                'label': '{} ({})'.format(self.neurons[name].getDesc(), name),
+                                'label': '{} ({})'.format(self.pneurons[name].description(), name),
                                 'value': name
-                            } for name in self.neurons.keys()],
+                            } for name in self.pneurons.keys()],
                             value=default_cell),
                         html.Div(id='membrane-currents'),
                     ])]),
@@ -367,7 +366,7 @@ class SONICViewer(dash.Dash):
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch. '''
-        currents = self.neurons[cell_type].getCurrentsNames()
+        currents = self.pneurons[cell_type].getCurrentsNames()
         return unorderedList(['{} ({})'.format(self.pltvars[c]['desc'], c) for c in currents])
 
     def showTableGeneric(self, stim_mod, is_custom, table_mod, is_standard_table):
@@ -411,8 +410,8 @@ class SONICViewer(dash.Dash):
         ''' Update the list of available variables in a graph dropdown menu on neuron switch. '''
 
         # Update pltvars and pltscheme according to new cell type
-        self.pltvars = self.neurons[cell_type].getPltVars()
-        self.pltscheme = self.neurons[cell_type].getPltScheme()
+        self.pltvars = self.pneurons[cell_type].getPltVars()
+        self.pltscheme = self.pneurons[cell_type].getPltScheme()
 
         # Get options values and generate options labels
         values = list(self.pltscheme.keys())
@@ -426,8 +425,8 @@ class SONICViewer(dash.Dash):
         ''' Update the selected variable in a graph dropdown menu on neuron switch. '''
 
         # Update pltvars and pltscheme according to new cell type
-        self.pltvars = self.neurons[cell_type].getPltVars()
-        self.pltscheme = self.neurons[cell_type].getPltScheme()
+        self.pltvars = self.pneurons[cell_type].getPltVars()
+        self.pltscheme = self.pneurons[cell_type].getPltScheme()
 
         # Get options values and generate options labels
         values = list(self.pltscheme.keys())
@@ -505,8 +504,8 @@ class SONICViewer(dash.Dash):
 
         # Update plot variables if different cell type
         if self.current_params is None or cell_type != self.current_params[0]:
-            self.pltvars = self.neurons[cell_type].getPltVars()
-            self.pltscheme = self.neurons[cell_type].getPltScheme()
+            self.pltvars = self.pneurons[cell_type].getPltVars()
+            self.pltscheme = self.pneurons[cell_type].getPltScheme()
 
         # Load new data if parameters have changed
         if new_params != self.current_params:
@@ -530,13 +529,13 @@ class SONICViewer(dash.Dash):
         '''
 
         # Initialize 0D NEURON model
-        neuron = self.neurons[cell_type]
+        pneuron = self.pneurons[cell_type]
         toffset = 0.5 * tstim
 
         if self.verbose:
             print(('running {} simulation on {} neuron ({}A = {} {}, tstim = {} ms, ' +
                    'PRF = {} Hz, DC = {})').format(
-                  mod_type, neuron.name,
+                  mod_type, pneuron.name,
                   {'US': 'a = {} nm, f = {} kHz, '.format(a, Fdrive), 'elec': ''}[mod_type],
                   A * {'US': 1e-3, 'elec': 1.}[mod_type], {'US': 'kPa', 'elec': 'mA/m2'}[mod_type],
                   tstim * 1e3, PRF, DC))
@@ -544,23 +543,22 @@ class SONICViewer(dash.Dash):
         if self.no_run:
             t = np.array([0., tstim, tstim, tstim + toffset])
             stimon = np.hstack((np.ones(2), np.zeros(2)))
-            Qm = neuron.Qm0 * np.ones(4)
-            Vm = neuron.Vm0 * np.ones(4)
-            states = 0.5 * np.ones((len(neuron.states), 4))
+            Qm = pneuron.Qm0 * np.ones(4)
+            Vm = pneuron.Vm0 * np.ones(4)
+            states = 0.5 * np.ones((len(pneuron.states), 4))
+            self.data = pd.DataFrame({'t': t, 'stimstate': stimon, 'Qm': Qm, 'Vm': Vm})
+            for sname, sdata in zip(pneuron.states, states):
+                self.data[sname] = sdata
         else:
             if mod_type == 'elec':
-                model = Sonic0D(neuron, verbose=self.verbose)
+                model = Node(pneuron, verbose=self.verbose)
                 model.setIinj(A)
             else:
-                model = Sonic0D(neuron, a=a * 1e9, Fdrive=Fdrive * 1e-3, verbose=self.verbose)
+                model = SonicNode(pneuron, a=a * 1e9, Fdrive=Fdrive * 1e-3, verbose=self.verbose)
                 model.setUSdrive(A * 1e-3)
-            t, y, stimon = model.simulate(tstim, toffset, PRF, DC)
-            Qm, Vm, *states = y
-
-        # Store output in dataframe
-        self.data = pd.DataFrame({'t': t, 'states': stimon, 'Qm': Qm, 'Vm': Vm})
-        for sname, sdata in zip(neuron.states, states):
-            self.data[sname] = sdata
+            self.data, _ = model.simulate(tstim, toffset, PRF, DC)
+            # t, y, stimon = model.simulate(tstim, toffset, PRF, DC)
+            # Qm, Vm, *states = y
 
 
     def getFileCode(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
@@ -639,10 +637,10 @@ class SONICViewer(dash.Dash):
 
             # Get time and states vector
             t = self.data['t'].values
-            states = self.data['states'].values
+            states = self.data['stimstate'].values
 
             # Determine stimulus patch(es) from states
-            tpatch_on, tpatch_off = SchemePlot.getStimPulses(_, t, states)
+            tpatch_on, tpatch_off = GroupedTimeSeries.getStimPulses(t, states)
 
             # Preset and rescale time vector
             tonset = np.array([-0.05 * np.ptp(t), 0.0])
@@ -653,7 +651,7 @@ class SONICViewer(dash.Dash):
             timeseries = []
             icolor = 0
             for name, pltvar in zip(ax_varnames, ax_pltvars):
-                var = extractPltVar(self.neurons[cell_type], pltvar, self.data, None, t.size, name)
+                var = extractPltVar(self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
                 timeseries.append(go.Scatter(
                     x=t,
                     y=var,
