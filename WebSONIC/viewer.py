@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-06-27 16:04:48
+# @Last Modified time: 2019-06-27 19:11:21
 
 ''' Definition of the SONICViewer class. '''
 
@@ -515,6 +515,17 @@ class SONICViewer(dash.Dash):
         # Update graph accordingly
         return self.updateGraph(None, None, varname, cell_type, 'graph1')
 
+    def getFakeData(self, pneuron, tstim, toffset):
+        data = pd.DataFrame({
+            't': np.array([0., tstim, tstim, tstim + toffset]),
+            'stimstate': np.hstack((np.ones(2), np.zeros(2))),
+            'Qm': pneuron.Qm0 * np.ones(4),
+            'Vm': pneuron.Vm0 * np.ones(4)
+        })
+        for k in pneuron.states.keys():
+            data[k] = 0.5 * np.ones(4)
+        return data
+
     def runSim(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Run NEURON simulation to update data.
 
@@ -541,14 +552,7 @@ class SONICViewer(dash.Dash):
                   tstim * 1e3, PRF, DC))
 
         if self.no_run:
-            t = np.array([0., tstim, tstim, tstim + toffset])
-            stimon = np.hstack((np.ones(2), np.zeros(2)))
-            Qm = pneuron.Qm0 * np.ones(4)
-            Vm = pneuron.Vm0 * np.ones(4)
-            states = 0.5 * np.ones((len(pneuron.states), 4))
-            self.data = pd.DataFrame({'t': t, 'stimstate': stimon, 'Qm': Qm, 'Vm': Vm})
-            for sname, sdata in zip(pneuron.states, states):
-                self.data[sname] = sdata
+            self.data = self.getFakeData(pneuron, tstim, toffset)
         else:
             if mod_type == 'elec':
                 model = Node(pneuron, verbose=self.verbose)
@@ -557,9 +561,6 @@ class SONICViewer(dash.Dash):
                 model = SonicNode(pneuron, a=a * 1e9, Fdrive=Fdrive * 1e-3, verbose=self.verbose)
                 model.setUSdrive(A * 1e-3)
             self.data, _ = model.simulate(tstim, toffset, PRF, DC)
-            # t, y, stimon = model.simulate(tstim, toffset, PRF, DC)
-            # Qm, Vm, *states = y
-
 
     def getFileCode(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Get simulation filecode for the given parameters.
