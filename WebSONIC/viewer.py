@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-06-27 19:11:21
+# @Last Modified time: 2019-06-28 17:33:36
 
 ''' Definition of the SONICViewer class. '''
 
@@ -20,7 +20,7 @@ from PySONIC.constants import *
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.utils import si_prefixes, isWithin, getIndex
 from PySONIC.plt import GroupedTimeSeries, extractPltVar
-from ExSONIC._0D import Node, SonicNode
+from ExSONIC.core import IintraNode, SonicNode
 
 from .components import *
 
@@ -555,12 +555,11 @@ class SONICViewer(dash.Dash):
             self.data = self.getFakeData(pneuron, tstim, toffset)
         else:
             if mod_type == 'elec':
-                model = Node(pneuron, verbose=self.verbose)
-                model.setIinj(A)
+                model = IintraNode(pneuron)
             else:
-                model = SonicNode(pneuron, a=a * 1e9, Fdrive=Fdrive * 1e-3, verbose=self.verbose)
-                model.setUSdrive(A * 1e-3)
-            self.data, _ = model.simulate(tstim, toffset, PRF, DC)
+                model = SonicNode(pneuron, a=a * 1e9, Fdrive=Fdrive * 1e-3)
+                A *= 1e-3
+            self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
 
     def getFileCode(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Get simulation filecode for the given parameters.
