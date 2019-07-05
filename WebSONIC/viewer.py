@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-06-28 17:33:36
+# @Last Modified time: 2019-07-05 14:23:57
 
 ''' Definition of the SONICViewer class. '''
 
@@ -557,8 +557,7 @@ class SONICViewer(dash.Dash):
             if mod_type == 'elec':
                 model = IintraNode(pneuron)
             else:
-                model = SonicNode(pneuron, a=a * 1e9, Fdrive=Fdrive * 1e-3)
-                A *= 1e-3
+                model = SonicNode(pneuron, a=a, Fdrive=Fdrive)
             self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
 
     def getFileCode(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
