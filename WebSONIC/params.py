@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
+# @Email: theo.lemaire@epfl.ch
+# @Date:   2019-06-07 14:09:05
+# @Last Modified by:   Theo Lemaire
+# @Last Modified time: 2019-07-10 15:21:24
+# @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
 # @Last Modified time: 2019-04-29 16:15:17
@@ -22,6 +27,14 @@ input_params = {
         'unit': 'm',
         'values': np.logspace(np.log10(16.0), np.log10(64.0), 3) * 1e-9,
         'default': 32.0e-9  # m
+
+    },
+    'sonophore_coverage_fraction': {
+        'label': 'Coverage fraction',
+        'unit': '%',
+        'values': np.array([1., 5., 10., 20., 50., 100.]),
+        'default': 100.,
+        'disabled': True
 
     },
     'f_US': {

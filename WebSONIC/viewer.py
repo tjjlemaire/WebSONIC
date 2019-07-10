@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-05 14:23:57
+# @Last Modified time: 2019-07-10 15:24:12
 
 ''' Definition of the SONICViewer class. '''
 
@@ -60,7 +60,7 @@ class SONICViewer(dash.Dash):
         # Initialize cell and stimulation parameters
         self.cell_params = {
             x: self.parseParam(input_params[x])
-            for x in ['cell_type', 'sonophore_radius']
+            for x in ['cell_type', 'sonophore_radius', 'sonophore_coverage_fraction']
         }
         self.stim_params = {
             'US': {
@@ -85,12 +85,14 @@ class SONICViewer(dash.Dash):
         self.registerCallbacks()
 
 
-    def parseParam(self, p):
+    @staticmethod
+    def parseParam(p):
         parsed_p = {
             'label': p['label'],
             'values': p['values'],
             'idef': getIndex(p['values'], p['default']),
-            'unit': p.get('unit', None)
+            'unit': p.get('unit', None),
+            'disabled': p.get('disabled', False)
         }
         if 'factor' in p:
             parsed_p['factor'] = p['factor']
@@ -130,7 +132,8 @@ class SONICViewer(dash.Dash):
             self.footer()
         ])
 
-    def header(self):
+    @staticmethod
+    def header():
         ''' Set app header. '''
         return html.Div(id='header', children=[
 
@@ -147,7 +150,8 @@ class SONICViewer(dash.Dash):
                         className='header-txt')])
         ])
 
-    def footer(self):
+    @staticmethod
+    def footer():
         ''' Set app footer. '''
         return html.Div(id='footer', children=[
             html.Span([
@@ -183,10 +187,12 @@ class SONICViewer(dash.Dash):
                         html.Div(id='membrane-currents'),
                     ])]),
 
-                labeledSliderRow(
-                    self.cell_params['sonophore_radius']['label'], 'sonophore_radius-slider',
-                    len(self.cell_params['sonophore_radius']['values']),
-                    value=self.cell_params['sonophore_radius']['idef'])
+                *[labeledSliderRow(
+                    self.cell_params[k]['label'], f'{k}-slider',
+                    len(self.cell_params[k]['values']),
+                    value=self.cell_params[k]['idef'],
+                    disabled=self.cell_params[k]['disabled'])
+                  for k in ['sonophore_radius', 'sonophore_coverage_fraction']]
             ])
         ])
 
@@ -242,7 +248,8 @@ class SONICViewer(dash.Dash):
             ])
         ])
 
-    def metricsPanel(self):
+    @staticmethod
+    def metricsPanel():
         return collapsablePanel('Output metrics', children=[
             html.Table(id='info-table', className='table')])
 
@@ -276,7 +283,7 @@ class SONICViewer(dash.Dash):
             [Input('cell_type-dropdown', 'value')])(self.updateMembraneCurrents)
 
         # Cell panel: radius slider
-        for p in ['sonophore_radius']:
+        for p in ['sonophore_radius', 'sonophore_coverage_fraction']:
             id = '{}-slider'.format(p)
             self.callback(Output(id, 'marks'), [Input(id, 'value')])(self.updateSlider(
                 self.cell_params[p]))
@@ -323,6 +330,7 @@ class SONICViewer(dash.Dash):
             Output('graph1', 'figure'),
             [Input('cell_type-dropdown', 'value'),
              Input('sonophore_radius-slider', 'value'),
+             Input('sonophore_coverage_fraction-slider', 'value'),
              Input('modality-tabs', 'value'),
              Input('toggle-stim-inputs', 'value'),
              Input('f_US-slider', 'value'),
@@ -463,7 +471,7 @@ class SONICViewer(dash.Dash):
         else:
             return False
 
-    def propagateInputs(self, cell_type, i_radius, mod_type, is_input, i_US_freq, i_US_amp,
+    def propagateInputs(self, cell_type, i_radius, i_cov, mod_type, is_input, i_US_freq, i_US_amp,
                         i_US_tstim, i_US_PRF, i_US_DC, i_elec_amp, i_elec_tstim, i_elec_PRF,
                         i_elec_DC, nsubmits, varname, US_freq_input, US_amp_input, US_tstim_input,
                         US_PRF_input, US_DC_input, elec_amp_input, elec_tstim_input,
@@ -474,6 +482,8 @@ class SONICViewer(dash.Dash):
 
         # Determine parameters
         a = self.cell_params['sonophore_radius']['values'][i_radius]
+        fs = self.cell_params['sonophore_coverage_fraction']['values'][i_cov] * 1e-2
+
         try:
             if mod_type == 'US':
                 if is_input:
@@ -496,7 +506,7 @@ class SONICViewer(dash.Dash):
         except ValueError:
             print('Error in custom inputs')
             Fdrive = A = tstim = PRF = DC = None
-        new_params = [cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC * 1e-2]
+        new_params = [cell_type, a, fs, mod_type, Fdrive, A, tstim, PRF, DC * 1e-2]
 
         # Handle incorrect submissions
         if A is None:
@@ -526,11 +536,12 @@ class SONICViewer(dash.Dash):
             data[k] = 0.5 * np.ones(4)
         return data
 
-    def runSim(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
+    def runSim(self, cell_type, a, fs, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Run NEURON simulation to update data.
 
             :param cell_type: cell type
             :param a: Sonophore radius (m)
+            :param fs: sonophore membrane coverage fraction (-)
             :param mod_type: stimulation modality ('US' or 'elec')
             :param Fdrive: Ultrasound frequency (Hz) for A-STIM / None for E-STIM
             :param A: Acoustic amplitude (Pa) for A-STIM / electrical amplitude (mA/m2) for E-STIM
@@ -546,10 +557,13 @@ class SONICViewer(dash.Dash):
         if self.verbose:
             print(('running {} simulation on {} neuron ({}A = {} {}, tstim = {} ms, ' +
                    'PRF = {} Hz, DC = {})').format(
-                  mod_type, pneuron.name,
-                  {'US': 'a = {} nm, f = {} kHz, '.format(a, Fdrive), 'elec': ''}[mod_type],
-                  A * {'US': 1e-3, 'elec': 1.}[mod_type], {'US': 'kPa', 'elec': 'mA/m2'}[mod_type],
-                  tstim * 1e3, PRF, DC))
+                   mod_type, pneuron.name,
+                   {
+                        'US': 'a = {} nm, fs = {}% f = {} kHz, '.format(a, fs * 1e2, Fdrive),
+                        'elec': ''
+                   }[mod_type],
+                   A * {'US': 1e-3, 'elec': 1.}[mod_type], {'US': 'kPa', 'elec': 'mA/m2'}[mod_type],
+                   tstim * 1e3, PRF, DC))
 
         if self.no_run:
             self.data = self.getFakeData(pneuron, tstim, toffset)
@@ -557,10 +571,10 @@ class SONICViewer(dash.Dash):
             if mod_type == 'elec':
                 model = IintraNode(pneuron)
             else:
-                model = SonicNode(pneuron, a=a, Fdrive=Fdrive)
+                model = SonicNode(pneuron, a=a, Fdrive=Fdrive, fs=fs)
             self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
 
-    def getFileCode(self, cell_type, a, mod_type, Fdrive, A, tstim, PRF, DC):
+    def getFileCode(self, cell_type, a, fs, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Get simulation filecode for the given parameters.
 
             :param cell_type: cell type
@@ -577,10 +591,11 @@ class SONICViewer(dash.Dash):
         W_str = 'PW' if DC < 1.0 else 'CW'
         if mod_type == 'elec':
             filecode = 'ESTIM_{}_{}_{:.1f}mA_per_m2_{:.0f}ms{}'.format(
-                cell_type, W_str, A, tstim, PW_str)
+                cell_type, W_str, A, tstim * 1e3, PW_str)
         else:
-            filecode = 'ASTIM_{}_{}_{:.0f}nm_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
-                cell_type, W_str, a * 1e9, Fdrive * 1e-3, A * 1e-3, tstim, PW_str)
+            fs_str = '_fs{:.0f}%'.format(fs * 1e2) if fs < 1 else ''
+            filecode = 'ASTIM_{}_{}_{:.0f}nm{}_{:.0f}kHz_{:.1f}kPa_{:.0f}ms{}'.format(
+                cell_type, W_str, a * 1e9, fs_str, Fdrive * 1e-3, A * 1e-3, tstim * 1e3, PW_str)
         return filecode
 
     def updateGraph(self, _, relayout_data, group_name, cell_type, id):
