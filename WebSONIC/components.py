@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
+# @Email: theo.lemaire@epfl.ch
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-04-30 11:00:03
+# @Last Modified time: 2019-07-22 17:36:36
 
 ''' Extension of dash components. '''
 

@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Author: Theo Lemaire
+# @Email: theo.lemaire@epfl.ch
+# @Date:   2019-06-04 18:26:15
+# @Last Modified by:   Theo Lemaire
+# @Last Modified time: 2019-07-22 17:36:16
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
 # @Date:   2017-07-11 18:58:23
@@ -46,7 +51,6 @@ else:
 
 # Create app instance
 app = SONICViewer(input_params, plt_params, ngraphs, no_run=testUI, verbose=verbose)
-app.scripts.config.serve_locally = True
 print('Created {}'.format(app))
 
 # Add underlying server instance to module global scope (for gunicorn use)

@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-10 15:24:12
+# @Last Modified time: 2019-07-22 17:36:58
 
 ''' Definition of the SONICViewer class. '''
 
@@ -36,7 +36,7 @@ class SONICViewer(dash.Dash):
         super(SONICViewer, self).__init__(
             name='viewer',
             url_base_pathname='/viewer/',
-            csrf_protect=True
+            # csrf_protect=True
         )
         self.title = 'SONIC viewer'
 
@@ -243,7 +243,7 @@ class SONICViewer(dash.Dash):
                     for mod_type in self.stim_params.keys()],
 
                 html.Div(id='inputs-submit-div', hidden=True, children=[
-                    html.Button('Run', id='inputs-submit', className='submit-button')
+                    html.Button('Run', id='run-button', className='submit-button')
                 ])
             ])
         ])
@@ -342,7 +342,7 @@ class SONICViewer(dash.Dash):
              Input('tstim_elec-slider', 'value'),
              Input('PRF_elec-slider', 'value'),
              Input('DC_elec-slider', 'value'),
-             Input('inputs-submit', 'n_clicks'),
+             Input('run-button', 'n_clicks'),
              Input('graph1-dropdown', 'value')],
             [State('f_US-input', 'value'),
              State('A_US-input', 'value'),
