@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Author: Theo Lemaire
+# @Email: theo.lemaire@epfl.ch
+# @Date:   2019-06-04 18:26:15
+# @Last Modified by:   Theo Lemaire
+# @Last Modified time: 2019-07-24 18:48:11
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
 # @Date:   2017-06-13 09:40:02
@@ -41,6 +46,7 @@ setup(
         'dash>=0.39.0',
         'dash-auth>=1.1.2',
         'dash-daq>=0.1.4',
+        'dash-bootstrap-components>=0.6.3',
         'plotly>=3.7.1',
         'psutil>=5.4'
     ],

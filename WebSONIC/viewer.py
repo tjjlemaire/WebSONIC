@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-24 18:42:56
+# @Last Modified time: 2019-07-24 19:01:00
 
 ''' Definition of the SONICViewer class. '''
 
@@ -338,7 +338,8 @@ class SONICViewer(dash.Dash):
         self.callback(
             [Output('A_US-input', 'value'),
              Output('A_elec-input', 'value'),
-             Output('status-bar', 'children')],
+             Output('status-bar', 'children'),
+             Output('status-bar', 'color')],
             [Input('cell_type-dropdown', 'value'),
              Input('sonophore_radius-slider', 'value'),
              Input('sonophore_coverage_fraction-slider', 'value'),
@@ -533,20 +534,22 @@ class SONICViewer(dash.Dash):
 
         # Load new data if parameters have changed
         if new_params != self.current_params:
-            msg, A = self.runSim(*new_params)
+            msg, A, is_successful = self.runSim(*new_params)
             if None in new_params:
                 new_params[iA] = A
             self.current_params = new_params
         else:
             msg = None
 
-        if msg is not None and not msg[0].startswith('error'):
+        if msg is not None and is_successful:
             if mod_type == 'US':
                 US_amp_input = A * 1e-3
             else:
                 elec_amp_input = A
 
-        return US_amp_input, elec_amp_input, msg
+        color = 'success' if is_successful else 'danger'
+
+        return US_amp_input, elec_amp_input, msg, color
 
     def getFakeData(self, pneuron, tstim, toffset):
         data = pd.DataFrame({
@@ -602,15 +605,20 @@ class SONICViewer(dash.Dash):
                 model = IintraNode(pneuron)
             else:
                 model = SonicNode(pneuron, a=a, Fdrive=Fdrive, fs=fs)
-            # try:
-            if A is None:
-                A = model.titrate(tstim, toffset, PRF, DC)
-            self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
-            # except ValueError as err:
-            #     print(err)
-            #     msg = 'error ' + err.message
+            try:
+                if A is None:
+                    A = model.titrate(tstim, toffset, PRF, DC)
+                    if np.isnan(A):
+                        raise ValueError('Impossible titration')
+                self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
+                is_successful = True
+            except ValueError as err:
+                print(err)
+                msg = str(err)
+                A = np.nan
+                is_successful = False
 
-        return [msg], A
+        return [msg], A, is_successful
 
     def getFileCode(self, cell_type, a, fs, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Get simulation filecode for the given parameters.
