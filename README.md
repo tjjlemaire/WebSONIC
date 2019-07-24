@@ -2,30 +2,41 @@
 
 `WebSONIC` is an interactive web application allowing to visualize the predicted electrical response of different neuron types to ultrasonic stimuli for various combinations of sonication parameters, computed with the **SONIC** model [1]. A comparative module to explore predicted responses of the same neurons to electrical stimuli (computed with standard Hodgkin-Huxley equations) is also included.
 
+## Content of repository
+
+- the `viewer` module contains a core `SONICViewer` class inherited from `dash.Dash` that defines the layout and all the callbacks of the web app.
+- the `components` module defines custom UI components used in the layout.
+- the `params` module defines input and plotting parameters used by the web app.
+- the **assets** folder contains CSS style sheets and static files used by the web app.
+- the `index.html` defines a default home page used if the web app is hosted on a server.
+- the `run.py` script allows to launch the app from the commandmline with different options.
+
+## Dependencies
+
 This application is built in Python. It uses the **Dash** framework (https://dash.plot.ly/) for serving and client-side rendering, and the **NEURON** simulation environment (https://www.neuron.yale.edu/neuron/) to run simulations. It depends on two other Python papckages:
 - `PySONIC` (https://c4science.ch/diffusion/4670/) defines the SONIC model and provides utilities
 - `ExSONIC` (https://c4science.ch/diffusion/7145/) handles the communication with **NEURON**
 
 # Installation
 
-From a terminal, activate a Python3 environment if needed:
+- From a terminal, activate a Python3 environment if needed:
 
 `$ source <path_to_virtual_env>/bin activate`
 
-Check that the appropriate version of pip is activated:
+- Check that the appropriate version of pip is activated:
 
 `$ pip --version`
 
-Install the PySONIC and ExSONIC dependencies locally:
+- Install the PySONIC and ExSONIC dependencies locally:
 
 ```
-$ $ cd <path_to_PySONIC_dir/setup.py>
-$ $ pip install -e .
-$ $ cd <path_to_ExSONIC_dir/setup.py>
-$ $ pip install -e .
+$ cd <path_to_PySONIC_dir/setup.py>
+$ pip install -e .
+$ cd <path_to_ExSONIC_dir/setup.py>
+$ pip install -e .
 ```
 
-Install the WebSONIC package :
+- Install the WebSONIC package:
 
 ```
 $ cd <path_to_PySONIC_dir/setup.py>
