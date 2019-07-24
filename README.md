@@ -1,72 +1,81 @@
-Description
-============
+# Description
 
-Interactive web application to view the predicted electrical response of different neuron types to ultrasonic stimuli for various combinations of sonication parameters, computed with the SONIC model. A comparative module to explore predicted responses of the same neurons to electrical stimuli (computed with standard Hodgkin-Huxley equations) is also included.
+`WebSONIC` is an interactive web application allowing to visualize the predicted electrical response of different neuron types to ultrasonic stimuli for various combinations of sonication parameters, computed with the **SONIC** model [1]. A comparative module to explore predicted responses of the same neurons to electrical stimuli (computed with standard Hodgkin-Huxley equations) is also included.
 
-This application is built entirely in Python. It uses the Dash framework (https://dash.plot.ly/) for serving and client-side rendering, and the PySONIC package (https://c4science.ch/diffusion/4670/) for internal computations.
+This application is built in Python. It uses the **Dash** framework (https://dash.plot.ly/) for serving and client-side rendering, and the **NEURON** simulation environment (https://www.neuron.yale.edu/neuron/) to run simulations. It depends on two other Python papckages:
+- `PySONIC` (https://c4science.ch/diffusion/4670/) defines the SONIC model and provides utilities
+- `ExSONIC` (https://c4science.ch/diffusion/7145/) handles the communication with **NEURON**
 
-Installation
-==================
+# Installation
 
 From a terminal, activate a Python3 environment if needed:
 
-	source <path_to_virtual_env>/bin activate
+`$ source <path_to_virtual_env>/bin activate`
 
 Check that the appropriate version of pip is activated:
 
-	pip --version
+`$ pip --version`
 
-Install the PySONIC dependency locally:
+Install the PySONIC and ExSONIC dependencies locally:
 
-	cd <path_to_PySONIC_dir/setup.py>
-	pip install -e .
+```
+$ $ cd <path_to_PySONIC_dir/setup.py>
+$ $ pip install -e .
+$ $ cd <path_to_ExSONIC_dir/setup.py>
+$ $ pip install -e .
+```
 
 Install the WebSONIC package :
 
-	cd <path_to_PySONIC_dir/setup.py>
-	pip install -e .
-
+```
+$ cd <path_to_PySONIC_dir/setup.py>
+$ pip install -e .
+```
 
 All remote dependencies will be automatically installed.
 
-The app should be ready to use.
 
-Usage
-=======
+# Usage
 
-Local use
-----------
+## Local use
 
 You can run the application from a local terminal with a single command line (in the app directory):
 
-	python run.py [-d]
+`$ python run.py`
 
-The [-d] or [--debug] extra parameter is to run the application in "debug" mode (restarting upon file save).
+The following command line arguments are available:
+- `-d` / `--debug`: run the application in **debug** mode (restarting upon file save).
+- `-v` / `--verbose`: add verbosity
+- `-n` / `--ngraphs`: specify the number of graphs in the web app
+- `-t` / `--testUI`: test the we app UI, without running internal simulations
 
 Then, open a browser at [http://127.0.0.1:8050/viewer](http://127.0.0.1:8050/viewer) to use the application.
 
+## Remote deployment (Linux)
 
-Remote deployment (Linux)
----------------------------
+To deploy the application on a pre-configured linux machine, the best way to go is to use a Green Unicorn server:
 
-To deploy the application on a pre-configured linux machine, the best way to go is to use a Green Unicorn server.
+- From a terminal, activate a Python3 environment if needed:
 
-From a terminal, activate a Python3 environment if needed:
+`$ source <path_to_virtual_env>/bin activate`
 
-	source <path_to_virtual_env>/bin activate
+- Check that the appropriate version of pip is activated:
 
-Check that the appropriate version of pip is activated:
+`$ pip --version`
 
-	pip --version
+- Install Green Unicorn as a python package
 
-Install Green Unicorn as a python package
+`$ pip install gunicorn`
 
-	pip install gunicorn
+- Move to the application folder and serve the application with Gunicorn:
 
-Then move to the application folder and serve the application with Gunicorn:
+`$ gunicorn --bind 0.0.0.0:8050 run:server`
 
-	gunicorn --bind 0.0.0.0:8050 run:server
+- Alternatively, you can serve the application in a separate, detached screen session:
 
-Alternatively, you can serve the application in a separate, detached screen session:
+`$ screen -d -S webnice_session -m gunicorn --bind 0.0.0.0:8050 run:server`
 
-	screen -d -S webnice_session -m gunicorn --bind 0.0.0.0:8050 run:server
+# References
+
+[1] Lemaire, T., Neufeld, E., Kuster, N., and Micera, S. (2019). Understanding ultrasound neuromodulation using a computationally efficient and interpretable model of intramembrane cavitation. J. Neural Eng.
+
