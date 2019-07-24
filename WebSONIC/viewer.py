@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-24 19:01:00
+# @Last Modified time: 2019-07-24 19:04:14
 
 ''' Definition of the SONICViewer class. '''
 
@@ -607,7 +607,7 @@ class SONICViewer(dash.Dash):
                 model = SonicNode(pneuron, a=a, Fdrive=Fdrive, fs=fs)
             try:
                 if A is None:
-                    A = model.titrate(tstim, toffset, PRF, DC)
+                    A = model.titrate(tstim, 0., PRF, DC)
                     if np.isnan(A):
                         raise ValueError('Impossible titration')
                 self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
