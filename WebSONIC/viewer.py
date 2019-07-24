@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-22 17:36:58
+# @Last Modified time: 2019-07-24 18:42:56
 
 ''' Definition of the SONICViewer class. '''
 
@@ -12,6 +12,7 @@ import urllib
 import numpy as np
 import pandas as pd
 import dash
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 
@@ -36,7 +37,7 @@ class SONICViewer(dash.Dash):
         super(SONICViewer, self).__init__(
             name='viewer',
             url_base_pathname='/viewer/',
-            # csrf_protect=True
+            external_stylesheets=[dbc.themes.BOOTSTRAP]
         )
         self.title = 'SONIC viewer'
 
@@ -92,10 +93,12 @@ class SONICViewer(dash.Dash):
             'values': p['values'],
             'idef': getIndex(p['values'], p['default']),
             'unit': p.get('unit', None),
-            'disabled': p.get('disabled', False)
+            'disabled': p.get('disabled', False),
         }
         if 'factor' in p:
             parsed_p['factor'] = p['factor']
+        if 'allow_titrate' in p:
+            parsed_p['allow_titrate'] = p['allow_titrate']
         return parsed_p
 
 
@@ -147,7 +150,9 @@ class SONICViewer(dash.Dash):
 
             html.Div(id='header-middle', children=[
                 html.H1('Ultrasound Neuromodulation: exploring predictions of the SONIC model',
-                        className='header-txt')])
+                        className='header-txt'),
+                html.Br()
+            ])
         ])
 
     @staticmethod
@@ -238,9 +243,13 @@ class SONICViewer(dash.Dash):
                     maxs=[max(p['values']) * p.get('factor', 1)
                           for p in self.stim_params[mod_type].values()],
                     values=[p['values'][p['idef']] * p.get('factor', 1)
-                            for p in self.stim_params[mod_type].values()])
+                            for p in self.stim_params[mod_type].values()],
+                    allow_titrate=[p.get('allow_titrate', False)
+                                   for p in self.stim_params[mod_type].values()])
 
                     for mod_type in self.stim_params.keys()],
+
+                dbc.Alert(id='status-bar', color='success', is_open=True, children=['']),
 
                 html.Div(id='inputs-submit-div', hidden=True, children=[
                     html.Button('Run', id='run-button', className='submit-button')
@@ -325,9 +334,11 @@ class SONICViewer(dash.Dash):
                 [Input('cell_type-dropdown', 'value')],
                 state=[State('graph{}-dropdown'.format(i + 1), 'value')])(self.updateOutputVar)
 
-        # 1st graph
+        # Update status bar
         self.callback(
-            Output('graph1', 'figure'),
+            [Output('A_US-input', 'value'),
+             Output('A_elec-input', 'value'),
+             Output('status-bar', 'children')],
             [Input('cell_type-dropdown', 'value'),
              Input('sonophore_radius-slider', 'value'),
              Input('sonophore_coverage_fraction-slider', 'value'),
@@ -342,8 +353,7 @@ class SONICViewer(dash.Dash):
              Input('tstim_elec-slider', 'value'),
              Input('PRF_elec-slider', 'value'),
              Input('DC_elec-slider', 'value'),
-             Input('run-button', 'n_clicks'),
-             Input('graph1-dropdown', 'value')],
+             Input('run-button', 'n_clicks')],
             [State('f_US-input', 'value'),
              State('A_US-input', 'value'),
              State('tstim_US-input', 'value'),
@@ -354,23 +364,24 @@ class SONICViewer(dash.Dash):
              State('PRF_elec-input', 'value'),
              State('DC_elec-input', 'value')])(self.propagateInputs)
 
-        # from 2nd graph on
-        for i in range(1, self.ngraphs):
+        # Update graphs whenever status bar or dropdown value changes,
+        # or when 1st graph layout is changed
+        for i in range(self.ngraphs):
             self.callback(
-                Output('graph{}'.format(i + 1), 'figure'),
-                [Input('graph1', 'figure'),
-                 Input('graph1', 'relayoutData'),
-                 Input('graph{}-dropdown'.format(i + 1), 'value')],
+                Output(f'graph{i + 1}', 'figure'),
+                [Input('status-bar', 'children'),
+                 Input(f'graph{i + 1}-dropdown', 'value'),
+                 Input('graph1', 'relayoutData')],
                 [State('cell_type-dropdown', 'value'),
                  State('graph{}'.format(i + 1), 'id')])(self.updateGraph)
 
         # Download link
         self.callback(
             Output('download-link', 'href'),
-            [Input('graph1', 'figure')])(self.updateDownloadContent)
+            [Input('status-bar', 'children')])(self.updateDownloadContent)
         self.callback(
             Output('download-link', 'download'),
-            [Input('graph1', 'figure')])(self.updateDownloadName)
+            [Input('status-bar', 'children')])(self.updateDownloadName)
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch. '''
@@ -446,15 +457,21 @@ class SONICViewer(dash.Dash):
     def validateInputs(self, inputs, refparams):
         ''' Convert inputs to float and check validity. '''
 
-        # Convert to float and optional rescaling
-        values = [float(x) / p.get('factor', 1)
-                  for x, p in zip(inputs, refparams.values())]
         mins = [min(p['values']) for p in refparams.values()]
         maxs = [max(p['values']) for p in refparams.values()]
 
         # Check parameters against reference bounds
+        values = []
+        for x, p in zip(inputs, refparams.values()):
+            if x is None or x == '?' or x == '':
+                values.append(None)
+            else:
+                # Convert to float and optional rescaling
+                values.append(float(x) / p.get('factor', 1))
+
         for i in range(len(values)):
-            values[i] = isWithin('', values[i], (mins[i], maxs[i]))
+            if values[i] is not None:
+                values[i] = isWithin('', values[i], (mins[i], maxs[i]))
 
         # Return values
         return values
@@ -473,7 +490,7 @@ class SONICViewer(dash.Dash):
 
     def propagateInputs(self, cell_type, i_radius, i_cov, mod_type, is_input, i_US_freq, i_US_amp,
                         i_US_tstim, i_US_PRF, i_US_DC, i_elec_amp, i_elec_tstim, i_elec_PRF,
-                        i_elec_DC, nsubmits, varname, US_freq_input, US_amp_input, US_tstim_input,
+                        i_elec_DC, nsubmits, US_freq_input, US_amp_input, US_tstim_input,
                         US_PRF_input, US_DC_input, elec_amp_input, elec_tstim_input,
                         elec_PRF_input, elec_DC_input):
         ''' Translate inputs into parameters and propagate callback to updateCurve. '''
@@ -504,13 +521,10 @@ class SONICViewer(dash.Dash):
                     A, tstim, PRF, DC = self.getSlidersValues(
                         (i_elec_amp, i_elec_tstim, i_elec_PRF, i_elec_DC), refparams)
         except ValueError:
-            print('Error in custom inputs')
+            print('Error in inputs')
             Fdrive = A = tstim = PRF = DC = None
         new_params = [cell_type, a, fs, mod_type, Fdrive, A, tstim, PRF, DC * 1e-2]
-
-        # Handle incorrect submissions
-        if A is None:
-            self.data = None
+        iA = 5
 
         # Update plot variables if different cell type
         if self.current_params is None or cell_type != self.current_params[0]:
@@ -519,11 +533,20 @@ class SONICViewer(dash.Dash):
 
         # Load new data if parameters have changed
         if new_params != self.current_params:
+            msg, A = self.runSim(*new_params)
+            if None in new_params:
+                new_params[iA] = A
             self.current_params = new_params
-            self.runSim(*self.current_params)
+        else:
+            msg = None
 
-        # Update graph accordingly
-        return self.updateGraph(None, None, varname, cell_type, 'graph1')
+        if msg is not None and not msg[0].startswith('error'):
+            if mod_type == 'US':
+                US_amp_input = A * 1e-3
+            else:
+                elec_amp_input = A
+
+        return US_amp_input, elec_amp_input, msg
 
     def getFakeData(self, pneuron, tstim, toffset):
         data = pd.DataFrame({
@@ -554,16 +577,23 @@ class SONICViewer(dash.Dash):
         pneuron = self.pneurons[cell_type]
         toffset = 0.5 * tstim
 
+        # Create message
+        if A is not None:
+            keyword = 'simulation'
+            Astr = 'A = {:.2f} {}, '.format(
+                A * {'US': 1e-3, 'elec': 1.}[mod_type],
+                {'US': 'kPa', 'elec': 'mA/m2'}[mod_type])
+        else:
+            keyword = 'titration'
+            Astr = ''
+        if mod_type == 'US':
+            prefix = f'a = {(a * 1e9):.2f} nm, fs = {(fs * 1e2):.0f}%, f = {(Fdrive * 1e-3):.0f} kHz, '
+        else:
+            prefix = ''
+        msg = f'running {mod_type} {keyword} on {pneuron.name} neuron ({prefix}{Astr}tstim = {tstim * 1e3} ms, PRF = {PRF} Hz, DC = {DC})'
+
         if self.verbose:
-            print(('running {} simulation on {} neuron ({}A = {} {}, tstim = {} ms, ' +
-                   'PRF = {} Hz, DC = {})').format(
-                   mod_type, pneuron.name,
-                   {
-                        'US': 'a = {} nm, fs = {}% f = {} kHz, '.format(a, fs * 1e2, Fdrive),
-                        'elec': ''
-                   }[mod_type],
-                   A * {'US': 1e-3, 'elec': 1.}[mod_type], {'US': 'kPa', 'elec': 'mA/m2'}[mod_type],
-                   tstim * 1e3, PRF, DC))
+            print(msg)
 
         if self.no_run:
             self.data = self.getFakeData(pneuron, tstim, toffset)
@@ -572,7 +602,15 @@ class SONICViewer(dash.Dash):
                 model = IintraNode(pneuron)
             else:
                 model = SonicNode(pneuron, a=a, Fdrive=Fdrive, fs=fs)
+            # try:
+            if A is None:
+                A = model.titrate(tstim, toffset, PRF, DC)
             self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
+            # except ValueError as err:
+            #     print(err)
+            #     msg = 'error ' + err.message
+
+        return [msg], A
 
     def getFileCode(self, cell_type, a, fs, mod_type, Fdrive, A, tstim, PRF, DC):
         ''' Get simulation filecode for the given parameters.
@@ -598,32 +636,18 @@ class SONICViewer(dash.Dash):
                 cell_type, W_str, a * 1e9, fs_str, Fdrive * 1e-3, A * 1e-3, tstim * 1e3, PW_str)
         return filecode
 
-    def updateGraph(self, _, relayout_data, group_name, cell_type, id):
+    def updateGraph(self, _, group_name, relayout_data, cell_type, id):
         ''' Update graph with new data.
 
             :param _: input graph figure content (used to trigger callback for subsequent graphs)
-            :param relayout_data: input graph relayout data
             :param group_name: name of the group of output variables to display
+            :param relayout_data: input graph relayout data
             :param cell_type: cell type
             :param id: id of the graph to update
             :return: graph content
         '''
 
-        # Get the x-range of the zoomed in data
-        startx = 'xaxis.range[0]' in relayout_data if relayout_data else None
-        endx = 'xaxis.range[1]' in relayout_data if relayout_data else None
-        sliderange = 'xaxis.range' in relayout_data if relayout_data else None
-        if startx and endx:
-            xrange = [relayout_data['xaxis.range[0]'], relayout_data['xaxis.range[1]']]
-        elif startx and not endx:
-            xrange = [relayout_data['xaxis.range[0]'], thedates.max()]
-        elif not startx and endx:
-            xrange = [thedates.min(), relayout_data['xaxis.range[1]']]
-        elif sliderange:
-            xrange = relayout_data['xaxis.range']
-        else:
-            xrange = None
-
+        # Determine plot variables
         ax_varnames = self.pltscheme[group_name]
         ax_pltvars = [self.pltvars[k] for k in ax_varnames]
         if self.verbose:
@@ -643,10 +667,11 @@ class SONICViewer(dash.Dash):
         for c in ['{', '}', '\\', '_', '^']:
             ylabel = ylabel.replace(c, '')
 
-        # Adjust color to balck if only 1 variable to plot
+        # Adjust color to black if only 1 variable to plot
         if len(ax_varnames) == 1:
             ax_pltvars[0]['color'] = 'black'
 
+        # Process and plot data if any
         if self.data is not None:
 
             # Get time and states vector
@@ -665,7 +690,10 @@ class SONICViewer(dash.Dash):
             timeseries = []
             icolor = 0
             for name, pltvar in zip(ax_varnames, ax_pltvars):
-                var = extractPltVar(self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
+                try:
+                    var = extractPltVar(self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
+                except KeyError:
+                    pass
                 timeseries.append(go.Scatter(
                     x=t,
                     y=var,
@@ -700,7 +728,7 @@ class SONICViewer(dash.Dash):
             xaxis={
                 'type': 'linear',
                 'title': 'time (ms)',
-                'range': (t.min(), t.max()) if xrange is None else xrange,
+                'range': (t.min(), t.max()),
                 'zeroline': False
             },
             yaxis={
@@ -716,7 +744,27 @@ class SONICViewer(dash.Dash):
         )
 
         # Return curve, patches and layout objects
-        return {'data': timeseries, 'layout': layout}
+        fig = {'data': timeseries, 'layout': layout}
+        fig['layout']['xaxis']['range'] = self.getXrange(relayout_data)
+        return fig
+
+    @staticmethod
+    def getXrange(relayout_data):
+        ''' Get the x-range of the zoomed in data '''
+        startx = 'xaxis.range[0]' in relayout_data if relayout_data else None
+        endx = 'xaxis.range[1]' in relayout_data if relayout_data else None
+        sliderange = 'xaxis.range' in relayout_data if relayout_data else None
+        if startx and endx:
+            xrange = [relayout_data['xaxis.range[0]'], relayout_data['xaxis.range[1]']]
+        elif startx and not endx:
+            xrange = [relayout_data['xaxis.range[0]'], thedates.max()]
+        elif not startx and endx:
+            xrange = [thedates.min(), relayout_data['xaxis.range[1]']]
+        elif sliderange:
+            xrange = relayout_data['xaxis.range']
+        else:
+            xrange = None
+        return xrange
 
     def updateInfoTable(self, _):
         ''' Update the content of the output metrics table on neuron/modality/stimulation change. '''
@@ -741,10 +789,18 @@ class SONICViewer(dash.Dash):
 
     def updateDownloadContent(self, _):
         ''' Update the content of the downloadable pandas dataframe. '''
-        csv_string = self.data.to_csv(index=False, encoding='utf-8')
-        csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-        return csv_string
+        try:
+            csv_string = self.data.to_csv(index=False, encoding='utf-8')
+            csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+            return csv_string
+        except AttributeError:
+            pass
 
     def updateDownloadName(self, _):
         ''' Update the name of the downloadable pandas dataframe. '''
-        return '{}.csv'.format(self.getFileCode(*self.current_params))
+        # if self.data is None:
+        #     return ''
+        try:
+            return '{}.csv'.format(self.getFileCode(*self.current_params))
+        except TypeError:
+            pass

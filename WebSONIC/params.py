@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-10 15:21:24
+# @Last Modified time: 2019-07-24 17:10:38
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -20,7 +20,7 @@ input_params = {
     'cell_type': {
         'label': 'Cell type',
         'values': ['RS', 'FS', 'LTS', 'IB', 'RE', 'TC', 'STN'],
-        'default': 'STN'
+        'default': 'RS'
     },
     'sonophore_radius': {
         'label': 'Sonophore radius',
@@ -48,14 +48,16 @@ input_params = {
         'label': 'Amplitude',
         'unit': 'Pa',
         'values': np.array([10, 20, 40, 60, 80, 100, 300, 600]) * 1e3,
-        'default': 20e3,
-        'factor': 1e-3
+        'default': 80e3,
+        'factor': 1e-3,
+        'allow_titrate': True
     },
     'A_elec': {
         'label': 'Amplitude',
         'unit': 'mA/m2',
         'values': np.array([-25, -10, -5, -2, 2, 5, 10, 25]),
-        'default': 10.
+        'default': 10.,
+        'allow_titrate': True
     },
     'tstim': {
         'label': 'Duration',

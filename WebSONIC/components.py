@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-22 17:36:36
+# @Last Modified time: 2019-07-24 17:28:31
 
 ''' Extension of dash components. '''
 
@@ -50,28 +50,42 @@ def labeledSlidersTable(id, labels, ids, sizes, values=None):
     return html.Table(id=id, className='table', children=children)
 
 
-def numInputBox(id, min, max, value=None):
+def numInputBox(id, min, max, value=None, allow_titrate=False):
     ''' Return numerical input box with lwoer and upper bounds. '''
     if value is None:
         value = (min + max) / 2
+    # return dcc.Input(
+    #     id=id,
+    #     className='input-box',
+    #     inputMode='numeric',
+    #     type='number',
+    #     min=min, max=max,
+    #     value=value
+    # )
+    if allow_titrate:
+        return dcc.Input(id=id, className='input-box', value=value)
     return daq.NumericInput(id=id, className='input-box', min=min, max=max, value=value, size=120)
 
 
-def labeledInputRow(label, id, min, max, value=None):
+def labeledInputRow(label, id, min, max, value=None, allow_titrate=False):
     ''' Return a label:input table row. '''
     return html.Tr(className='input-row', children=[
         html.Td(label, className='row-label'),
-        html.Td(className='row-data', children=[numInputBox(id, min, max, value)])
+        html.Td(className='row-data', children=[
+            numInputBox(id, min, max, value, allow_titrate=allow_titrate)])
     ])
 
 
-def labeledInputsTable(id, labels, ids, mins, maxs, values=None):
+def labeledInputsTable(id, labels, ids, mins, maxs, values=None, allow_titrate=None):
     ''' Return a table of labeled inputs. '''
+    if allow_titrate is None:
+        allow_titrate = [False] * len(labels)
     if values is None:
         values = [None] * len(labels)
     children = []
     for i in range(len(labels)):
-        children.append(labeledInputRow(labels[i], ids[i], mins[i], maxs[i], values[i]))
+        children.append(labeledInputRow(
+            labels[i], ids[i], mins[i], maxs[i], values[i], allow_titrate=allow_titrate[i]))
     return html.Table(id=id, className='table', children=children)
 
 
