@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-07-30 14:29:49
+* @Last Modified time: 2019-07-30 16:50:48
 */
 
 
@@ -216,35 +216,6 @@ tr {
 	margin-top: 1em;
 	background-color: darkgrey;
 }
-
-
-/* Loading callback
------------------------------------------*/
-
-/*@keyframes fadein {
-	0% {opacity: 0;}
-	100% {opacity: 0.5;}
-}*/
-
-/*._dash-loading-callback {
-
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 200%;
-	text-align: center;
-	cursor: progress;
-	background-color: rgb(250, 250, 250);
-	opacity: 0;
-
-	 Delay animation by 1s to prevent flashing and smoothly transition the animation over 0.5s
-	-moz-animation: fadein 0.5s ease-in 1s forwards; /* Firefox */
-/*	-webkit-animation: fadein 0.5s ease-in 1s forwards; /* Safari and Chrome */
-	/*-o-animation: fadein 0.5s ease-in 1s forwards; /* Opera */
-	/*animation: fadein 0.5s ease-in 1s forwards;*/
-/*}
-*/
 
 /* Submit callbacks
 -----------------------------------------*/
