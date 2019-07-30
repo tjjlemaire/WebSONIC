@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-07-30 16:50:48
+* @Last Modified time: 2019-07-30 17:31:30
 */
 
 
@@ -223,4 +223,9 @@ tr {
 @keyframes redflash {
     0% {background-color: red;}
     100% {background-color: white;}
+}
+
+
+#about-link {
+	text-decoration: underline black;
 }

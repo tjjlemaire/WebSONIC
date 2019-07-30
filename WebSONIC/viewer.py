@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-30 16:49:56
+# @Last Modified time: 2019-07-30 17:43:32
 
 ''' Definition of the SONICViewer class. '''
 
@@ -155,8 +155,8 @@ class SONICViewer(dash.Dash):
             ])
         ])
 
-    @staticmethod
-    def footer():
+    @classmethod
+    def footer(cls):
         ''' Set app footer. '''
         return html.Div(id='footer', children=[
             html.Span([
@@ -171,8 +171,26 @@ class SONICViewer(dash.Dash):
             html.Br(),
             'Translational Neural Engineering Lab, EPFL - 2019',
             html.Br(),
-            'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch')
+            'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch'),
+            html.Br(),
+            '>>> ', html.A('About', id='about-link'), ' <<<',
+            dbc.Modal(
+                id='about-modal',
+                size='lg',
+                scrollable=True,
+                centered=True,
+                children=[
+                    dbc.ModalHeader('About'),
+                    dbc.ModalBody(dcc.Markdown(f'''{cls.about()}''')),
+                    dbc.ModalFooter(dbc.Button('Close', id='close-about', className='ml-auto')),
+                ]
+            )
         ])
+
+    @staticmethod
+    def about():
+        with open('about.md', encoding="utf8") as f:
+            return f.read()
 
     def cellPanel(self, default_cell):
         ''' Construct cell parameters panel. '''
@@ -383,6 +401,18 @@ class SONICViewer(dash.Dash):
         self.callback(
             Output('download-link', 'download'),
             [Input('status-bar', 'children')])(self.updateDownloadName)
+
+        self.callback(
+            Output('about-modal', 'is_open'),
+            [Input('about-link', 'n_clicks'), Input('close-about', 'n_clicks')],
+            [State('about-modal', 'is_open')]
+        )(self.toggleAbout)
+
+    @staticmethod
+    def toggleAbout(n1, n2, is_open):
+        if n1 or n2:
+            return not is_open
+        return is_open
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch. '''
