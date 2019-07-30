@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-24 19:04:14
+# @Last Modified time: 2019-07-30 16:49:56
 
 ''' Definition of the SONICViewer class. '''
 
@@ -533,6 +533,7 @@ class SONICViewer(dash.Dash):
             self.pltscheme = self.pneurons[cell_type].getPltScheme()
 
         # Load new data if parameters have changed
+        is_successful = True
         if new_params != self.current_params:
             msg, A, is_successful = self.runSim(*new_params)
             if None in new_params:

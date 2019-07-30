@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-04 18:26:15
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-24 19:36:42
+# @Last Modified time: 2019-07-30 14:11:59
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
 # @Date:   2017-07-11 18:58:23
@@ -27,7 +27,6 @@ if is_gunicorn:
     ngraphs = 3
     debug = False
     testUI = False
-    auth = False
     verbose = False
 
 else:
@@ -42,7 +41,6 @@ else:
     ngraphs = args.ngraphs
     debug = args.debug
     testUI = args.testUI
-    auth = args.auth
     verbose = args.verbose
 
 # Create app instance

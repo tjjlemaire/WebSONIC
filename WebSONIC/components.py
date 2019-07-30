@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-24 17:28:31
+# @Last Modified time: 2019-07-30 16:48:52
 
 ''' Extension of dash components. '''
 
@@ -12,11 +12,6 @@ import dash_core_components as dcc
 import dash_daq as daq
 
 from PySONIC.utils import si_format
-
-
-def about():
-    with open('about.md', encoding="utf8") as f:
-        return dcc.Markdown('''{}'''.format(f.read()), id='about')
 
 
 def separator():
@@ -122,7 +117,7 @@ def dataRows(labels, values, units):
             if unit is not None:
                 datastr = '{}{}'.format(si_format(value, space=' '), unit)
             else:
-                datastr = '{}'.format(value)
+                datastr = str(value)
         else:
             datastr = '---'
         rows.append(html.Tr([
@@ -133,22 +128,30 @@ def dataRows(labels, values, units):
 
 def ddGraph(id, labels, values, default=None):
     ''' Return div with variable selection dropdown list and graph object. '''
-    return html.Div(id='ddgraph{}'.format(id), className='graph-div', children=[
 
-        # Dropdown list
-        dcc.Dropdown(
-            className='ddlist',
-            id='graph{}-dropdown'.format(id),
-            options=[{'label': label, 'value': value} for label, value in zip(labels, values)],
-            value=default if default is not None else values[0]),
+    # Construct dropdown list
+    dd = dcc.Dropdown(
+        className='ddlist',
+        id=f'graph{id}-dropdown',
+        options=[{'label': label, 'value': value} for label, value in zip(labels, values)],
+        value=default if default is not None else values[0]
+    )
 
-        # Graph
-        dcc.Graph(
-            id='graph{}'.format(id),
-            className='graph',
-            animate=False,
-            config={
-                'editable': False,
-                'modeBarButtonsToRemove': ['sendDataToCloud', 'displaylogo', 'toggleSpikelines']
-            })
-    ])
+    # Construct graph object
+    graph = dcc.Graph(
+        id=f'graph{id}',
+        className='graph',
+        animate=False,
+        config={
+            'editable': False,
+            'modeBarButtonsToRemove': ['sendDataToCloud', 'displaylogo', 'toggleSpikelines']
+        },
+        figure={'data': [], 'layout': {}}
+    )
+
+    # If not 1st graph, add loading state wrapper
+    if id != '1':
+        graph = dcc.Loading(id=f'loading-graph{id}', type='default', children=[graph])
+
+    # Return div with dropdown and graph
+    return html.Div(id=f'ddgraph{id}', className='graph-div', children=[dd, graph])
