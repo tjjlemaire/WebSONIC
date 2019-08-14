@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-30 17:43:32
+# @Last Modified time: 2019-08-14 18:19:00
 
 ''' Definition of the SONICViewer class. '''
 
@@ -811,7 +811,7 @@ class SONICViewer(dash.Dash):
         # Spike detection
         if self.data is not None:
             t = self.data['t']
-            dt = t[1] - t[0]
+            dt = t[2] - t[1]
             mpd = int(np.ceil(SPIKE_MIN_DT / dt))
             ipeaks, *_ = findPeaks(self.data['Qm'].values, SPIKE_MIN_QAMP, mpd, SPIKE_MIN_QPROM)
             nspikes = ipeaks.size
