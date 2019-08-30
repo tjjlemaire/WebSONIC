@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-08-14 18:19:00
+# @Last Modified time: 2019-08-30 11:22:12
 
 ''' Definition of the SONICViewer class. '''
 
@@ -16,7 +16,7 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 
-from PySONIC.postpro import findPeaks
+from PySONIC.postpro import detectSpikes
 from PySONIC.constants import *
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.utils import si_prefixes, isWithin, getIndex
@@ -811,12 +811,10 @@ class SONICViewer(dash.Dash):
         # Spike detection
         if self.data is not None:
             t = self.data['t']
-            dt = t[2] - t[1]
-            mpd = int(np.ceil(SPIKE_MIN_DT / dt))
-            ipeaks, *_ = findPeaks(self.data['Qm'].values, SPIKE_MIN_QAMP, mpd, SPIKE_MIN_QPROM)
-            nspikes = ipeaks.size
-            lat = t[ipeaks[0]] if nspikes > 0 else None
-            sr = np.mean(1 / np.diff(t[ipeaks])) if nspikes > 1 else None
+            ispikes, _ = detectSpikes(self.data)
+            nspikes = ispikes.size
+            lat = t[ispikes[0]] if nspikes > 0 else None
+            sr = np.mean(1 / np.diff(t[ispikes])) if nspikes > 1 else None
         else:
             nspikes = 0
             lat = None
