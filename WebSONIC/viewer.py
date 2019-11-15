@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-08-30 11:22:12
+# @Last Modified time: 2019-11-15 01:21:31
 
 ''' Definition of the SONICViewer class. '''
 
@@ -18,6 +18,7 @@ import plotly.graph_objs as go
 
 from PySONIC.postpro import detectSpikes
 from PySONIC.constants import *
+from PySONIC.core import PulsedProtocol
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.utils import si_prefixes, isWithin, getIndex
 from PySONIC.plt import GroupedTimeSeries, extractPltVar
@@ -610,6 +611,7 @@ class SONICViewer(dash.Dash):
         # Initialize 0D NEURON model
         pneuron = self.pneurons[cell_type]
         toffset = 0.5 * tstim
+        pp = PulsedProtocol(tstim, toffset, PRF, DC)
 
         # Create message
         if A is not None:
@@ -638,10 +640,10 @@ class SONICViewer(dash.Dash):
                 model = SonicNode(pneuron, a=a, Fdrive=Fdrive, fs=fs)
             try:
                 if A is None:
-                    A = model.titrate(tstim, 0., PRF, DC)
+                    A = model.titrate(pp)
                     if np.isnan(A):
                         raise ValueError('Impossible titration')
-                self.data, _ = model.simulate(A, tstim, toffset, PRF, DC)
+                self.data, _ = model.simulate(A, pp)
                 is_successful = True
             except ValueError as err:
                 print(err)
