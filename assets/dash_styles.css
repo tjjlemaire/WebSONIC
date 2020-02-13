@@ -1,3 +1,9 @@
+/*
+* @Author: Theo Lemaire
+* @Date:   2020-02-13 23:21:03
+* @Last Modified by:   Theo Lemaire
+* @Last Modified time: 2020-02-13 23:39:18
+*/
 /* Table of contents
 ––––––––––––––––––––––––––––––––––––––––––––––––––
 - Plotly.js
@@ -31,6 +37,7 @@
 .Select {
     z-index: 1002;
 }*/
+
 
 /* Grid
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -127,7 +134,7 @@ are based on 10px sizing. So basically 1.5rem = 15px :) */
 html {
   font-size: 62.5%; }
 body {
-  font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
+  font-size: 1.5em;  currently ems cause chrome bug misinterpreting rems on body element
   line-height: 1.6;
   font-weight: 400;
   font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -174,7 +181,7 @@ a:hover {
 
 /* Buttons
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
-.button,
+/*.button,
 button,
 input[type="submit"],
 input[type="reset"],
@@ -229,7 +236,7 @@ input[type="reset"].button-primary:focus,
 input[type="button"].button-primary:focus {
   color: #FFF;
   background-color: #1EAEDB;
-  border-color: #1EAEDB; }
+  border-color: #1EAEDB; }*/
 
 
 /* Forms
@@ -319,16 +326,16 @@ li {
 table {
   border-collapse: collapse;
 }
-th,
-td {
-  padding: 12px 15px;
+th:not(.CalendarDay),
+td:not(.CalendarDay) {
+  /*padding: 12px 15px;*/
   text-align: left;
   border-bottom: 1px solid #E1E1E1; }
-th:first-child,
-td:first-child {
+th:first-child:not(.CalendarDay),
+td:first-child:not(.CalendarDay) {
   padding-left: 0; }
-th:last-child,
-td:last-child {
+th:last-child:not(.CalendarDay),
+td:last-child:not(.CalendarDay) {
   padding-right: 0; }
 
 

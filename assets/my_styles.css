@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2019-07-30 17:31:30
+* @Last Modified time: 2020-02-13 23:46:37
 */
 
 
@@ -113,6 +113,10 @@ p {
     box-shadow: 2px 2px 5px #888888;
 }
 
+#status-bar {
+	padding: 0em 1em 0.5em 1em;
+	margin: 0.5em;
+}
 
 summary {
 	outline: none;
@@ -128,31 +132,75 @@ summary {
 }
 
 
-/* Tabs & switches
+/* Tabs
 ---------------------------------------- */
 
-.tabs {
-	height: 4em;
-	margin-bottom: 0.5em;
-	margin-top: 0.5em;
+.custom-tabs-container {
+    /*width: 85%;*/
 }
 
-.toggle-switch {
-	width: 10em;
-	display:inline-block;
+.custom-tabs {
+    border-top-left-radius: 3px;
+    background-color: #f9f9f9;
+    padding: 0px 24px;
+    border-bottom: 1px solid #d6d6d6;
 }
 
-.toggle-switch-container {
+.custom-tab {
+    color:#586069;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top: 3px solid transparent !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    border-bottom: 0px !important;
+    background-color: #fafbfc;
+    padding: 12px !important;
+    font-family: "system-ui";
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-tab--selected {
+    color: black;
+    box-shadow: 1px 1px 0px white;
+    border-left: 1px solid lightgrey !important;
+    border-right: 1px solid lightgrey !important;
+    border-top: 3px solid #e36209 !important;
+}
+
+
+/* Tables
+---------------------------------------- */
+
+.table {
 	width: 100%;
 	text-align: center;
+	padding-top:0;
+}
+
+.table-row {
+	padding:0;
+	margin: 0;
+	height: 1em;
 }
 
 .row-label {
 	width: 30%;
 }
 
-.row-data{
-	width: 70%;
+.row-slider{
+	width: 50%;
+}
+
+.row-value{
+	width: 20%;
+}
+
+.slider {
+	margin-top: 0.2em;
+	height: 0.2em;
 }
 
 
@@ -187,35 +235,6 @@ li {
 	width: 100%;
 }
 
-
-
-/* Table
------------------------------------------*/
-
-tr {
-	padding:0;
-	margin: 0;
-	height: 4em;
-}
-
-.table {
-	width: 100%;
-	text-align: center;
-	padding-top:0;
-}
-
-.input-box {
-	width: 10em;
-}
-
-.input-div {
-	text-align: center;
-}
-
-.submit-button {
-	margin-top: 1em;
-	background-color: darkgrey;
-}
 
 /* Submit callbacks
 -----------------------------------------*/

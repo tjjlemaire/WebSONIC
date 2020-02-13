@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-24 17:10:38
+# @Last Modified time: 2020-02-13 22:52:25
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -11,78 +11,121 @@
 
 ''' Definition of application parameters. '''
 
+import abc
 import numpy as np
 import matplotlib
 
-# --------------------------------- Input parameters ---------------------------------
 
-input_params = {
-    'cell_type': {
-        'label': 'Cell type',
-        'values': ['RS', 'FS', 'LTS', 'IB', 'RE', 'TC', 'STN'],
-        'default': 'RS'
-    },
-    'sonophore_radius': {
-        'label': 'Sonophore radius',
-        'unit': 'm',
-        'values': np.logspace(np.log10(16.0), np.log10(64.0), 3) * 1e-9,
-        'default': 32.0e-9  # m
+class Parameter(metaclass=abc.ABCMeta):
 
-    },
-    'sonophore_coverage_fraction': {
-        'label': 'Coverage fraction',
-        'unit': '%',
-        'values': np.array([1., 5., 10., 20., 50., 100.]),
-        'default': 100.,
-        'disabled': True
+    def __init__(self, label, default, disabled):
+        self.label = label
+        self.default = default
+        self.disabled = disabled
 
-    },
-    'f_US': {
-        'label': 'Frequency',
-        'unit': 'Hz',
-        'values': np.array([20e3, 100e3, 500e3, 1e6, 2e6, 3e6, 4e6]),
-        'default': 500e3,
-        'factor': 1e-3
-    },
-    'A_US': {
-        'label': 'Amplitude',
-        'unit': 'Pa',
-        'values': np.array([10, 20, 40, 60, 80, 100, 300, 600]) * 1e3,
-        'default': 80e3,
-        'factor': 1e-3,
-        'allow_titrate': True
-    },
-    'A_elec': {
-        'label': 'Amplitude',
-        'unit': 'mA/m2',
-        'values': np.array([-25, -10, -5, -2, 2, 5, 10, 25]),
-        'default': 10.,
-        'allow_titrate': True
-    },
-    'tstim': {
-        'label': 'Duration',
-        'unit': 's',
-        'values': np.array([20, 50, 100, 200, 500, 1000]) * 1e-3,
-        'factor': 1e3,
-        'default': 200e-3
-    },
-    'PRF': {
-        'label': 'PRF',
-        'unit': 'Hz',
-        'values': np.array([1e1, 2e1, 5e1, 1e2, 2e2, 5e2, 1e3]),
-        'default': 10.
-    },
-    'DC': {
-        'label': 'Duty cycle',
-        'unit': '%',
-        'values': np.array([1., 5., 10., 25., 50., 75., 100.]),
-        'default': 100.
-    },
+
+class QualitativeParameter(Parameter):
+
+    def __init__(self, label, values, default=None, disabled=False):
+        self.values = values
+        if default is None:
+            default = values[0]
+        super().__init__(label, default, disabled)
+
+
+class QuantitativeParameter(Parameter):
+
+    def __init__(self, label, default, unit, factor, disabled):
+        super().__init__(label, default, disabled)
+        self.unit = unit
+        self.factor = factor
+
+    @property
+    @abc.abstractmethod
+    def min(self):
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def max(self):
+        raise NotImplementedError
+
+    @property
+    def amean(self):
+        return (self.min + self.max) / 2
+
+    @property
+    def gmean(self):
+        return np.sqrt(self.min * self.max)
+
+
+class RangeParameter(QuantitativeParameter):
+
+    def __init__(self, label, bounds, unit, factor=1., default=None, disabled=False, scale='lin', n=100):
+        self.bounds = bounds
+        self.scale = scale
+        self.n = n
+        if default is None:
+            default = self.gmean if self.scale == 'log' else self.amean
+        if scale == 'log':
+            self.scaling_func = lambda x: np.power(10., x)
+        else:
+            self.scaling_func = lambda x: x
+        super().__init__(label, default, unit, factor, disabled)
+
+    @property
+    def min(self):
+        return self.bounds[0]
+
+    @property
+    def max(self):
+        return self.bounds[1]
+
+
+class SetParameter(QuantitativeParameter):
+
+    def __init__(self, label, values, unit, factor=1., default=None, disabled=False):
+        self.values = values
+        if default is None:
+            default = self.values[0]
+        super().__init__(label, default, unit, factor, disabled)
+
+    @property
+    def min(self):
+        return min(self.values)
+
+    @property
+    def max(self):
+        return max(self.values)
+
+
+
+# --------------------------------- Control parameters ---------------------------------
+
+ctrl_params = {
+    'cell_type': QualitativeParameter(
+        'Cell type', ['RS', 'FS', 'LTS', 'IB', 'RE', 'TC', 'STN'], default='RS'),
+    'sonophore_radius': RangeParameter(
+        'Sonophore radius', (16e-9, 64e-9), 'm', factor=1e-3, default=32e-9, scale='log', n=10),
+    'sonophore_coverage_fraction': RangeParameter(
+        'Coverage fraction', (1., 100.), '%', default=100., scale='lin', disabled=True, n=20),
+    'f_US': RangeParameter(
+        'Frequency', (20e3, 4e6), 'Hz', default=500e3, factor=1e-3, scale='log', n=20),
+    'A_US': RangeParameter(
+        'Amplitude', (10e3, 600e3), 'Pa', default=80e3, factor=1e-3, scale='log', n=100),
+    'A_EL': RangeParameter(
+        'Amplitude', (-25., 25.), 'mA/m2', default=10., n=100),
+    'tstim': RangeParameter(
+        'Duration', (20e-3, 1.0), 's', factor=1e3, default=200e-3, scale='log', n=20),
+    'PRF': RangeParameter(
+        'PRF', (10., 1e3), 'Hz', default=10., scale='log', n=10),
+    'DC': RangeParameter(
+        'Duty cycle', (1., 100.), '%', default=100., scale='log', n=20)
 }
-
 
 # --------------------------------- Plot parameters ---------------------------------
 
 plt_params = {
+    'ngraphs': 3,
     'colors': [matplotlib.colors.rgb2hex(c) for c in matplotlib.cm.get_cmap('tab10').colors]
 }

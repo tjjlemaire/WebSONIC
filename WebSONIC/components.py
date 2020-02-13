@@ -3,10 +3,11 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2019-07-30 16:48:52
+# @Last Modified time: 2020-02-13 21:37:08
 
 ''' Extension of dash components. '''
 
+import numpy as np
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
@@ -22,78 +23,33 @@ def unorderedList(items):
     return dcc.Markdown(children=['''* {}'''.format('\r\n* '.join(items))])
 
 
-def linearSlider(id, noptions, value=0, disabled=False):
+def slider(id, bounds, n, value, disabled=False, scale='lin'):
     ''' Return linearly spaced slider. '''
-    return dcc.Slider(id=id, min=0, max=noptions - 1, step=1, value=value, disabled=disabled)
+    if scale == 'log':
+        bounds = [np.log10(x) for x in bounds]
+        value = np.log10(value)
+    xmin, xmax = bounds
+    return dcc.Slider(id=id, className='slider', min=xmin, max=xmax, step=(xmax - xmin) / n,
+                      value=value, disabled=disabled)
 
 
-def labeledSliderRow(label, id, noptions, value=0, disabled=False):
+def labeledSliderRow(label, id, bounds, n, value, disabled=False, scale='lin'):
     ''' Return a label:slider table row. '''
-    return html.Tr(className='slider-row', children=[
+    return html.Tr(className='table-row', children=[
         html.Td(label, className='row-label'),
-        html.Td(className='row-data', children=[linearSlider(id, noptions, value, disabled)])
+        html.Td(className='row-slider', children=[
+            slider(id, bounds, n, value, disabled=disabled, scale=scale)]),
+        html.Td(id=f'{id}-value', className='row-value')
     ])
 
 
-def labeledSlidersTable(id, labels, ids, sizes, values=None):
+def labeledSlidersTable(id, labels, ids, bounds, n, values, scales, disabled):
     ''' Return a table of labeled sliders. '''
-    if values is None:
-        values = [0] * len(labels)
-    children = []
-    for i in range(len(labels)):
-        children.append(labeledSliderRow(labels[i], ids[i], sizes[i], value=values[i]))
-    return html.Table(id=id, className='table', children=children)
-
-
-def numInputBox(id, min, max, value=None, allow_titrate=False):
-    ''' Return numerical input box with lwoer and upper bounds. '''
-    if value is None:
-        value = (min + max) / 2
-    # return dcc.Input(
-    #     id=id,
-    #     className='input-box',
-    #     inputMode='numeric',
-    #     type='number',
-    #     min=min, max=max,
-    #     value=value
-    # )
-    if allow_titrate:
-        return dcc.Input(id=id, className='input-box', value=value)
-    return daq.NumericInput(id=id, className='input-box', min=min, max=max, value=value, size=120)
-
-
-def labeledInputRow(label, id, min, max, value=None, allow_titrate=False):
-    ''' Return a label:input table row. '''
-    return html.Tr(className='input-row', children=[
-        html.Td(label, className='row-label'),
-        html.Td(className='row-data', children=[
-            numInputBox(id, min, max, value, allow_titrate=allow_titrate)])
-    ])
-
-
-def labeledInputsTable(id, labels, ids, mins, maxs, values=None, allow_titrate=None):
-    ''' Return a table of labeled inputs. '''
-    if allow_titrate is None:
-        allow_titrate = [False] * len(labels)
-    if values is None:
-        values = [None] * len(labels)
-    children = []
-    for i in range(len(labels)):
-        children.append(labeledInputRow(
-            labels[i], ids[i], mins[i], maxs[i], values[i], allow_titrate=allow_titrate[i]))
-    return html.Table(id=id, className='table', children=children)
-
-
-def labeledToggleSwitch(id, labelLeft='Left', labelRight='Right', value=False, boldLabels=False):
-    ''' Return a labelLeft - toggleSwitch - labelRight html div element. '''
-
-    return html.Div(className='toggle-switch-container', children=[
-        html.Span(children=[
-            labelLeft,
-            daq.ToggleSwitch(id=id, className='toggle-switch', value=value),
-            labelRight
-        ], style={'fontWeight': 'bold' if boldLabels else 'normal'})
-    ])
+    return html.Table(id=id, className='table', children=[
+        labeledSliderRow(labels[i], ids[i], bounds[i], n[i], values[i],
+                         scale=scales[i], disabled=disabled[i])
+        for i in range(len(labels))]
+    )
 
 
 def panel(children):
