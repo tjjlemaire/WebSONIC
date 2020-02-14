@@ -3,14 +3,13 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-13 21:37:08
+# @Last Modified time: 2020-02-14 09:50:29
 
 ''' Extension of dash components. '''
 
 import numpy as np
 import dash_html_components as html
 import dash_core_components as dcc
-import dash_daq as daq
 
 from PySONIC.utils import si_format
 

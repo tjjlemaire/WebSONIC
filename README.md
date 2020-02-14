@@ -14,37 +14,36 @@
 ## Dependencies
 
 This application is built in Python. It uses the **Dash** framework (https://dash.plot.ly/) for serving and client-side rendering, and the **NEURON** simulation environment (https://www.neuron.yale.edu/neuron/) to run simulations. It depends on two other Python papckages:
-- `PySONIC` (https://c4science.ch/diffusion/4670/) defines the SONIC model and provides utilities
+- `PySONIC` (https://c4science.ch/diffusion/4670/) defines the **SONIC model** and provides utilities
 - `ExSONIC` (https://c4science.ch/diffusion/7145/) handles the communication with **NEURON**
 
 # Installation
 
 - From a terminal, activate a Python3 environment if needed:
 
-`$ source <path_to_virtual_env>/bin activate`
+`source <path_to_virtual_env>/bin activate`
 
 - Check that the appropriate version of pip is activated:
 
-`$ pip --version`
+`pip --version`
 
-- Install the PySONIC and ExSONIC dependencies locally:
-
-```
-$ cd <path_to_PySONIC_dir/setup.py>
-$ pip install -e .
-$ cd <path_to_ExSONIC_dir/setup.py>
-$ pip install -e .
-```
-
-- Install the WebSONIC package:
+- Install local dependencies (PySONIC and ExSONIC packages):
 
 ```
-$ cd <path_to_PySONIC_dir/setup.py>
-$ pip install -e .
+cd <path_to_PySONIC_dir/setup.py>
+pip install -e .
+cd <path_to_ExSONIC_dir/setup.py>
+pip install -e .
 ```
 
-All remote dependencies will be automatically installed.
+- Install remote dependencies (dash and other packages):
 
+```
+cd <path_to_app_dir>
+pip install -r requirements.txt
+```
+
+That's it!
 
 # Usage
 
@@ -52,7 +51,7 @@ All remote dependencies will be automatically installed.
 
 You can run the application from a local terminal with a single command line (in the app directory):
 
-`$ python run.py`
+`python run.py`
 
 The following command line arguments are available:
 - `-d` / `--debug`: run the application in **debug** mode (restarting upon file save).
@@ -68,23 +67,23 @@ To deploy the application on a pre-configured linux machine, the best way to go 
 
 - From a terminal, activate a Python3 environment if needed:
 
-`$ source <path_to_virtual_env>/bin activate`
+`source <path_to_virtual_env>/bin activate`
 
 - Check that the appropriate version of pip is activated:
 
-`$ pip --version`
+`pip --version`
 
 - Install Green Unicorn as a python package
 
-`$ pip install gunicorn`
+`pip install gunicorn`
 
 - Move to the application folder and serve the application with Gunicorn:
 
-`$ gunicorn --bind 0.0.0.0:8050 run:server`
+`gunicorn --bind 0.0.0.0:8050 run:server`
 
 - Alternatively, you can serve the application in a separate, detached screen session:
 
-`$ screen -d -S webnice_session -m gunicorn --bind 0.0.0.0:8050 run:server`
+`screen -d -S webnice_session -m gunicorn --bind 0.0.0.0:8050 run:server`
 
 # References
 

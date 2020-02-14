@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-13 22:52:25
+# @Last Modified time: 2020-02-14 10:20:42
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -14,6 +14,8 @@
 import abc
 import numpy as np
 import matplotlib
+
+from PySONIC.utils import isWithin
 
 
 class Parameter(metaclass=abc.ABCMeta):
@@ -67,6 +69,8 @@ class RangeParameter(QuantitativeParameter):
         self.n = n
         if default is None:
             default = self.gmean if self.scale == 'log' else self.amean
+        else:
+            default = isWithin(label, default, bounds)
         if scale == 'log':
             self.scaling_func = lambda x: np.power(10., x)
         else:
@@ -106,19 +110,19 @@ ctrl_params = {
     'cell_type': QualitativeParameter(
         'Cell type', ['RS', 'FS', 'LTS', 'IB', 'RE', 'TC', 'STN'], default='RS'),
     'sonophore_radius': RangeParameter(
-        'Sonophore radius', (16e-9, 64e-9), 'm', factor=1e-3, default=32e-9, scale='log', n=10),
+        'Sonophore radius', (16e-9, 64e-9), 'm', default=32e-9, scale='log', n=10),
     'sonophore_coverage_fraction': RangeParameter(
         'Coverage fraction', (1., 100.), '%', default=100., scale='lin', disabled=True, n=20),
     'f_US': RangeParameter(
-        'Frequency', (20e3, 4e6), 'Hz', default=500e3, factor=1e-3, scale='log', n=20),
+        'Frequency', (20e3, 4e6), 'Hz', default=500e3, scale='log', n=20),
     'A_US': RangeParameter(
-        'Amplitude', (10e3, 600e3), 'Pa', default=80e3, factor=1e-3, scale='log', n=100),
+        'Amplitude', (10e3, 600e3), 'Pa', default=80e3, scale='log', n=100),
     'A_EL': RangeParameter(
-        'Amplitude', (-25., 25.), 'mA/m2', default=10., n=100),
+        'Amplitude', (-25e-3, 25e-3), 'A/m2', factor=1e3, default=10e-3, n=100),
     'tstim': RangeParameter(
-        'Duration', (20e-3, 1.0), 's', factor=1e3, default=200e-3, scale='log', n=20),
+        'Duration', (20e-3, 1.0), 's', default=200e-3, scale='log', n=20),
     'PRF': RangeParameter(
-        'PRF', (10., 1e3), 'Hz', default=10., scale='log', n=10),
+        'PRF', (1e1, 1e3), 'Hz', default=2e1, scale='log', n=10),
     'DC': RangeParameter(
         'Duty cycle', (1., 100.), '%', default=100., scale='log', n=20)
 }

@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2020-02-13 23:21:03
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2020-02-13 23:39:18
+* @Last Modified time: 2020-02-14 10:26:43
 */
 /* Table of contents
 ––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -181,7 +181,7 @@ a:hover {
 
 /* Buttons
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
-/*.button,
+.button,
 button,
 input[type="submit"],
 input[type="reset"],
@@ -236,7 +236,7 @@ input[type="reset"].button-primary:focus,
 input[type="button"].button-primary:focus {
   color: #FFF;
   background-color: #1EAEDB;
-  border-color: #1EAEDB; }*/
+  border-color: #1EAEDB; }
 
 
 /* Forms

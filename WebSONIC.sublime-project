@@ -22,7 +22,8 @@
 			[
 				"img",
 				"tmp",
-				"*.egg-info"
+				"*.egg-info",
+				"__pycache__"
 			],
 			"path": "."
 		}

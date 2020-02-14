@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-04 18:26:15
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-13 22:46:09
+# @Last Modified time: 2020-02-14 09:51:15
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
 # @Date:   2017-07-11 18:58:23
@@ -17,8 +17,8 @@ import os
 import psutil
 from argparse import ArgumentParser
 
-from WebSONIC import SONICViewer
-from WebSONIC.params import ctrl_params, plt_params
+from viewer import SONICViewer
+from params import ctrl_params, plt_params
 
 # Determine if app is served via gunicorn or normally ("basic" flask serving)
 is_gunicorn = psutil.Process(os.getppid()).name() == 'gunicorn'

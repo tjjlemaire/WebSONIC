@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-13 23:47:02
+# @Last Modified time: 2020-02-14 11:04:28
 
 ''' Definition of the SONICViewer class. '''
 
@@ -20,11 +20,10 @@ from PySONIC.postpro import detectSpikes
 from PySONIC.constants import *
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
 from PySONIC.neurons import getNeuronsDict
-from PySONIC.utils import isWithin, getIndex, isIterable
 from PySONIC.plt import GroupedTimeSeries, extractPltVar
 from ExSONIC.core import IintraNode, SonicNode
 
-from .components import *
+from components import *
 
 
 class SONICViewer(dash.Dash):
@@ -316,9 +315,18 @@ class SONICViewer(dash.Dash):
             Output('info-table', 'children'),
             [Input('graph1', 'figure')])(self.updateInfoTable)
 
+        # Coverage slider
+        self.callback(
+            [Output('sonophore_coverage_fraction-slider', 'value'),
+             Output('sonophore_coverage_fraction-slider', 'disabled')],
+            [Input('cell_type-dropdown', 'value'),
+             Input('sonophore_radius-slider', 'value'),
+             Input('modality-tabs', 'value'),
+             Input('f_US-slider', 'value')],
+            [State('sonophore_coverage_fraction-slider', 'value')])(self.updateCoverageSlider)
+
         # Output panels
         for i in range(self.ngraphs):
-
             # drop-down list
             self.callback(
                 Output(f'graph{i + 1}-dropdown', 'options'),
@@ -405,6 +413,42 @@ class SONICViewer(dash.Dash):
         '''
         return lambda x: f'{si_format(p.scaling_func(x), 1)}{p.unit}'
 
+    def has_fs_lookup(self, cell_type, a, f):
+        ''' Determine if an fs-dependent lookup exists for a specific parameter combination.
+            :param cell_type: cell type
+            :param a: sonophore radius (m)
+            :param f: US frequency (Hz)
+            :return: boolean stating whether a lookup file should exist.
+        '''
+        is_default_cell = cell_type == 'RS'
+        is_default_radius = np.isclose(a, self.sonophore_params['sonophore_radius'].default,
+                                       rtol=1e-9, atol=1e-16)
+        is_default_freq = np.isclose(f, self.drive_params['US']['f_US'].default,
+                                     rtol=1e-9, atol=1e-16)
+        return is_default_cell and is_default_radius and is_default_freq
+
+    def updateCoverageSlider(self, cell_type, a_slider, mod_type, f_US_slider, fs_slider):
+        ''' Update the value and state of the sonophore coverage fraction slider based on other
+            input parameters.
+
+            :param cell_type: cell type
+            :param a_slider: value of the sonophore radius slider
+            :param mod_type: selected modality tab
+            :param: f_US_slider: value of the US frequency slider
+            :param fs_slider: value of the sonophore coverage faction slider
+            :return: (value, disabled) tuple to update the slider's state
+        '''
+        disabled_output = (self.sonophore_params['sonophore_coverage_fraction'].default, True)
+        enabled_output = (fs_slider, False)
+        if mod_type != 'US':
+            return disabled_output
+        a = self.convertSliderInput(a_slider, self.sonophore_params['sonophore_radius'])
+        f_US = self.convertSliderInput(f_US_slider, self.drive_params['US']['f_US'])
+        if not self.has_fs_lookup(cell_type, a, f_US):
+            return disabled_output
+        else:
+            return enabled_output
+
     def getOutputDropDownLabels(self):
         ''' Generate output drop-down labels from pltscheme elements.
 
@@ -460,6 +504,15 @@ class SONICViewer(dash.Dash):
 
         return varname
 
+    def convertSliderInput(self, value, refparam):
+        ''' Convert slider value into corresponding parameters value.
+
+            :param value: slider value
+            :param refparam: reference parameter object
+            :return: converted parameters value
+        '''
+        return refparam.scaling_func(value) * refparam.factor
+
     def convertSliderInputs(self, values, refparams):
         ''' Convert sliders values into corresponding parameters values.
 
@@ -467,7 +520,7 @@ class SONICViewer(dash.Dash):
             :param refparams: dictionary of reference parameters
             :return: list of converted parameters values
         '''
-        return [p.scaling_func(x) for x, p in zip(values, refparams.values())]
+        return [self.convertSliderInput(x, p) for x, p in zip(values, refparams.values())]
 
     def onInputsChange(self, cell_type, a_slider, fs_slider, mod_type, f_US_slider, A_US_slider,
                        I_EL_slider, tstim_slider, PRF_slider, DC_slider):
