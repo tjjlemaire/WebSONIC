@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-14 11:04:28
+# @Last Modified time: 2020-02-14 14:10:23
 
 ''' Definition of the SONICViewer class. '''
 
@@ -161,7 +161,9 @@ class SONICViewer(dash.Dash):
                 centered=True,
                 children=[
                     dbc.ModalHeader('About'),
-                    dbc.ModalBody(dcc.Markdown(f'''{cls.about()}''')),
+                    dbc.ModalBody(children=[
+                        html.Img(src="assets/sonic_logo.svg", id='about-logo'),
+                        dcc.Markdown(f'''{cls.about()}''')]),
                     dbc.ModalFooter(dbc.Button('Close', id='close-about', className='ml-auto')),
                 ]
             )

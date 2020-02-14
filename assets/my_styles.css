@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2020-02-14 10:30:02
+* @Last Modified time: 2020-02-14 14:12:08
 */
 
 
@@ -248,4 +248,11 @@ li {
 
 #about-link {
 	text-decoration: underline black;
+}
+
+#about-logo {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 20%;
 }

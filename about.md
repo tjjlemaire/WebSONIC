@@ -6,8 +6,6 @@ For comparison purposes, neural responses to injected intracellular currents pre
 
 The viewer is meant as a comparative tool for researchers working on Ultrasound Neuromodulation applications, to quickly explore different combinations of stimulation parameters of specific cell types, and retrieve the mechanical and/or electrical responses predicted by the model (as well as all internal variables) for comparisons with their experimental findings. Alternative theoretical models should be added in the near future.
 
-### Thank you for your interest in our application
-
 References:
 - Lemaire, T., Neufeld, E., Kuster, N., and Micera, S. (2019). Understanding ultrasound neuromodulation using a computationally efficient and interpretable model of intramembrane cavitation. J. Neural Eng.
 - Krasovitski, B., Frenkel, V., Shoham, S., and Kimmel, E. (2011). Intramembrane cavitation as a unifying mechanism for ultrasound-induced bioeffects. Proc. Natl. Acad. Sci. U. S. A. 108, 3258–3263.
