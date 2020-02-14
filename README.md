@@ -56,7 +56,6 @@ You can run the application from a local terminal with a single command line (in
 The following command line arguments are available:
 - `-d` / `--debug`: run the application in **debug** mode (restarting upon file save).
 - `-v` / `--verbose`: add verbosity
-- `-n` / `--ngraphs`: specify the number of graphs in the web app
 - `-t` / `--testUI`: test the we app UI, without running internal simulations
 
 Then, open a browser at [http://127.0.0.1:8050/viewer](http://127.0.0.1:8050/viewer) to use the application.
@@ -83,7 +82,7 @@ To deploy the application on a pre-configured linux machine, the best way to go 
 
 - Alternatively, you can serve the application in a separate, detached screen session:
 
-`screen -d -S webnice_session -m gunicorn --bind 0.0.0.0:8050 run:server`
+`screen -d -S app -m gunicorn --bind 0.0.0.0:8050 run:server`
 
 # References
 
