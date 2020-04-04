@@ -3,11 +3,10 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-14 19:29:41
+# @Last Modified time: 2020-04-04 20:37:23
 
 ''' Definition of the SONICViewer class. '''
 
-import time
 import urllib
 import numpy as np
 import pandas as pd
@@ -21,7 +20,7 @@ from PySONIC.constants import *
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.plt import GroupedTimeSeries, extractPltVar
-from ExSONIC.core import IintraNode, SonicNode
+from ExSONIC.core import Node
 
 from components import *
 
@@ -68,7 +67,7 @@ class SONICViewer(dash.Dash):
         self.sonophore_params = {
             x: ctrl_params[x] for x in ['sonophore_radius', 'sonophore_coverage_fraction']}
         self.drive_params = {
-            'US': {x : ctrl_params[x] for x in ['f_US', 'A_US']},
+            'US': {x: ctrl_params[x] for x in ['f_US', 'A_US']},
             'EL': {'A_EL': ctrl_params['A_EL']}}
         self.pp_params = {x: ctrl_params[x] for x in ['tstim', 'PRF', 'DC']}
 
@@ -537,11 +536,8 @@ class SONICViewer(dash.Dash):
         tstim, PRF, DC = self.convertSliderInputs([tstim_slider, PRF_slider, DC_slider], self.pp_params)
 
         # Assign them
-        try:
-            drive = AcousticDrive(*US_params) if mod_type == 'US' else ElectricDrive(*EL_params)
-            pp = PulsedProtocol(tstim, 0.5 * tstim, PRF=PRF, DC=DC * 1e-2)
-        except Exception as err:
-            return [str(err)], 'danger'
+        drive = AcousticDrive(*US_params) if mod_type == 'US' else ElectricDrive(*EL_params)
+        pp = PulsedProtocol(tstim, 0.5 * tstim, PRF=PRF, DC=DC * 1e-2)
 
         # Update plot variables if different cell type
         new_params = [cell_type, a, fs * 1e-2, drive, pp]
@@ -551,10 +547,10 @@ class SONICViewer(dash.Dash):
 
         # Run simulation if parameters have changed
         if new_params != self.current_params:
-            try:
-                msg = self.runSim(*new_params)
-            except Exception as err:
-                return [str(err)], 'danger'
+            # try:
+            msg = self.runSim(*new_params)
+            # except Exception as err:
+            #     return [str(err)], 'danger'
             self.current_params = new_params
         else:
             msg = None
@@ -588,25 +584,20 @@ class SONICViewer(dash.Dash):
             :return: (message, color) tuple indicating simulation status
         '''
         pneuron = self.pneurons[cell_type]
+        self.model = Node(pneuron, a=a, fs=fs)
 
         # If no-run mode, get fake data
         if self.no_run:
             self.data = self.getShamData(pneuron, pp)
             return [''], True
 
-        # Initiate appropariate model according to drive type
-        if isinstance(drive, ElectricDrive):
-            self.model = IintraNode(pneuron)
-        else:
-            self.model = SonicNode(pneuron, a=a, fs=fs)
+        # Run simulation and return message inside a list
+        self.data, meta = self.model.simulate(drive, pp)
+        msg = self.model.desc(meta)
 
-        # Retrieve simulation message
-        msg = self.model.desc(self.model.meta(drive, pp))
         if self.verbose:
             print(msg)
 
-        # Run simulation and return message inside a list
-        self.data, _ = self.model.simulate(drive, pp)
         return [msg]
 
     def getFileCode(self, drive, pp):
