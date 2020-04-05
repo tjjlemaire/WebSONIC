@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-04 20:37:23
+# @Last Modified time: 2020-04-05 18:33:49
 
 ''' Definition of the SONICViewer class. '''
 
@@ -277,8 +277,8 @@ class SONICViewer(dash.Dash):
         return html.Div(children=[
             dbc.Alert(id='status-bar', color='success', is_open=True, children=['']),
             *ddgraphpanels,
-            html.Div(id='download-wrapper', children=[
-                html.A('Download Data', id='download-link', download="", href="", target="_blank")])
+            # html.Div(id='download-wrapper', children=[
+            #     html.A('Download Data', id='download-link', download="", href="", target="_blank")])
         ])
 
     # ------------------------------------------ CALLBACKS ------------------------------------------
@@ -363,13 +363,13 @@ class SONICViewer(dash.Dash):
                 [State('cell_type-dropdown', 'value'),
                  State(f'graph{i + 1}', 'id')])(self.updateGraph)
 
-        # Download link
-        self.callback(
-            Output('download-link', 'href'),
-            [Input('status-bar', 'children')])(self.updateDownloadContent)
-        self.callback(
-            Output('download-link', 'download'),
-            [Input('status-bar', 'children')])(self.updateDownloadName)
+        # # Download link
+        # self.callback(
+        #     Output('download-link', 'href'),
+        #     [Input('status-bar', 'children')])(self.updateDownloadContent)
+        # self.callback(
+        #     Output('download-link', 'download'),
+        #     [Input('status-bar', 'children')])(self.updateDownloadName)
 
         # About modal
         self.callback(
@@ -547,10 +547,7 @@ class SONICViewer(dash.Dash):
 
         # Run simulation if parameters have changed
         if new_params != self.current_params:
-            # try:
             msg = self.runSim(*new_params)
-            # except Exception as err:
-            #     return [str(err)], 'danger'
             self.current_params = new_params
         else:
             msg = None
@@ -594,10 +591,8 @@ class SONICViewer(dash.Dash):
         # Run simulation and return message inside a list
         self.data, meta = self.model.simulate(drive, pp)
         msg = self.model.desc(meta)
-
         if self.verbose:
             print(msg)
-
         return [msg]
 
     def getFileCode(self, drive, pp):
@@ -657,8 +652,8 @@ class SONICViewer(dash.Dash):
             tpatch_on, tpatch_off = GroupedTimeSeries.getStimPulses(t, states)
 
             # Preset and rescale time vector
-            tonset = np.array([-0.05 * np.ptp(t), 0.0])
-            t = np.hstack((tonset, t))
+            tonset = t.min() - 0.05 * np.ptp(t)
+            t = np.insert(t, 0, tonset)
             t *= self.tscale
 
             # Plot time series
@@ -666,7 +661,8 @@ class SONICViewer(dash.Dash):
             icolor = 0
             for name, pltvar in zip(ax_varnames, ax_pltvars):
                 try:
-                    var = extractPltVar(self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
+                    var = extractPltVar(
+                        self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
                 except KeyError:
                     pass
                 timeseries.append(go.Scatter(
@@ -766,24 +762,24 @@ class SONICViewer(dash.Dash):
                         values=[nspikes, lat, sr],
                         units=['', 's', 'Hz'])
 
-    def updateDownloadContent(self, _):
-        ''' Update the content of the downloadable pandas dataframe.
+    # def updateDownloadContent(self, _):
+    #     ''' Update the content of the downloadable pandas dataframe.
 
-            :return: string-encoded CSV
-        '''
-        try:
-            csv_string = self.data.to_csv(index=False, encoding='utf-8')
-            csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-            return csv_string
-        except AttributeError:
-            pass
+    #         :return: string-encoded CSV
+    #     '''
+    #     try:
+    #         csv_string = self.data.to_csv(index=False, encoding='utf-8')
+    #         csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+    #         return csv_string
+    #     except AttributeError:
+    #         pass
 
-    def updateDownloadName(self, _):
-        ''' Update the name of the downloadable pandas dataframe.
+    # def updateDownloadName(self, _):
+    #     ''' Update the name of the downloadable pandas dataframe.
 
-            :return: download file name
-        '''
-        try:
-            return f'{self.getFileCode(*self.current_params)}.csv'
-        except TypeError:
-            pass
+    #         :return: download file name
+    #     '''
+    #     try:
+    #         return f'{self.getFileCode(*self.current_params)}.csv'
+    #     except TypeError:
+    #         pass
