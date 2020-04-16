@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-10 18:35:52
+# @Last Modified time: 2020-04-16 23:35:48
 
 ''' Definition of the SONICViewer class. '''
 
@@ -14,7 +14,9 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
+from PySONIC.utils import isIterable, bounds
 from PySONIC.postpro import detectSpikes
 from PySONIC.constants import *
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
@@ -47,7 +49,6 @@ class SONICViewer(dash.Dash):
         self.title = 'SONIC viewer'
 
         # Initialize constant parameters
-        self.ngraphs = plt_params['ngraphs']
         self.colors = plt_params['colors']
         self.no_run = no_run
         self.verbose = verbose
@@ -84,7 +85,7 @@ class SONICViewer(dash.Dash):
 
     def __str__(self):
         ''' Dsecriptive information about the app object. '''
-        return f'{self.title} app with {self.ngraphs} graphs'
+        return f'{self.title} app'
 
     # ------------------------------------------ LAYOUT ------------------------------------------
 
@@ -264,19 +265,34 @@ class SONICViewer(dash.Dash):
         # Get options values and generate options labels
         values = list(self.pltscheme.keys())
         labels = self.getOutputDropDownLabels()
-
-        # Generate output graph panels
-        ddgraphpanels = [
-            panel(children=[ddGraph(
-                id=str(i + 1),
-                values=values,
-                labels=labels,
-                default=values[i])])
-            for i in range(self.ngraphs)]
+        opts = [{'label': label, 'value': value} for label, value in zip(labels, values)]
 
         return html.Div(children=[
             dbc.Alert(id='status-bar', color='success', is_open=True, children=['']),
-            *ddgraphpanels,
+            panel(children=[
+                # Multi-dropdown
+                dcc.Dropdown(
+                    className='ddlist',
+                    id=f'graph-dropdown',
+                    options=opts,
+                    value=values[0],
+                    multi=True
+                ),
+                # Graph
+                dcc.Graph(
+                    id='graph',
+                    className='graph',
+                    animate=False,
+                    config={
+                        'editable': False,
+                        'modeBarButtonsToRemove': [
+                            'sendDataToCloud',
+                            'displaylogo',
+                            'toggleSpikelines']
+                    },
+                    figure={'data': [], 'layout': {}}
+                )
+            ]),
             html.Div(id='download-wrapper', children=[
                 html.A('Download Data', id='download-link', download="", href="", target="_blank")])
         ])
@@ -326,16 +342,14 @@ class SONICViewer(dash.Dash):
              Input('f_US-slider', 'value')],
             [State('sonophore_coverage_fraction-slider', 'value')])(self.updateCoverageSlider)
 
-        # Output panels
-        for i in range(self.ngraphs):
-            # drop-down list
-            self.callback(
-                Output(f'graph{i + 1}-dropdown', 'options'),
-                [Input('cell_type-dropdown', 'value')])(self.updateOutputOptions)
-            self.callback(
-                Output(f'graph{i + 1}-dropdown', 'value'),
-                [Input('cell_type-dropdown', 'value')],
-                state=[State(f'graph{i + 1}-dropdown', 'value')])(self.updateOutputVar)
+        # Output panel
+        self.callback(
+            Output(f'graph-dropdown', 'options'),
+            [Input('cell_type-dropdown', 'value')])(self.updateOutputOptions)
+        self.callback(
+            Output(f'graph-dropdown', 'value'),
+            [Input('cell_type-dropdown', 'value')],
+            state=[State(f'graph-dropdown', 'value')])(self.updateOutputVar)
 
         # Inputs change that trigger simulations
         self.callback(
@@ -352,16 +366,12 @@ class SONICViewer(dash.Dash):
              Input('PRF-slider', 'value'),
              Input('DC-slider', 'value')])(self.onInputsChange)
 
-        # Update graphs whenever status bar or dropdown value changes,
-        # or when 1st graph layout is changed
-        for i in range(self.ngraphs):
-            self.callback(
-                Output(f'graph{i + 1}', 'figure'),
-                [Input('status-bar', 'children'),
-                 Input(f'graph{i + 1}-dropdown', 'value'),
-                 Input('graph1', 'relayoutData')],
-                [State('cell_type-dropdown', 'value'),
-                 State(f'graph{i + 1}', 'id')])(self.updateGraph)
+        # Update graph whenever status bar or dropdown values change
+        self.callback(
+            Output(f'graph', 'figure'),
+            [Input('status-bar', 'children'),
+             Input(f'graph-dropdown', 'value')],
+            [State('cell_type-dropdown', 'value')])(self.updateGraph)
 
         # Download link
         self.callback(
@@ -604,43 +614,15 @@ class SONICViewer(dash.Dash):
         '''
         return self.model.filecode(drive, pp)
 
-    def updateGraph(self, _, group_name, relayout_data, cell_type, id):
+    def updateGraph(self, _, group_names, cell_type):
         ''' Update graph with new data.
 
-            :param _: input graph figure content (used to trigger callback for subsequent graphs)
-            :param group_name: name of the group of output variables to display
-            :param relayout_data: input graph relayout data
+            :param group_names: names of the groups of output variables to display
             :param cell_type: cell type
-            :param id: id of the graph to update
             :return: graph content
         '''
-        # Determine plot variables
-        ax_varnames = self.pltscheme[group_name]
-        ax_pltvars = [self.pltvars[k] for k in ax_varnames]
-        if self.verbose:
-            print(f'{id}: plotting {group_name} set: {ax_varnames}')
-
-        # Determine y-axis bounds and unit if needed
-        if 'bounds' in ax_pltvars[0]:
-            ax_min = min([ap['bounds'][0] for ap in ax_pltvars])
-            ax_max = max([ap['bounds'][1] for ap in ax_pltvars])
-            ybounds = (ax_min, ax_max)
-        else:
-            ybounds = None
-        yunit = ax_pltvars[0].get('unit', '')
-
-        # Process y-axis label
-        ylabel = f'{group_name} ({yunit})'
-        for c in ['{', '}', '\\', '_', '^']:
-            ylabel = ylabel.replace(c, '')
-
-        # Adjust color to black if only 1 variable to plot
-        if len(ax_varnames) == 1:
-            ax_pltvars[0]['color'] = 'black'
-
-        # Process and plot data if any
+        # If data exists
         if self.data is not None:
-
             # Get time and states vector
             t = self.data['t'].values
             states = self.data['stimstate'].values
@@ -652,25 +634,7 @@ class SONICViewer(dash.Dash):
             tonset = t.min() - 0.05 * np.ptp(t)
             t = np.insert(t, 0, tonset)
             t *= self.tscale
-
-            # Plot time series
-            timeseries = []
-            icolor = 0
-            for name, pltvar in zip(ax_varnames, ax_pltvars):
-                try:
-                    var = extractPltVar(
-                        self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
-                except KeyError:
-                    pass
-                timeseries.append(go.Scatter(
-                    x=t,
-                    y=var,
-                    mode='lines',
-                    name=name,
-                    line={'color': pltvar.get('color', self.colors[icolor])}
-                ))
-                if 'color' not in pltvar:
-                    icolor += 1
+            trange = bounds(t)
 
             # Define stimulus patches as rectangles with y-reference to the plot
             patches = [{
@@ -685,35 +649,80 @@ class SONICViewer(dash.Dash):
                 'line': {'color': 'grey'},
                 'opacity': 0.2
             } for i in range(tpatch_on.size)]
-
-        # If data does not exist, define empty timeseries and patches
         else:
-            timeseries = []
             patches = []
+            trange = (0, 100)
 
-        # Set axes layout
-        layout = go.Layout(
-            xaxis={
-                'type': 'linear',
-                'title': 'time (ms)',
-                'range': (t.min(), t.max()),
-                'zeroline': False
-            },
-            yaxis={
-                'type': 'linear',
-                'title': ylabel,
-                'range': ybounds,
-                'zeroline': False
-            },
+        # Determine plot variables
+        if not isIterable(group_names):
+            group_names = [group_names]
+
+        # Create figure with shared x-axes
+        nrows = len(group_names)
+        row_height = 200        # pt
+        vertical_spacing = 0.02  # pt
+        total_height = row_height * nrows  # + vertical_spacing * (nrows - 1)
+        fig = make_subplots(
+            rows=nrows, cols=1, shared_xaxes=True,
+            vertical_spacing=vertical_spacing,
+            row_heights=[row_height] * nrows)
+        fig.update_xaxes(title_text='time (ms)', range=trange, row=nrows, col=1)
+
+        # For each axis-group pair
+        icolor = 0
+        for j, group_name in enumerate(group_names):
+            # Get axis variables
+            ax_varnames = self.pltscheme[group_name]
+            ax_pltvars = [self.pltvars[k] for k in ax_varnames]
+            if self.verbose:
+                print(f'{id}: plotting {group_name} set: {ax_varnames}')
+
+            # Determine y-axis bounds and unit if needed
+            if 'bounds' in ax_pltvars[0]:
+                ax_min = min([ap['bounds'][0] for ap in ax_pltvars])
+                ax_max = max([ap['bounds'][1] for ap in ax_pltvars])
+                ybounds = (ax_min, ax_max)
+            else:
+                ybounds = None
+            yunit = ax_pltvars[0].get('unit', '')
+
+            # Process and add y-axis label
+            ylabel = f'{group_name} ({yunit})'
+            for c in ['{', '}', '\\', '_', '^']:
+                ylabel = ylabel.replace(c, '')
+
+            # Set y-axis properties
+            irow = j + 1
+            fig.update_yaxes(title_text=ylabel, range=ybounds, row=irow, col=1)
+
+            # Extract and plot variables timeseries if data exists
+            if self.data is not None:
+                for name, pltvar in zip(ax_varnames, ax_pltvars):
+                    try:
+                        var = extractPltVar(
+                            self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
+                    except KeyError:
+                        pass
+                    fig.add_trace(
+                        go.Scatter(
+                            x=t,
+                            y=var,
+                            mode='lines',
+                            name=name,
+                            line={'color': self.colors[icolor]}
+                        ), row=irow, col=1)
+                    icolor += 1
+
+        # Update figure layout
+        fig.update_layout(
+            height=total_height,
             shapes=patches,
-            margin={'l': 60, 'b': 40, 't': 10, 'r': 10},
+            template="plotly_white",
             title='',
-            showlegend=True
+            margin={'l': 60, 'b': 40, 't': 10, 'r': 10},
         )
 
-        # Return curve, patches and layout objects
-        fig = {'data': timeseries, 'layout': layout}
-        fig['layout']['xaxis']['range'] = self.getXrange(relayout_data)
+        # Return figure object
         return fig
 
     @staticmethod

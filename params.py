@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-14 10:20:42
+# @Last Modified time: 2020-04-16 23:14:02
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -129,7 +129,9 @@ ctrl_params = {
 
 # --------------------------------- Plot parameters ---------------------------------
 
-plt_params = {
-    'ngraphs': 3,
-    'colors': [matplotlib.colors.rgb2hex(c) for c in matplotlib.cm.get_cmap('tab10').colors]
-}
+colors = []
+for cmap in ['Set1', 'Set2']:
+    colors += matplotlib.cm.get_cmap(cmap).colors
+hex_colors = [matplotlib.colors.rgb2hex(c) for c in colors]
+
+plt_params = {'colors': hex_colors}

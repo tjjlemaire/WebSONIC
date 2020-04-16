@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-04 18:26:15
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-14 09:51:15
+# @Last Modified time: 2020-04-16 17:45:26
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
 # @Date:   2017-07-11 18:58:23
@@ -24,7 +24,6 @@ from params import ctrl_params, plt_params
 is_gunicorn = psutil.Process(os.getppid()).name() == 'gunicorn'
 if is_gunicorn:
     print('Serving via gunicorn')
-    ngraphs = 3
     debug = False
     testUI = False
     verbose = False

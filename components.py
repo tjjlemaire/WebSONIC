@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2018-08-23 08:26:27
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-02-14 09:50:29
+# @Last Modified time: 2020-04-16 23:38:16
 
 ''' Extension of dash components. '''
 
@@ -79,34 +79,3 @@ def dataRows(labels, values, units):
             html.Td(label, className='row-label'),
             html.Td(datastr, className='row-data')]))
     return rows
-
-
-def ddGraph(id, labels, values, default=None):
-    ''' Return div with variable selection dropdown list and graph object. '''
-
-    # Construct dropdown list
-    dd = dcc.Dropdown(
-        className='ddlist',
-        id=f'graph{id}-dropdown',
-        options=[{'label': label, 'value': value} for label, value in zip(labels, values)],
-        value=default if default is not None else values[0]
-    )
-
-    # Construct graph object
-    graph = dcc.Graph(
-        id=f'graph{id}',
-        className='graph',
-        animate=False,
-        config={
-            'editable': False,
-            'modeBarButtonsToRemove': ['sendDataToCloud', 'displaylogo', 'toggleSpikelines']
-        },
-        figure={'data': [], 'layout': {}}
-    )
-
-    # If not 1st graph, add loading state wrapper
-    if id != '1':
-        graph = dcc.Loading(id=f'loading-graph{id}', type='default', children=[graph])
-
-    # Return div with dropdown and graph
-    return html.Div(id=f'ddgraph{id}', className='graph-div', children=[dd, graph])
