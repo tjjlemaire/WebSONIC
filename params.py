@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-16 23:14:02
+# @Last Modified time: 2020-04-17 11:20:40
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -103,7 +103,6 @@ class SetParameter(QuantitativeParameter):
         return max(self.values)
 
 
-
 # --------------------------------- Control parameters ---------------------------------
 
 ctrl_params = {
@@ -134,4 +133,7 @@ for cmap in ['Set1', 'Set2']:
     colors += matplotlib.cm.get_cmap(cmap).colors
 hex_colors = [matplotlib.colors.rgb2hex(c) for c in colors]
 
-plt_params = {'colors': hex_colors}
+plt_params = {
+    'colors': hex_colors,
+    'default_vars': ['Q_m', 'V_m', 'I']
+}

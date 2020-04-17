@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2020-04-16 23:37:44
+* @Last Modified time: 2020-04-17 12:51:23
 */
 
 
@@ -223,6 +223,13 @@ li {
 .graph-div {
     width: 100%;
     padding-top: 0.5em;
+}
+
+.graph-title {
+	font-size: 1.8rem;
+	text-align: center;
+	margin-bottom: 0.6rem;
+	margin-top: 0.6rem;
 }
 
 #download-wrapper {

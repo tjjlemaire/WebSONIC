@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-16 23:35:48
+# @Last Modified time: 2020-04-17 12:55:42
 
 ''' Definition of the SONICViewer class. '''
 
@@ -16,7 +16,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-from PySONIC.utils import isIterable, bounds
+from PySONIC.utils import isIterable, bounds, getMeta
 from PySONIC.postpro import detectSpikes
 from PySONIC.constants import *
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
@@ -50,6 +50,7 @@ class SONICViewer(dash.Dash):
 
         # Initialize constant parameters
         self.colors = plt_params['colors']
+        self.default_vars = plt_params['default_vars']
         self.no_run = no_run
         self.verbose = verbose
 
@@ -76,6 +77,8 @@ class SONICViewer(dash.Dash):
         default_cell = self.cell_param.default
         self.pltvars = self.pneurons[default_cell].getPltVars()
         self.pltscheme = self.pneurons[default_cell].pltScheme
+
+        self.simcount = 0
 
         # Initialize UI layout components
         self.setLayout(default_cell, 'US')
@@ -106,7 +109,9 @@ class SONICViewer(dash.Dash):
                 html.Div(id='left-col', className='content-column', children=[
                     self.cellPanel(default_cell),
                     self.stimPanel(default_mod),
-                    self.metricsPanel()]),
+                    self.metricsPanel(),
+                    self.statusBar()
+                ]),
 
                 # Right side
                 html.Div(id='right-col', className='content-column', children=[
@@ -250,6 +255,10 @@ class SONICViewer(dash.Dash):
             self.slidersTable('pp', self.pp_params)
         ])
 
+    def statusBar(self):
+        ''' Status bar object. '''
+        return dbc.Alert(id='status-bar', color='light', is_open=True, children=[])
+
     @staticmethod
     def metricsPanel():
         ''' Metric panel. '''
@@ -265,33 +274,35 @@ class SONICViewer(dash.Dash):
         # Get options values and generate options labels
         values = list(self.pltscheme.keys())
         labels = self.getOutputDropDownLabels()
-        opts = [{'label': label, 'value': value} for label, value in zip(labels, values)]
 
         return html.Div(children=[
-            dbc.Alert(id='status-bar', color='success', is_open=True, children=['']),
             panel(children=[
-                # Multi-dropdown
-                dcc.Dropdown(
-                    className='ddlist',
-                    id=f'graph-dropdown',
-                    options=opts,
-                    value=values[0],
-                    multi=True
-                ),
-                # Graph
-                dcc.Graph(
-                    id='graph',
-                    className='graph',
-                    animate=False,
-                    config={
-                        'editable': False,
-                        'modeBarButtonsToRemove': [
-                            'sendDataToCloud',
-                            'displaylogo',
-                            'toggleSpikelines']
-                    },
-                    figure={'data': [], 'layout': {}}
-                )
+                html.Div(className='graph-div', children=[
+                    # Title
+                    html.Div(id='graph-title', className='graph-title', children=[]),
+                    # Multi-dropdown
+                    dcc.Dropdown(
+                        className='ddlist',
+                        id=f'graph-dropdown',
+                        options=[{'label': l, 'value': v} for l, v in zip(labels, values)],
+                        value=self.default_vars,
+                        multi=True
+                    ),
+                    # Graph
+                    dcc.Loading(dcc.Graph(
+                        id='graph',
+                        className='graph',
+                        animate=False,
+                        config={
+                            'editable': False,
+                            'modeBarButtonsToRemove': [
+                                'sendDataToCloud',
+                                'displaylogo',
+                                'toggleSpikelines']
+                        },
+                        figure={'data': [], 'layout': {}}
+                    ))
+                ])
             ]),
             html.Div(id='download-wrapper', children=[
                 html.A('Download Data', id='download-link', download="", href="", target="_blank")])
@@ -327,11 +338,6 @@ class SONICViewer(dash.Dash):
                     Output(f'{id}-value', 'children'),
                     [Input(id, 'value')])(self.updateSliderValue(p))
 
-        # Output metrics table
-        self.callback(
-            Output('info-table', 'children'),
-            [Input('graph1', 'figure')])(self.updateInfoTable)
-
         # Coverage slider
         self.callback(
             [Output('sonophore_coverage_fraction-slider', 'value'),
@@ -342,19 +348,14 @@ class SONICViewer(dash.Dash):
              Input('f_US-slider', 'value')],
             [State('sonophore_coverage_fraction-slider', 'value')])(self.updateCoverageSlider)
 
-        # Output panel
+        # Output metrics table
         self.callback(
-            Output(f'graph-dropdown', 'options'),
-            [Input('cell_type-dropdown', 'value')])(self.updateOutputOptions)
-        self.callback(
-            Output(f'graph-dropdown', 'value'),
-            [Input('cell_type-dropdown', 'value')],
-            state=[State(f'graph-dropdown', 'value')])(self.updateOutputVar)
+            Output('info-table', 'children'),
+            [Input('status-bar', 'children')])(self.updateInfoTable)
 
         # Inputs change that trigger simulations
         self.callback(
-            [Output('status-bar', 'children'),
-             Output('status-bar', 'color')],
+            Output('status-bar', 'children'),
             [Input('cell_type-dropdown', 'value'),
              Input('sonophore_radius-slider', 'value'),
              Input('sonophore_coverage_fraction-slider', 'value'),
@@ -366,11 +367,21 @@ class SONICViewer(dash.Dash):
              Input('PRF-slider', 'value'),
              Input('DC-slider', 'value')])(self.onInputsChange)
 
-        # Update graph whenever status bar or dropdown values change
+        # Output panel
         self.callback(
-            Output(f'graph', 'figure'),
+            Output('graph-dropdown', 'options'),
+            [Input('cell_type-dropdown', 'value')])(self.updateOutputOptions)
+        self.callback(
+            Output('graph-dropdown', 'value'),
+            [Input('cell_type-dropdown', 'value')],
+            state=[State(f'graph-dropdown', 'value')])(self.updateOutputVars)
+
+        # Update graph & title whenever status bar or dropdown values change
+        self.callback(
+            [Output('graph', 'figure'),
+             Output('graph-title', 'children')],
             [Input('status-bar', 'children'),
-             Input(f'graph-dropdown', 'value')],
+             Input('graph-dropdown', 'value')],
             [State('cell_type-dropdown', 'value')])(self.updateGraph)
 
         # Download link
@@ -497,11 +508,11 @@ class SONICViewer(dash.Dash):
         # Return dictionary
         return [{'label': lbl, 'value': val} for lbl, val in zip(labels, values)]
 
-    def updateOutputVar(self, cell_type, varname):
+    def updateOutputVars(self, cell_type, varnames):
         ''' Update the selected variable in a graph dropdown menu on neuron switch.
 
             :param cell_type: cell type
-            :param varname: name of currently selected variable
+            :param varnames: name of currently selected variables
             :return: name of the selected variable, updated if needed
         '''
         # Update pltvars and pltscheme according to new cell type
@@ -509,11 +520,12 @@ class SONICViewer(dash.Dash):
         self.pltscheme = self.pneurons[cell_type].pltScheme
 
         # Get options values and generate options labels
-        values = list(self.pltscheme.keys())
-        if varname not in values:
-            varname = values[0]
-
-        return varname
+        if not isIterable(varnames):
+            varnames = [varnames]
+        varnames = list(filter(lambda x: x in self.pltscheme.keys(), varnames))
+        if len(varnames) == 0:
+            varnames = self.default_vars
+        return varnames
 
     def convertSliderInput(self, value, refparam):
         ''' Convert slider value into corresponding parameters value.
@@ -537,13 +549,14 @@ class SONICViewer(dash.Dash):
                        I_EL_slider, tstim_slider, PRF_slider, DC_slider):
         ''' Translate inputs into parameter values and run model simulation.
 
-            :return: (message, color) tuple indicating simulation status
+            :return: status message
         '''
         # Determine new parameters
         a, fs = self.convertSliderInputs([a_slider, fs_slider], self.sonophore_params)
         US_params = self.convertSliderInputs([f_US_slider, A_US_slider], self.drive_params['US'])
         EL_params = self.convertSliderInputs([I_EL_slider], self.drive_params['EL'])
-        tstim, PRF, DC = self.convertSliderInputs([tstim_slider, PRF_slider, DC_slider], self.pp_params)
+        tstim, PRF, DC = self.convertSliderInputs([
+            tstim_slider, PRF_slider, DC_slider], self.pp_params)
 
         # Assign them
         drive = AcousticDrive(*US_params) if mod_type == 'US' else ElectricDrive(*EL_params)
@@ -557,12 +570,14 @@ class SONICViewer(dash.Dash):
 
         # Run simulation if parameters have changed
         if new_params != self.current_params:
-            msg = self.runSim(*new_params)
+            self.runSim(*new_params)
             self.current_params = new_params
-        else:
-            msg = None
 
-        return msg, 'success'
+        # Return status message inside a list
+        return [self.statusMessage()]
+
+    def statusMessage(self):
+        return f'Number of simulations: {self.simcount}'
 
     def getShamData(self, pneuron, pp):
         ''' Get Sham output data without running a simulation.data
@@ -588,22 +603,22 @@ class SONICViewer(dash.Dash):
             :param fs: sonophore membrane coverage fraction (-)
             :param drive: drive object
             :param pp: pulsed protocol object
-            :return: (message, color) tuple indicating simulation status
         '''
         pneuron = self.pneurons[cell_type]
         self.model = Node(pneuron, a=a, fs=fs)
-
-        # If no-run mode, get fake data
         if self.no_run:
+            # If no-run mode, get Sham data
             self.data = self.getShamData(pneuron, pp)
-            return [''], True
+            meta = getMeta(self.model, self.model.simulate, drive, pp)
+        else:
+            # Otherwise, run model simulation
+            self.data, meta = self.model.simulate(drive, pp)
 
-        # Run simulation and return message inside a list
-        self.data, meta = self.model.simulate(drive, pp)
-        msg = self.model.desc(meta)
+        # Update simulation count and log
+        self.simcount += 1
+        self.simlog = self.model.desc(meta)
         if self.verbose:
-            print(msg)
-        return [msg]
+            print(self.simlog)
 
     def getFileCode(self, drive, pp):
         ''' Get simulation filecode for the given parameters.
@@ -635,6 +650,7 @@ class SONICViewer(dash.Dash):
             t = np.insert(t, 0, tonset)
             t *= self.tscale
             trange = bounds(t)
+            nsamples = t.size
 
             # Define stimulus patches as rectangles with y-reference to the plot
             patches = [{
@@ -659,9 +675,11 @@ class SONICViewer(dash.Dash):
 
         # Create figure with shared x-axes
         nrows = len(group_names)
-        row_height = 200        # pt
+        default_row_height = 200
         vertical_spacing = 0.02  # pt
-        total_height = row_height * nrows  # + vertical_spacing * (nrows - 1)
+        max_height = 700
+        total_height = min(max_height, default_row_height * nrows)
+        row_height = total_height / nrows
         fig = make_subplots(
             rows=nrows, cols=1, shared_xaxes=True,
             vertical_spacing=vertical_spacing,
@@ -700,8 +718,8 @@ class SONICViewer(dash.Dash):
                 for name, pltvar in zip(ax_varnames, ax_pltvars):
                     try:
                         var = extractPltVar(
-                            self.pneurons[cell_type], pltvar, self.data, None, t.size, name)
-                    except KeyError:
+                            self.pneurons[cell_type], pltvar, self.data, None, nsamples, name)
+                    except (KeyError, UnboundLocalError):
                         pass
                     fig.add_trace(
                         go.Scatter(
@@ -717,13 +735,12 @@ class SONICViewer(dash.Dash):
         fig.update_layout(
             height=total_height,
             shapes=patches,
-            template="plotly_white",
-            title='',
-            margin={'l': 60, 'b': 40, 't': 10, 'r': 10},
+            template='plotly_white',
+            margin={'l': 60, 'b': 40, 't': 30, 'r': 10},
         )
 
-        # Return figure object
-        return fig
+        # Return figure object and title
+        return fig, self.simlog
 
     @staticmethod
     def getXrange(relayout_data):

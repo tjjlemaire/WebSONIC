@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-04 18:26:15
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-16 17:45:26
+# @Last Modified time: 2020-04-17 12:43:46
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
 # @Date:   2017-07-11 18:58:23
@@ -42,7 +42,7 @@ else:
 
 # Create app instance
 app = SONICViewer(ctrl_params, plt_params, no_run=testUI, verbose=verbose)
-print('Created {}'.format(app))
+print(f'Created {app}')
 
 # Add underlying server instance to module global scope (for gunicorn use)
 if is_gunicorn:
