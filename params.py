@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-17 11:20:40
+# @Last Modified time: 2020-04-18 16:08:28
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -13,7 +13,8 @@
 
 import abc
 import numpy as np
-import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.colors import rgb2hex
 
 from PySONIC.utils import isWithin
 
@@ -63,7 +64,8 @@ class QuantitativeParameter(Parameter):
 
 class RangeParameter(QuantitativeParameter):
 
-    def __init__(self, label, bounds, unit, factor=1., default=None, disabled=False, scale='lin', n=100):
+    def __init__(self, label, bounds, unit, factor=1., default=None, disabled=False,
+                 scale='lin', n=100):
         self.bounds = bounds
         self.scale = scale
         self.n = n
@@ -130,8 +132,8 @@ ctrl_params = {
 
 colors = []
 for cmap in ['Set1', 'Set2']:
-    colors += matplotlib.cm.get_cmap(cmap).colors
-hex_colors = [matplotlib.colors.rgb2hex(c) for c in colors]
+    colors += plt.get_cmap(cmap).colors
+hex_colors = [rgb2hex(c) for c in colors]
 
 plt_params = {
     'colors': hex_colors,

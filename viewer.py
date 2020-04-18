@@ -3,13 +3,14 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-17 12:55:42
+# @Last Modified time: 2020-04-18 16:12:31
 
 ''' Definition of the SONICViewer class. '''
 
 import urllib
 import numpy as np
 import pandas as pd
+from matplotlib.colors import rgb2hex
 import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
@@ -642,8 +643,9 @@ class SONICViewer(dash.Dash):
             t = self.data['t'].values
             states = self.data['stimstate'].values
 
-            # Determine stimulus patch(es) from states
-            tpatch_on, tpatch_off = GroupedTimeSeries.getStimPulses(t, states)
+            # Determine stimulus pulses and their colors from states
+            pulses = GroupedTimeSeries.getStimPulses(t, states)
+            pcolors = GroupedTimeSeries.getPatchesColors([p[2] for p in pulses])
 
             # Preset and rescale time vector
             tonset = t.min() - 0.05 * np.ptp(t)
@@ -657,14 +659,14 @@ class SONICViewer(dash.Dash):
                 'type': 'rect',
                 'xref': 'x',
                 'yref': 'paper',
-                'x0': tpatch_on[i] * self.tscale,
-                'x1': tpatch_off[i] * self.tscale,
+                'x0': pulse[0] * self.tscale,
+                'x1': pulse[1] * self.tscale,
                 'y0': 0,
                 'y1': 1,
                 'fillcolor': 'grey',
-                'line': {'color': 'grey'},
+                'line': {'color': rgb2hex(pcolor)},
                 'opacity': 0.2
-            } for i in range(tpatch_on.size)]
+            } for pulse, pcolor in zip(pulses, pcolors)]
         else:
             patches = []
             trange = (0, 100)
