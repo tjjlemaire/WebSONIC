@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2020-04-17 12:51:23
+* @Last Modified time: 2020-04-18 16:51:15
 */
 
 
@@ -23,33 +23,11 @@ p {
 
 #header {
 	width: 100%;
-	margin-bottom: 0em;
-}
-
-#header-middle {
-    float: none;
-    padding-left: 1em;
-    padding-right: 1em;
-    text-align: center;
-}
-
-.header-side {
-	display: inline-block;
-	height: 5em;
-}
-
-#header-left {
-	float: left;
-}
-
-#header-right {
-	float: right;
+	text-align: center;
 }
 
 .header-txt {
-	margin-top: 0;
-    margin-bottom: 0;
-    vertical-align: middle;
+	color: black;
 }
 
 .logo {
@@ -60,8 +38,13 @@ p {
 
 #footer {
 	width: 100%;
-	margin: 0;
 	text-align: center;
+}
+
+.footer-img {
+    display: inline-block;
+	height: 5em;
+	margin: 1em;
 }
 
 .separator {

@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-18 16:12:31
+# @Last Modified time: 2020-04-18 16:47:44
 
 ''' Definition of the SONICViewer class. '''
 
@@ -102,7 +102,6 @@ class SONICViewer(dash.Dash):
         self.layout = html.Div(id='body', children=[
             # Header
             self.header(),
-            separator(),
 
             # Content
             html.Div(id='content', children=[
@@ -121,6 +120,7 @@ class SONICViewer(dash.Dash):
 
             # Footer
             separator(),
+            html.Br(),
             self.footer()
         ])
 
@@ -128,17 +128,8 @@ class SONICViewer(dash.Dash):
     def header():
         ''' Set app header. '''
         return html.Div(id='header', children=[
-            html.Div(className='header-side', id='header-left', children=[
-                html.A(html.Img(src='assets/EPFL.svg', className='logo'),
-                       href='https://www.epfl.ch')]),
-            html.Div(className='header-side', id='header-right', children=[
-                html.A(html.Img(src='assets/ITIS.svg', className='logo'),
-                       href='https://www.itis.ethz.ch')]),
-            html.Div(id='header-middle', children=[
-                html.H1('Ultrasound Neuromodulation: exploring predictions of the SONIC model',
-                        className='header-txt'),
-                html.Br()
-            ])
+            html.H2('Ultrasound Neuromodulation: exploring predictions of the SONIC model',
+                    className='header-txt')
         ])
 
     @classmethod
@@ -172,7 +163,12 @@ class SONICViewer(dash.Dash):
                         dcc.Markdown(f'''{cls.about()}''')]),
                     dbc.ModalFooter(dbc.Button('Close', id='close-about', className='ml-auto')),
                 ]
-            )
+            ),
+            html.Br(),
+            html.Div(className='footer-img', children=[html.A(html.Img(
+                src='assets/EPFL.svg', className='logo'), href='https://www.epfl.ch')]),
+            html.Div(className='footer-img', children=[html.A(html.Img(
+                src='assets/ITIS.svg', className='logo'), href='https://www.itis.ethz.ch')])
         ])
 
     @staticmethod
