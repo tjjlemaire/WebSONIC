@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2020-04-18 16:51:15
+* @Last Modified time: 2020-04-19 13:58:49
 */
 
 
@@ -21,13 +21,16 @@ p {
 /* Header & Footer
 -----------------------------------------*/
 
-#header {
-	width: 100%;
+.centered-wrapper {
 	text-align: center;
+	width: 100%;
 }
 
-.header-txt {
-	color: black;
+#copyright {
+	background-color: #2E2D2D;
+	color: white;
+	padding-top: 1em;
+	padding-bottom: 1em;
 }
 
 .logo {
@@ -36,9 +39,15 @@ p {
 	float: right;
 }
 
-#footer {
-	width: 100%;
-	text-align: center;
+#about-link {
+	text-decoration: underline black;
+}
+
+#about-logo {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 20%;
 }
 
 .footer-img {
@@ -213,30 +222,4 @@ li {
 	text-align: center;
 	margin-bottom: 0.6rem;
 	margin-top: 0.6rem;
-}
-
-#download-wrapper {
-	text-align: center;
-	width: 100%;
-}
-
-
-/* Submit callbacks
------------------------------------------*/
-
-@keyframes redflash {
-    0% {background-color: red;}
-    100% {background-color: white;}
-}
-
-
-#about-link {
-	text-decoration: underline black;
-}
-
-#about-logo {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-	width: 20%;
 }

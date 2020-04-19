@@ -3,13 +3,14 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-18 16:47:44
+# @Last Modified time: 2020-04-19 13:56:57
 
 ''' Definition of the SONICViewer class. '''
 
 import urllib
 import numpy as np
 import pandas as pd
+from matplotlib.pyplot import get_cmap
 from matplotlib.colors import rgb2hex
 import dash
 import dash_bootstrap_components as dbc
@@ -32,12 +33,12 @@ class SONICViewer(dash.Dash):
     ''' SONIC viewer application inheriting from dash.Dash. '''
 
     tscale = 1e3  # time scaling factor
+    email = 'theo.lemaire@epfl.ch'
 
-    def __init__(self, ctrl_params, plt_params, no_run=False, verbose=False):
+    def __init__(self, ctrl_params, no_run=False, verbose=False):
         ''' App constructor.
 
             :param ctrl_params: dictionary of input parameters that determine input controls
-            :param plt_params: dictionary of parameters that determine plot outputs
             :param no_run: boolean stating whether to test the app UI without running simulations
             :param verbose: boolean stating whether or not to print app information in terminal
         '''
@@ -50,8 +51,8 @@ class SONICViewer(dash.Dash):
         self.title = 'SONIC viewer'
 
         # Initialize constant parameters
-        self.colors = plt_params['colors']
-        self.default_vars = plt_params['default_vars']
+        self.colors = self.getHexColors()
+        self.default_vars = ['Q_m', 'V_m', 'I']
         self.no_run = no_run
         self.verbose = verbose
 
@@ -87,8 +88,9 @@ class SONICViewer(dash.Dash):
         # Link UI components callbacks to appropriate functions
         self.registerCallbacks()
 
-    def __str__(self):
-        ''' Dsecriptive information about the app object. '''
+        print(f'Initialized {self}')
+
+    def __repr__(self):
         return f'{self.title} app'
 
     # ------------------------------------------ LAYOUT ------------------------------------------
@@ -127,7 +129,7 @@ class SONICViewer(dash.Dash):
     @staticmethod
     def header():
         ''' Set app header. '''
-        return html.Div(id='header', children=[
+        return html.Div(className='centered-wrapper', children=[
             html.H2('Ultrasound Neuromodulation: exploring predictions of the SONIC model',
                     className='header-txt')
         ])
@@ -135,21 +137,36 @@ class SONICViewer(dash.Dash):
     @classmethod
     def footer(cls):
         ''' Set app footer. '''
-        return html.Div(id='footer', children=[
-            html.Span([
-                'Ref: Lemaire, T., Neufeld, E., Kuster, N., and Micera, S. (2019). ',
-                html.A(html.I('Understanding ultrasound neuromodulation using a computationally\
-                              efficient and interpretable model of intramembrane cavitation. '),
-                       href='https://iopscience.iop.org/article/10.1088/1741-2552/ab1685'),
-                'J. Neural Eng. '], id='ref'),
-            html.Br(),
-            'Developed with ', html.A('Dash', href='https://dash.plot.ly/'), '. ',
+        return html.Div(id='footer', className='centered-wrapper', children=[
+            cls.credentials(),
+            cls.reachout(),
+            cls.about(),
+            cls.footerImgs(),
+            cls.copyright()
+        ])
+
+    @staticmethod
+    def credentials():
+        return html.Div(className='centered-wrapper', children=[
+            'Developed by Théo Lemaire. ',
+            'Designed with ', html.A('Dash', href='https://dash.plot.ly/'), '. ',
             'Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '.',
-            html.Br(),
-            'Translational Neural Engineering Lab, EPFL - 2019',
-            html.Br(),
-            'contact: ', html.A('theo.lemaire@epfl.ch', href='mailto:theo.lemaire@epfl.ch'),
-            html.Br(),
+        ])
+
+    @classmethod
+    def reachout(cls):
+        return html.Div(className='centered-wrapper', children=[
+            html.I('Interested in using the SONIC model?'),
+            ' Check out the ', html.A(
+                'related paper',
+                href='https://iopscience.iop.org/article/10.1088/1741-2552/ab1685'),
+            ' and ', html.A('contact us!', href=f'mailto:{cls.email}'),
+            ' We will gladly share our code upon reasonable request.'
+        ])
+
+    @classmethod
+    def about(cls):
+        return html.Div([
             '>>> ', html.A('About', id='about-link'), ' <<<',
             dbc.Modal(
                 id='about-modal',
@@ -160,11 +177,15 @@ class SONICViewer(dash.Dash):
                     dbc.ModalHeader('About'),
                     dbc.ModalBody(children=[
                         html.Img(src="assets/sonic_logo.svg", id='about-logo'),
-                        dcc.Markdown(f'''{cls.about()}''')]),
+                        dcc.Markdown(f'''{cls.aboutText()}''')]),
                     dbc.ModalFooter(dbc.Button('Close', id='close-about', className='ml-auto')),
                 ]
-            ),
-            html.Br(),
+            )
+        ])
+
+    @staticmethod
+    def footerImgs():
+        return html.Div(id='footer-imgs', className='centered-wrapper', children=[
             html.Div(className='footer-img', children=[html.A(html.Img(
                 src='assets/EPFL.svg', className='logo'), href='https://www.epfl.ch')]),
             html.Div(className='footer-img', children=[html.A(html.Img(
@@ -172,7 +193,13 @@ class SONICViewer(dash.Dash):
         ])
 
     @staticmethod
-    def about():
+    def copyright():
+        return html.Div(className='centered-wrapper', id='copyright', children=[
+            'Copyright ', u'\u00A9', ' Translational Neural Engineering Lab, EPFL - 2019'
+        ])
+
+    @staticmethod
+    def aboutText():
         ''' Retrieve the "about" text from file.
 
             :return: text string
@@ -301,11 +328,12 @@ class SONICViewer(dash.Dash):
                     ))
                 ])
             ]),
-            html.Div(id='download-wrapper', children=[
-                html.A('Download Data', id='download-link', download="", href="", target="_blank")])
+            html.Div(className='centered-wrapper', children=[
+                html.A('Download Data', id='download-link', download='', href='', target='_blank')
+            ]),
         ])
 
-    # ------------------------------------------ CALLBACKS ------------------------------------------
+    # ------------------------------------------ CALLBACKS -----------------------------------------
 
     def registerCallbacks(self):
         ''' Assign callbacks between inputs and outputs in order to make the app interactive. '''
@@ -625,6 +653,14 @@ class SONICViewer(dash.Dash):
             :return: filecode
         '''
         return self.model.filecode(drive, pp)
+
+    @staticmethod
+    def getHexColors():
+        ''' Generate a list of HEX colors for timeseries plots. '''
+        colors = []
+        for cmap in ['Set1', 'Set2']:
+            colors += get_cmap(cmap).colors
+        return [rgb2hex(c) for c in colors]
 
     def updateGraph(self, _, group_names, cell_type):
         ''' Update graph with new data.

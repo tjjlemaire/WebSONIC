@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-18 16:08:28
+# @Last Modified time: 2020-04-19 12:46:40
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -105,8 +105,6 @@ class SetParameter(QuantitativeParameter):
         return max(self.values)
 
 
-# --------------------------------- Control parameters ---------------------------------
-
 ctrl_params = {
     'cell_type': QualitativeParameter(
         'Cell type', ['RS', 'FS', 'LTS', 'IB', 'RE', 'TC', 'STN'], default='RS'),
@@ -126,16 +124,4 @@ ctrl_params = {
         'PRF', (1e1, 1e3), 'Hz', default=2e1, scale='log', n=10),
     'DC': RangeParameter(
         'Duty cycle', (1., 100.), '%', default=100., scale='log', n=20)
-}
-
-# --------------------------------- Plot parameters ---------------------------------
-
-colors = []
-for cmap in ['Set1', 'Set2']:
-    colors += plt.get_cmap(cmap).colors
-hex_colors = [rgb2hex(c) for c in colors]
-
-plt_params = {
-    'colors': hex_colors,
-    'default_vars': ['Q_m', 'V_m', 'I']
 }

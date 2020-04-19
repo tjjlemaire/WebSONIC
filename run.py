@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-04 18:26:15
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-17 12:43:46
+# @Last Modified time: 2020-04-19 13:55:45
 # -*- coding: utf-8 -*-
 # @Author: Theo Lemaire
 # @Date:   2017-07-11 18:58:23
@@ -18,7 +18,7 @@ import psutil
 from argparse import ArgumentParser
 
 from viewer import SONICViewer
-from params import ctrl_params, plt_params
+from params import ctrl_params
 
 # Determine if app is served via gunicorn or normally ("basic" flask serving)
 is_gunicorn = psutil.Process(os.getppid()).name() == 'gunicorn'
@@ -41,8 +41,7 @@ else:
     verbose = args.verbose
 
 # Create app instance
-app = SONICViewer(ctrl_params, plt_params, no_run=testUI, verbose=verbose)
-print(f'Created {app}')
+app = SONICViewer(ctrl_params, no_run=testUI, verbose=verbose)
 
 # Add underlying server instance to module global scope (for gunicorn use)
 if is_gunicorn:
