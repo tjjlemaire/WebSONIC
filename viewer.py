@@ -3,37 +3,39 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-19 13:56:57
-
-''' Definition of the SONICViewer class. '''
+# @Last Modified time: 2020-04-19 19:11:56
 
 import urllib
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import get_cmap
-from matplotlib.colors import rgb2hex
-import dash
+import dash_html_components as html
+import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-from PySONIC.utils import isIterable, bounds, getMeta
+from PySONIC.utils import isIterable, bounds, getMeta, si_format
 from PySONIC.postpro import detectSpikes
-from PySONIC.constants import *
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.plt import GroupedTimeSeries, extractPltVar
 from ExSONIC.core import Node
+from ExSONIC.constants import S_TO_MS
 
-from components import *
+from template import AppTemplate
 
 
-class SONICViewer(dash.Dash):
-    ''' SONIC viewer application inheriting from dash.Dash. '''
+class SONICViewer(AppTemplate):
+    ''' SONIC viewer application. '''
 
-    tscale = 1e3  # time scaling factor
+    name = 'viewer'
+    title = 'SONIC viewer'
+    author = 'Théo Lemaire'
     email = 'theo.lemaire@epfl.ch'
+    copyright = 'Translational Neural Engineering Lab, EPFL - 2019'
+
+    default_vars = ['Q_m', 'V_m', 'I']
 
     def __init__(self, ctrl_params, no_run=False, verbose=False):
         ''' App constructor.
@@ -42,21 +44,12 @@ class SONICViewer(dash.Dash):
             :param no_run: boolean stating whether to test the app UI without running simulations
             :param verbose: boolean stating whether or not to print app information in terminal
         '''
-        # Initialize Dash app
-        super(SONICViewer, self).__init__(
-            name='viewer',
-            url_base_pathname='/viewer/',
-            external_stylesheets=[dbc.themes.BOOTSTRAP]
-        )
-        self.title = 'SONIC viewer'
-
         # Initialize constant parameters
-        self.colors = self.getHexColors()
-        self.default_vars = ['Q_m', 'V_m', 'I']
         self.no_run = no_run
         self.verbose = verbose
 
         # Initialize parameters that will change upon requests
+        self.simcount = 0
         self.current_params = None
         self.model = None
         self.data = None
@@ -76,115 +69,64 @@ class SONICViewer(dash.Dash):
         self.pp_params = {x: ctrl_params[x] for x in ['tstim', 'PRF', 'DC']}
 
         # Initialize plot variables and plot scheme
-        default_cell = self.cell_param.default
-        self.pltvars = self.pneurons[default_cell].getPltVars()
-        self.pltscheme = self.pneurons[default_cell].pltScheme
+        self.default_cell = self.cell_param.default
+        self.default_mod = 'US'
+        self.pltvars = self.pneurons[self.default_cell].getPltVars()
+        self.pltscheme = self.pneurons[self.default_cell].pltScheme
 
-        self.simcount = 0
-
-        # Initialize UI layout components
-        self.setLayout(default_cell, 'US')
-
-        # Link UI components callbacks to appropriate functions
-        self.registerCallbacks()
-
-        print(f'Initialized {self}')
-
-    def __repr__(self):
-        return f'{self.title} app'
+        super().__init__()
 
     # ------------------------------------------ LAYOUT ------------------------------------------
 
-    def setLayout(self, default_cell, default_mod):
-        ''' Set app layout.
+    @property
+    def about(self):
+        with open('about.md', encoding="utf8") as f:
+            return f.read()
 
-            :param default_cell: default cell type for the layout initialization
-            :param default_mod: default modality for the layout initialization
-        '''
-        self.layout = html.Div(id='body', children=[
-            # Header
-            self.header(),
-
-            # Content
-            html.Div(id='content', children=[
-                # Left side
-                html.Div(id='left-col', className='content-column', children=[
-                    self.cellPanel(default_cell),
-                    self.stimPanel(default_mod),
-                    self.metricsPanel(),
-                    self.statusBar()
-                ]),
-
-                # Right side
-                html.Div(id='right-col', className='content-column', children=[
-                    self.outputPanel(default_cell, default_mod)])
+    def content(self):
+        return [
+            # Left side
+            html.Div(id='left-col', className='content-column', children=[
+                self.cellPanel(self.default_cell),
+                self.stimPanel(self.default_mod),
+                self.metricsPanel(),
+                self.statusBar()
             ]),
 
-            # Footer
-            separator(),
-            html.Br(),
-            self.footer()
-        ])
+            # Right side
+            html.Div(id='right-col', className='content-column', children=[
+                self.outputPanel(self.default_cell, self.default_mod)])
+        ]
 
-    @staticmethod
-    def header():
-        ''' Set app header. '''
-        return html.Div(className='centered-wrapper', children=[
-            html.H2('Ultrasound Neuromodulation: exploring predictions of the SONIC model',
-                    className='header-txt')
-        ])
+    def header(self):
+        return [html.H2('Ultrasound Neuromodulation: exploring predictions of the SONIC model')]
 
-    @classmethod
-    def footer(cls):
-        ''' Set app footer. '''
-        return html.Div(id='footer', className='centered-wrapper', children=[
-            cls.credentials(),
-            cls.reachout(),
-            cls.about(),
-            cls.footerImgs(),
-            cls.copyright()
-        ])
+    def footer(self):
+        return [self.reachout(), *super().footer()]
 
-    @staticmethod
-    def credentials():
-        return html.Div(className='centered-wrapper', children=[
-            'Developed by Théo Lemaire. ',
-            'Designed with ', html.A('Dash', href='https://dash.plot.ly/'), '. ',
-            'Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '.',
-        ])
-
-    @classmethod
-    def reachout(cls):
-        return html.Div(className='centered-wrapper', children=[
-            html.I('Interested in using the SONIC model?'),
+    def reachout(self):
+        return dbc.Alert(id='reachout', color='info', is_open=True, children=[
+            html.H5('Interested in using the SONIC model?', className='alert-heading'),
             ' Check out the ', html.A(
                 'related paper',
-                href='https://iopscience.iop.org/article/10.1088/1741-2552/ab1685'),
-            ' and ', html.A('contact us!', href=f'mailto:{cls.email}'),
+                href='https://iopscience.iop.org/article/10.1088/1741-2552/ab1685',
+                className='alert-link'),
+            ' and ',
+            html.A(
+                'contact us!',
+                href=f'mailto:{self.email}',
+                className='alert-link'),
             ' We will gladly share our code upon reasonable request.'
         ])
 
-    @classmethod
-    def about(cls):
-        return html.Div([
-            '>>> ', html.A('About', id='about-link'), ' <<<',
-            dbc.Modal(
-                id='about-modal',
-                size='lg',
-                scrollable=True,
-                centered=True,
-                children=[
-                    dbc.ModalHeader('About'),
-                    dbc.ModalBody(children=[
-                        html.Img(src="assets/sonic_logo.svg", id='about-logo'),
-                        dcc.Markdown(f'''{cls.aboutText()}''')]),
-                    dbc.ModalFooter(dbc.Button('Close', id='close-about', className='ml-auto')),
-                ]
-            )
+    def credentials(self):
+        return html.Span([
+            super().credentials(),
+            ' Designed with ', html.A('Dash', href='https://dash.plot.ly/'), '.',
+            ' Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '.',
         ])
 
-    @staticmethod
-    def footerImgs():
+    def footerImgs(self):
         return html.Div(id='footer-imgs', className='centered-wrapper', children=[
             html.Div(className='footer-img', children=[html.A(html.Img(
                 src='assets/EPFL.svg', className='logo'), href='https://www.epfl.ch')]),
@@ -192,28 +134,13 @@ class SONICViewer(dash.Dash):
                 src='assets/ITIS.svg', className='logo'), href='https://www.itis.ethz.ch')])
         ])
 
-    @staticmethod
-    def copyright():
-        return html.Div(className='centered-wrapper', id='copyright', children=[
-            'Copyright ', u'\u00A9', ' Translational Neural Engineering Lab, EPFL - 2019'
-        ])
-
-    @staticmethod
-    def aboutText():
-        ''' Retrieve the "about" text from file.
-
-            :return: text string
-        '''
-        with open('about.md', encoding="utf8") as f:
-            return f.read()
-
     def slidersTable(self, label, params_dict):
         ''' Set a table of labeled slider controls based on a dictionary of parameters.
 
             :param label: table label
             :param params_dict: dictionary of parameter objects
         '''
-        return labeledSlidersTable(
+        return self.labeledSlidersTable(
             f'{label}-slider-table',
             labels=[p.label for p in params_dict.values()],
             ids=[f'{p}-slider' for p in params_dict.keys()],
@@ -229,7 +156,7 @@ class SONICViewer(dash.Dash):
 
             :param default_cell: default cell type for the layout initialization
         '''
-        return collapsablePanel('Cell parameters', children=[
+        return self.collapsablePanel('Cell parameters', children=[
             html.Table(className='table', children=[
                 html.Tr([
                     html.Td(self.cell_param.label, className='row-label'),
@@ -253,7 +180,7 @@ class SONICViewer(dash.Dash):
 
             :param default_mod: default modality for the layout initialization
         '''
-        return collapsablePanel('Stimulation parameters', children=[
+        return self.collapsablePanel('Stimulation parameters', children=[
             # US-EL tabs
             dcc.Tabs(
                 id='modality-tabs',
@@ -281,12 +208,11 @@ class SONICViewer(dash.Dash):
 
     def statusBar(self):
         ''' Status bar object. '''
-        return dbc.Alert(id='status-bar', color='light', is_open=True, children=[])
+        return html.Div(id='status-bar', children=[])
 
-    @staticmethod
-    def metricsPanel():
+    def metricsPanel(self):
         ''' Metric panel. '''
-        return collapsablePanel('Output metrics', children=[
+        return self.collapsablePanel('Output metrics', children=[
             html.Table(id='info-table', className='table')])
 
     def outputPanel(self, default_cell, default_mod):
@@ -300,7 +226,7 @@ class SONICViewer(dash.Dash):
         labels = self.getOutputDropDownLabels()
 
         return html.Div(children=[
-            panel(children=[
+            self.panel(children=[
                 html.Div(className='graph-div', children=[
                     # Title
                     html.Div(id='graph-title', className='graph-title', children=[]),
@@ -336,7 +262,8 @@ class SONICViewer(dash.Dash):
     # ------------------------------------------ CALLBACKS -----------------------------------------
 
     def registerCallbacks(self):
-        ''' Assign callbacks between inputs and outputs in order to make the app interactive. '''
+        super().registerCallbacks()
+
         # Cell panel: cell type
         self.callback(
             Output('membrane-currents', 'children'),
@@ -417,24 +344,6 @@ class SONICViewer(dash.Dash):
             Output('download-link', 'download'),
             [Input('status-bar', 'children')])(self.updateDownloadName)
 
-        # About modal
-        self.callback(
-            Output('about-modal', 'is_open'),
-            [Input('about-link', 'n_clicks'), Input('close-about', 'n_clicks')],
-            [State('about-modal', 'is_open')])(self.toggleAbout)
-
-    @staticmethod
-    def toggleAbout(n1, n2, is_open):
-        ''' Toggle the visibility of a modal HTML element.
-
-            :param n1: number of clicks on the opening link
-            :param n2: number of clicks on the close button
-            :param is_open: current state of the modal element (open or closed)
-        '''
-        if n1 or n2:
-            return not is_open
-        return is_open
-
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch.
 
@@ -442,7 +351,7 @@ class SONICViewer(dash.Dash):
             :return: HTML list of cell-type-specific membrane currents
         '''
         currents = self.pneurons[cell_type].getCurrentsNames()
-        return unorderedList([f'{self.pltvars[c]["desc"]} ({c})' for c in currents])
+        return self.unorderedList([f'{self.pltvars[c]["desc"]} ({c})' for c in currents])
 
     def tabDependentVisibility(self, ref_value):
         ''' Set the bisibility of an element if according to match with a tab state.
@@ -654,14 +563,6 @@ class SONICViewer(dash.Dash):
         '''
         return self.model.filecode(drive, pp)
 
-    @staticmethod
-    def getHexColors():
-        ''' Generate a list of HEX colors for timeseries plots. '''
-        colors = []
-        for cmap in ['Set1', 'Set2']:
-            colors += get_cmap(cmap).colors
-        return [rgb2hex(c) for c in colors]
-
     def updateGraph(self, _, group_names, cell_type):
         ''' Update graph with new data.
 
@@ -682,7 +583,7 @@ class SONICViewer(dash.Dash):
             # Preset and rescale time vector
             tonset = t.min() - 0.05 * np.ptp(t)
             t = np.insert(t, 0, tonset)
-            t *= self.tscale
+            t *= S_TO_MS
             trange = bounds(t)
             nsamples = t.size
 
@@ -691,12 +592,12 @@ class SONICViewer(dash.Dash):
                 'type': 'rect',
                 'xref': 'x',
                 'yref': 'paper',
-                'x0': pulse[0] * self.tscale,
-                'x1': pulse[1] * self.tscale,
+                'x0': pulse[0] * S_TO_MS,
+                'x1': pulse[1] * S_TO_MS,
                 'y0': 0,
                 'y1': 1,
                 'fillcolor': 'grey',
-                'line': {'color': rgb2hex(pcolor)},
+                'line': {'color': self.rgb2hex(pcolor)},
                 'opacity': 0.2
             } for pulse, pcolor in zip(pulses, pcolors)]
         else:
@@ -776,28 +677,6 @@ class SONICViewer(dash.Dash):
         # Return figure object and title
         return fig, self.simlog
 
-    @staticmethod
-    def getXrange(relayout_data):
-        ''' Get the x-range of the zoomed in data
-
-            :param relayout_data: graph relayout data structure
-            :return x-axis range
-        '''
-        startx = 'xaxis.range[0]' in relayout_data if relayout_data else None
-        endx = 'xaxis.range[1]' in relayout_data if relayout_data else None
-        sliderange = 'xaxis.range' in relayout_data if relayout_data else None
-        if startx and endx:
-            xrange = [relayout_data['xaxis.range[0]'], relayout_data['xaxis.range[1]']]
-        elif startx and not endx:
-            xrange = [relayout_data['xaxis.range[0]'], thedates.max()]
-        elif not startx and endx:
-            xrange = [thedates.min(), relayout_data['xaxis.range[1]']]
-        elif sliderange:
-            xrange = relayout_data['xaxis.range']
-        else:
-            xrange = None
-        return xrange
-
     def updateInfoTable(self, _):
         ''' Update the content of the output metrics table on neuron/modality/stimulation change.
 
@@ -815,9 +694,10 @@ class SONICViewer(dash.Dash):
             lat = None
             sr = None
 
-        return dataRows(labels=['# spikes', 'Latency', 'Firing rate'],
-                        values=[nspikes, lat, sr],
-                        units=['', 's', 'Hz'])
+        return self.dataRows(
+            labels=['# spikes', 'Latency', 'Firing rate'],
+            values=[nspikes, lat, sr],
+            units=['', 's', 'Hz'])
 
     def updateDownloadContent(self, _):
         ''' Update the content of the downloadable pandas dataframe.

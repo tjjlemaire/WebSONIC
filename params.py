@@ -3,19 +3,16 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-19 12:46:40
+# @Last Modified time: 2020-04-19 17:05:02
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
 # @Last Modified time: 2019-04-29 16:15:17
 
-''' Definition of application parameters. '''
+''' Definition of control parameters. '''
 
 import abc
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import rgb2hex
-
 from PySONIC.utils import isWithin
 
 
