@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-19 19:11:56
+# @Last Modified time: 2020-04-20 17:19:28
 
 import urllib
 import numpy as np
@@ -276,6 +276,16 @@ class SONICViewer(AppTemplate):
                 Output(f'{id}-value', 'children'),
                 [Input(id, 'value')])(self.updateSliderValue(p))
 
+        # Coverage slider
+        self.callback(
+            [Output('sonophore_coverage_fraction-slider', 'value'),
+             Output('sonophore_coverage_fraction-slider', 'disabled')],
+            [Input('cell_type-dropdown', 'value'),
+             Input('sonophore_radius-slider', 'value'),
+             Input('modality-tabs', 'value'),
+             Input('f_US-slider', 'value')],
+            [State('sonophore_coverage_fraction-slider', 'value')])(self.updateCoverageSlider)
+
         # Stimulation panel: US/EL drive parameters visibility
         for key in self.drive_params.keys():
             self.callback(
@@ -290,24 +300,12 @@ class SONICViewer(AppTemplate):
                     Output(f'{id}-value', 'children'),
                     [Input(id, 'value')])(self.updateSliderValue(p))
 
-        # Coverage slider
-        self.callback(
-            [Output('sonophore_coverage_fraction-slider', 'value'),
-             Output('sonophore_coverage_fraction-slider', 'disabled')],
-            [Input('cell_type-dropdown', 'value'),
-             Input('sonophore_radius-slider', 'value'),
-             Input('modality-tabs', 'value'),
-             Input('f_US-slider', 'value')],
-            [State('sonophore_coverage_fraction-slider', 'value')])(self.updateCoverageSlider)
-
-        # Output metrics table
-        self.callback(
-            Output('info-table', 'children'),
-            [Input('status-bar', 'children')])(self.updateInfoTable)
-
         # Inputs change that trigger simulations
         self.callback(
-            Output('status-bar', 'children'),
+            [Output('info-table', 'children'),
+             Output('status-bar', 'children'),
+             Output('download-link', 'href'),
+             Output('download-link', 'download')],
             [Input('cell_type-dropdown', 'value'),
              Input('sonophore_radius-slider', 'value'),
              Input('sonophore_coverage_fraction-slider', 'value'),
@@ -319,14 +317,12 @@ class SONICViewer(AppTemplate):
              Input('PRF-slider', 'value'),
              Input('DC-slider', 'value')])(self.onInputsChange)
 
-        # Output panel
+        # Output dropdown
         self.callback(
-            Output('graph-dropdown', 'options'),
-            [Input('cell_type-dropdown', 'value')])(self.updateOutputOptions)
-        self.callback(
-            Output('graph-dropdown', 'value'),
+            [Output('graph-dropdown', 'value'),
+             Output('graph-dropdown', 'options')],
             [Input('cell_type-dropdown', 'value')],
-            state=[State(f'graph-dropdown', 'value')])(self.updateOutputVars)
+            [State(f'graph-dropdown', 'value')])(self.updateOutputDropdown)
 
         # Update graph & title whenever status bar or dropdown values change
         self.callback(
@@ -335,14 +331,6 @@ class SONICViewer(AppTemplate):
             [Input('status-bar', 'children'),
              Input('graph-dropdown', 'value')],
             [State('cell_type-dropdown', 'value')])(self.updateGraph)
-
-        # Download link
-        self.callback(
-            Output('download-link', 'href'),
-            [Input('status-bar', 'children')])(self.updateDownloadContent)
-        self.callback(
-            Output('download-link', 'download'),
-            [Input('status-bar', 'children')])(self.updateDownloadName)
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch.
@@ -425,41 +413,30 @@ class SONICViewer(AppTemplate):
                 labels.append(label)
         return labels
 
-    def updateOutputOptions(self, cell_type):
-        ''' Update the list of available variables in a graph dropdown menu on neuron switch.
+    def updateOutputDropdown(self, cell_type, values):
+        ''' Update the output dropdown options and selected values on neuron switch.
 
             :param cell_type: cell type
-            :return: label:value dictionary of update droppdown options
+            :param values: currently selected value(s)
+            :return: new dropdown values and options
         '''
         # Update pltvars and pltscheme according to new cell type
         self.pltvars = self.pneurons[cell_type].getPltVars()
         self.pltscheme = self.pneurons[cell_type].pltScheme
 
-        # Get options values and generate options labels
-        values = list(self.pltscheme.keys())
-        labels = self.getOutputDropDownLabels()
+        # Construct dropdown options list
+        options = [{'label': lbl, 'value': val} for lbl, val in zip(
+            self.getOutputDropDownLabels(), self.pltscheme.keys())]
 
-        # Return dictionary
-        return [{'label': lbl, 'value': val} for lbl, val in zip(labels, values)]
+        # Filter current values based on new options
+        if not isIterable(values):
+            values = [values]
+        values = list(filter(lambda x: x in self.pltscheme.keys(), values))
+        if len(values) == 0:
+            values = self.default_vars
 
-    def updateOutputVars(self, cell_type, varnames):
-        ''' Update the selected variable in a graph dropdown menu on neuron switch.
-
-            :param cell_type: cell type
-            :param varnames: name of currently selected variables
-            :return: name of the selected variable, updated if needed
-        '''
-        # Update pltvars and pltscheme according to new cell type
-        self.pltvars = self.pneurons[cell_type].getPltVars()
-        self.pltscheme = self.pneurons[cell_type].pltScheme
-
-        # Get options values and generate options labels
-        if not isIterable(varnames):
-            varnames = [varnames]
-        varnames = list(filter(lambda x: x in self.pltscheme.keys(), varnames))
-        if len(varnames) == 0:
-            varnames = self.default_vars
-        return varnames
+        # Return new values and options
+        return values, options
 
     def convertSliderInput(self, value, refparam):
         ''' Convert slider value into corresponding parameters value.
@@ -507,11 +484,11 @@ class SONICViewer(AppTemplate):
             self.runSim(*new_params)
             self.current_params = new_params
 
-        # Return status message inside a list
-        return [self.statusMessage()]
+        # Return new info-table, status message and download link-content
+        return [self.infoTable(), self.status(), *self.download()]
 
-    def statusMessage(self):
-        return f'Number of simulations: {self.simcount}'
+    def status(self):
+        return [f'Number of simulations: {self.simcount}']
 
     def getShamData(self, pneuron, pp):
         ''' Get Sham output data without running a simulation.data
@@ -677,11 +654,8 @@ class SONICViewer(AppTemplate):
         # Return figure object and title
         return fig, self.simlog
 
-    def updateInfoTable(self, _):
-        ''' Update the content of the output metrics table on neuron/modality/stimulation change.
-
-            return: updated table data rows
-        '''
+    def infoTable(self):
+        ''' Return an output metrics table on the current data. '''
         # Spike detection
         if self.data is not None:
             t = self.data['t']
@@ -699,24 +673,14 @@ class SONICViewer(AppTemplate):
             values=[nspikes, lat, sr],
             units=['', 's', 'Hz'])
 
-    def updateDownloadContent(self, _):
-        ''' Update the content of the downloadable pandas dataframe.
-
-            :return: string-encoded CSV
-        '''
+    def download(self):
+        ''' Return a content-name download link according to the current data. '''
         if self.data is None:
             csv_string = ''
-        else:
-            csv_string = self.data.to_csv(index=False, encoding='utf-8')
-        return "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-
-    def updateDownloadName(self, _):
-        ''' Update the name of the downloadable pandas dataframe.
-
-            :return: download file name
-        '''
-        if self.current_params is None:
             code = 'none'
         else:
+            csv_string = self.data.to_csv(index=False, encoding='utf-8')
             code = self.getFileCode(*self.current_params[-2:])
-        return f'{code}.csv'
+        content = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+        name = f'{code}.csv'
+        return content, name
