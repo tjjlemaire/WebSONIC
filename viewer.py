@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-20 17:19:28
+# @Last Modified time: 2020-04-21 20:58:05
 
 import urllib
 import numpy as np
@@ -15,7 +15,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-from PySONIC.utils import isIterable, bounds, getMeta, si_format
+from PySONIC.utils import isIterable, bounds, getMeta
 from PySONIC.postpro import detectSpikes
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
 from PySONIC.neurons import getNeuronsDict
@@ -24,23 +24,52 @@ from ExSONIC.core import Node
 from ExSONIC.constants import S_TO_MS
 
 from template import AppTemplate
+from params import QualitativeParameter, RangeParameter
 
 
 class SONICViewer(AppTemplate):
     ''' SONIC viewer application. '''
 
+    # Properties
     name = 'viewer'
     title = 'SONIC viewer'
     author = 'Théo Lemaire'
     email = 'theo.lemaire@epfl.ch'
     copyright = 'Translational Neural Engineering Lab, EPFL - 2019'
 
+    # Cell, drive and pulsing parameters
+    params = {
+        'cell': QualitativeParameter(
+            'Cell type', ['RS', 'FS', 'LTS', 'IB', 'RE', 'TC', 'STN'], default='RS'),
+        'sonophore': {
+            'radius': RangeParameter(
+                'Sonophore radius', (16e-9, 64e-9), 'm', default=32e-9, scale='log', n=5),
+            'coverage_fraction': RangeParameter(
+                'Coverage fraction', (1., 100.), '%', default=100., scale='lin', n=20)},
+        'drive': {
+            'US': {
+                'f': RangeParameter(
+                    'Frequency', (20e3, 4e6), 'Hz', default=500e3, scale='log', n=20),
+                'A': RangeParameter(
+                    'Amplitude', (10e3, 600e3), 'Pa', default=80e3, scale='log', n=100)},
+            'EL': {
+                'A': RangeParameter(
+                    'Amplitude', (-25e-3, 25e-3), 'A/m2', default=10e-3, n=51)}},
+        'pp': {
+            'tstim': RangeParameter(
+                'Duration', (20e-3, 1.0), 's', default=200e-3, scale='friendly-log'),
+            'PRF': RangeParameter(
+                'PRF', (1e1, 1e3), 'Hz', default=2e1, scale='friendly-log'),
+            'DC': RangeParameter(
+                'Duty cycle', (1., 100.), '%', default=100., scale='log', n=20)}
+    }
+
+    # Default plot variables
     default_vars = ['Q_m', 'V_m', 'I']
 
-    def __init__(self, ctrl_params, no_run=False, verbose=False):
+    def __init__(self, no_run=False, verbose=False):
         ''' App constructor.
 
-            :param ctrl_params: dictionary of input parameters that determine input controls
             :param no_run: boolean stating whether to test the app UI without running simulations
             :param verbose: boolean stating whether or not to print app information in terminal
         '''
@@ -55,24 +84,11 @@ class SONICViewer(AppTemplate):
         self.data = None
 
         # Initialize point-neuron objects
-        self.pneurons = {
-            key: getNeuronsDict()[key]()
-            for key in ctrl_params['cell_type'].values}
+        self.pneurons = {k: getNeuronsDict()[k]() for k in self.params['cell'].values}
 
-        # Initialize cell, drive and pulsing parameters
-        self.cell_param = ctrl_params['cell_type']
-        self.sonophore_params = {
-            x: ctrl_params[x] for x in ['sonophore_radius', 'sonophore_coverage_fraction']}
-        self.drive_params = {
-            'US': {x: ctrl_params[x] for x in ['f_US', 'A_US']},
-            'EL': {'A_EL': ctrl_params['A_EL']}}
-        self.pp_params = {x: ctrl_params[x] for x in ['tstim', 'PRF', 'DC']}
-
-        # Initialize plot variables and plot scheme
-        self.default_cell = self.cell_param.default
-        self.default_mod = 'US'
-        self.pltvars = self.pneurons[self.default_cell].getPltVars()
-        self.pltscheme = self.pneurons[self.default_cell].pltScheme
+        # Initialize defaults
+        self.defaults = self.getDefaults(self.params)
+        self.defaults['mod'] = 'US'
 
         super().__init__()
 
@@ -87,15 +103,16 @@ class SONICViewer(AppTemplate):
         return [
             # Left side
             html.Div(id='left-col', className='content-column', children=[
-                self.cellPanel(self.default_cell),
-                self.stimPanel(self.default_mod),
+                self.cellPanel(),
+                self.stimPanel(),
                 self.metricsPanel(),
                 self.statusBar()
             ]),
 
             # Right side
             html.Div(id='right-col', className='content-column', children=[
-                self.outputPanel(self.default_cell, self.default_mod)])
+                self.outputPanel()
+            ])
         ]
 
     def header(self):
@@ -134,32 +151,12 @@ class SONICViewer(AppTemplate):
                 src='assets/ITIS.svg', className='logo'), href='https://www.itis.ethz.ch')])
         ])
 
-    def slidersTable(self, label, params_dict):
-        ''' Set a table of labeled slider controls based on a dictionary of parameters.
-
-            :param label: table label
-            :param params_dict: dictionary of parameter objects
-        '''
-        return self.labeledSlidersTable(
-            f'{label}-slider-table',
-            labels=[p.label for p in params_dict.values()],
-            ids=[f'{p}-slider' for p in params_dict.keys()],
-            bounds=[p.bounds for p in params_dict.values()],
-            n=[p.n for p in params_dict.values()],
-            values=[p.default for p in params_dict.values()],
-            scales=[p.scale for p in params_dict.values()],
-            disabled=[p.disabled for p in params_dict.values()]
-        )
-
-    def cellPanel(self, default_cell):
-        ''' Construct cell parameters panel.
-
-            :param default_cell: default cell type for the layout initialization
-        '''
+    def cellPanel(self):
+        ''' Construct cell parameters panel. '''
         return self.collapsablePanel('Cell parameters', children=[
             html.Table(className='table', children=[
                 html.Tr([
-                    html.Td(self.cell_param.label, className='row-label'),
+                    html.Td(self.params['cell'].label, className='row-label'),
                     html.Td(className='row-data', children=[
                         dcc.Dropdown(
                             className='ddlist',
@@ -168,42 +165,23 @@ class SONICViewer(AppTemplate):
                                 'label': f'{self.pneurons[name].description()} ({name})',
                                 'value': name
                             } for name in self.pneurons.keys()],
-                            value=default_cell),
+                            value=self.defaults['cell']),
                         html.Div(id='membrane-currents'),
                     ])])
             ]),
-            self.slidersTable('sonophore', self.sonophore_params)
+            self.paramSlidersTable('sonophore', self.params['sonophore'])
         ])
 
-    def stimPanel(self, default_mod):
-        ''' Construct stimulation parameters panel.
-
-            :param default_mod: default modality for the layout initialization
-        '''
+    def stimPanel(self):
+        ''' Construct stimulation parameters panel. '''
         return self.collapsablePanel('Stimulation parameters', children=[
             # US-EL tabs
-            dcc.Tabs(
-                id='modality-tabs',
-                className='custom-tabs-container',
-                parent_className='custom-tabs',
-                value=default_mod, children=[
-                    dcc.Tab(
-                        label='Ultrasound',
-                        value='US',
-                        className='custom-tab',
-                        selected_className='custom-tab--selected'
-                    ),
-                    dcc.Tab(
-                        label='Injected current',
-                        value='EL',
-                        className='custom-tab',
-                        selected_className='custom-tab--selected'
-                    )
-                ]),
+            self.tabs(
+                'modality', ['Ultrasound', 'Injected current'], ['US', 'EL'], self.defaults['mod']),
 
             # Ctrl sliders
-            *[self.slidersTable(k, v) for k, v in self.drive_params.items()],
-            self.slidersTable('pp', self.pp_params)
+            *[self.paramSlidersTable(k, v, id_prefix=k) for k, v in self.params['drive'].items()],
+            self.paramSlidersTable('pp', self.params['pp'])
         ])
 
     def statusBar(self):
@@ -215,16 +193,8 @@ class SONICViewer(AppTemplate):
         return self.collapsablePanel('Output metrics', children=[
             html.Table(id='info-table', className='table')])
 
-    def outputPanel(self, default_cell, default_mod):
-        ''' Set output (graphs) panel layout.
-
-            :param default_cell: default cell type for the layout initialization
-            :param default_mod: default modality for the layout initialization
-        '''
-        # Get options values and generate options labels
-        values = list(self.pltscheme.keys())
-        labels = self.getOutputDropDownLabels()
-
+    def outputPanel(self):
+        ''' Set output (graphs) panel layout. '''
         return html.Div(children=[
             self.panel(children=[
                 html.Div(className='graph-div', children=[
@@ -234,8 +204,6 @@ class SONICViewer(AppTemplate):
                     dcc.Dropdown(
                         className='ddlist',
                         id=f'graph-dropdown',
-                        options=[{'label': l, 'value': v} for l, v in zip(labels, values)],
-                        value=self.default_vars,
                         multi=True
                     ),
                     # Graph
@@ -270,49 +238,45 @@ class SONICViewer(AppTemplate):
             [Input('cell_type-dropdown', 'value')])(self.updateMembraneCurrents)
 
         # Cell panel: sliders
-        for key, p in self.sonophore_params.items():
-            id = f'{key}-slider'
-            self.callback(
-                Output(f'{id}-value', 'children'),
-                [Input(id, 'value')])(self.updateSliderValue(p))
+        for k, p in self.params['sonophore'].items():
+            self.linkSliderValue(k, p)
 
         # Coverage slider
         self.callback(
-            [Output('sonophore_coverage_fraction-slider', 'value'),
-             Output('sonophore_coverage_fraction-slider', 'disabled')],
+            [Output('coverage_fraction-slider', 'value'),
+             Output('coverage_fraction-slider', 'disabled')],
             [Input('cell_type-dropdown', 'value'),
-             Input('sonophore_radius-slider', 'value'),
+             Input('radius-slider', 'value'),
              Input('modality-tabs', 'value'),
-             Input('f_US-slider', 'value')],
-            [State('sonophore_coverage_fraction-slider', 'value')])(self.updateCoverageSlider)
+             Input('US-f-slider', 'value')],
+            [State('coverage_fraction-slider', 'value')])(self.updateCoverageSlider)
 
         # Stimulation panel: US/EL drive parameters visibility
-        for key in self.drive_params.keys():
+        for key in self.params['drive'].keys():
             self.callback(
                 Output(f'{key}-slider-table', 'hidden'),
-                [Input('modality-tabs', 'value')])(self.tabDependentVisibility(key))
+                [Input('modality-tabs', 'value')])(self.valueDependentVisibility(key))
 
         # Stimulation panel: sliders
-        for refparams in [*self.drive_params.values(), self.pp_params]:
-            for key, p in refparams.items():
-                id = f'{key}-slider'
-                self.callback(
-                    Output(f'{id}-value', 'children'),
-                    [Input(id, 'value')])(self.updateSliderValue(p))
+        for key, val in self.params['drive'].items():
+            for k, p in val.items():
+                self.linkSliderValue(f'{key}-{k}', p)
+        for k, p in self.params['pp'].items():
+            self.linkSliderValue(k, p)
 
-        # Inputs change that trigger simulations
+        # Inputs changes that trigger simulations
         self.callback(
             [Output('info-table', 'children'),
              Output('status-bar', 'children'),
              Output('download-link', 'href'),
              Output('download-link', 'download')],
-            [Input('cell_type-dropdown', 'value'),
-             Input('sonophore_radius-slider', 'value'),
-             Input('sonophore_coverage_fraction-slider', 'value'),
-             Input('modality-tabs', 'value'),
-             Input('f_US-slider', 'value'),
-             Input('A_US-slider', 'value'),
-             Input('A_EL-slider', 'value'),
+            [Input('modality-tabs', 'value'),
+             Input('cell_type-dropdown', 'value'),
+             Input('radius-slider', 'value'),
+             Input('coverage_fraction-slider', 'value'),
+             Input('US-f-slider', 'value'),
+             Input('US-A-slider', 'value'),
+             Input('EL-A-slider', 'value'),
              Input('tstim-slider', 'value'),
              Input('PRF-slider', 'value'),
              Input('DC-slider', 'value')])(self.onInputsChange)
@@ -341,22 +305,6 @@ class SONICViewer(AppTemplate):
         currents = self.pneurons[cell_type].getCurrentsNames()
         return self.unorderedList([f'{self.pltvars[c]["desc"]} ({c})' for c in currents])
 
-    def tabDependentVisibility(self, ref_value):
-        ''' Set the bisibility of an element if according to match with a tab state.
-
-            :param ref_value: reference value that needs to match the tab state to show the element
-            :return: lambda function handling the visibility toggle
-        '''
-        return lambda x: x != ref_value
-
-    def updateSliderValue(self, p):
-        ''' Update the value of a slider label when the slider is moved.
-
-            :param p: parameter object with information about the label formatting
-            :return: lambda function handling the label formatting upon slider change.
-        '''
-        return lambda x: f'{si_format(p.scaling_func(x), 1)}{p.unit}'
-
     def has_fs_lookup(self, cell_type, a, f):
         ''' Determine if an fs-dependent lookup exists for a specific parameter combination.
             :param cell_type: cell type
@@ -365,9 +313,9 @@ class SONICViewer(AppTemplate):
             :return: boolean stating whether a lookup file should exist.
         '''
         is_default_cell = cell_type == 'RS'
-        is_default_radius = np.isclose(a, self.sonophore_params['sonophore_radius'].default,
+        is_default_radius = np.isclose(a, self.params['sonophore']['radius'].default,
                                        rtol=1e-9, atol=1e-16)
-        is_default_freq = np.isclose(f, self.drive_params['US']['f_US'].default,
+        is_default_freq = np.isclose(f, self.params['drive']['US']['f'].default,
                                      rtol=1e-9, atol=1e-16)
         return is_default_cell and is_default_radius and is_default_freq
 
@@ -382,12 +330,13 @@ class SONICViewer(AppTemplate):
             :param fs_slider: value of the sonophore coverage faction slider
             :return: (value, disabled) tuple to update the slider's state
         '''
-        disabled_output = (self.sonophore_params['sonophore_coverage_fraction'].default, True)
+        p = self.params['sonophore']['coverage_fraction']
+        disabled_output = (p.idefault, True)
         enabled_output = (fs_slider, False)
         if mod_type != 'US':
             return disabled_output
-        a = self.convertSliderInput(a_slider, self.sonophore_params['sonophore_radius'])
-        f_US = self.convertSliderInput(f_US_slider, self.drive_params['US']['f_US'])
+        a = self.params['sonophore']['radius'].values[a_slider]
+        f_US = self.params['drive']['US']['f'].values[f_US_slider]
         if not self.has_fs_lookup(cell_type, a, f_US):
             return disabled_output
         else:
@@ -438,15 +387,6 @@ class SONICViewer(AppTemplate):
         # Return new values and options
         return values, options
 
-    def convertSliderInput(self, value, refparam):
-        ''' Convert slider value into corresponding parameters value.
-
-            :param value: slider value
-            :param refparam: reference parameter object
-            :return: converted parameters value
-        '''
-        return refparam.scaling_func(value) * refparam.factor
-
     def convertSliderInputs(self, values, refparams):
         ''' Convert sliders values into corresponding parameters values.
 
@@ -454,23 +394,26 @@ class SONICViewer(AppTemplate):
             :param refparams: dictionary of reference parameters
             :return: list of converted parameters values
         '''
-        return [self.convertSliderInput(x, p) for x, p in zip(values, refparams.values())]
+        return [p.values[x] for x, p in zip(values, refparams.values())]
 
-    def onInputsChange(self, cell_type, a_slider, fs_slider, mod_type, f_US_slider, A_US_slider,
+    def onInputsChange(self, mod_type, cell_type, a_slider, fs_slider, f_US_slider, A_US_slider,
                        I_EL_slider, tstim_slider, PRF_slider, DC_slider):
-        ''' Translate inputs into parameter values and run model simulation.
-
-            :return: status message
-        '''
+        ''' Translate inputs into parameter values and run model simulation. '''
         # Determine new parameters
-        a, fs = self.convertSliderInputs([a_slider, fs_slider], self.sonophore_params)
-        US_params = self.convertSliderInputs([f_US_slider, A_US_slider], self.drive_params['US'])
-        EL_params = self.convertSliderInputs([I_EL_slider], self.drive_params['EL'])
-        tstim, PRF, DC = self.convertSliderInputs([
-            tstim_slider, PRF_slider, DC_slider], self.pp_params)
+        a, fs = self.convertSliderInputs(
+            [a_slider, fs_slider], self.params['sonophore'])
+        US_params = self.convertSliderInputs(
+            [f_US_slider, A_US_slider], self.params['drive']['US'])
+        EL_params = self.convertSliderInputs(
+            [I_EL_slider], self.params['drive']['EL'])
+        tstim, PRF, DC = self.convertSliderInputs(
+            [tstim_slider, PRF_slider, DC_slider], self.params['pp'])
 
-        # Assign them
-        drive = AcousticDrive(*US_params) if mod_type == 'US' else ElectricDrive(*EL_params)
+        # Construct drive and pulsed protocol accordingly
+        if mod_type == 'US':
+            drive = AcousticDrive(*US_params)
+        else:
+            drive = ElectricDrive(EL_params[0] * 1e3)
         pp = PulsedProtocol(tstim, 0.5 * tstim, PRF=PRF, DC=DC * 1e-2)
 
         # Update plot variables if different cell type

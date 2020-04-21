@@ -3,12 +3,11 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-19 19:11:06
+# @Last Modified time: 2020-04-21 20:45:17
 
 ''' Definition of the SONICViewer class. '''
 
 from datetime import datetime
-import numpy as np
 from matplotlib.pyplot import get_cmap
 from matplotlib.colors import rgb2hex
 import dash
@@ -19,6 +18,8 @@ from dash.dependencies import Input, Output, State
 from gitinfo import get_git_info
 
 from PySONIC.utils import customStrftime, si_format
+
+from params import Parameter
 
 
 class AppTemplate(dash.Dash):
@@ -68,7 +69,18 @@ class AppTemplate(dash.Dash):
     def about(self):
         return 'Some information about the app'
 
+    @property
+    def params(self):
+        return {}
+
     # ------------------------------------------ LAYOUT ------------------------------------------
+
+    def getDefaults(self, x):
+        ''' Get dictionary of defaults by searching recursively through parameters. '''
+        if isinstance(x, Parameter):
+            return x.default
+        else:
+            return {k: self.getDefaults(v) for k, v in x.items()}
 
     def setLayout(self):
         ''' Set app layout. '''
@@ -170,31 +182,37 @@ class AppTemplate(dash.Dash):
     def unorderedList(self, items):
         return dcc.Markdown(children=['''* {}'''.format('\r\n* '.join(items))])
 
-    def slider(self, id, bounds, n, value, disabled=False, scale='lin'):
-        ''' Return linearly spaced slider. '''
-        if scale == 'log':
-            bounds = [np.log10(x) for x in bounds]
-            value = np.log10(value)
-        xmin, xmax = bounds
-        return dcc.Slider(id=id, className='slider', min=xmin, max=xmax, step=(xmax - xmin) / n,
-                          value=value, disabled=disabled)
+    def paramSlider(self, id, p):
+        ''' Linearly-spaced slider for a range parameter. '''
+        return dcc.Slider(
+            id=id,
+            className='slider',
+            min=0,
+            max=p.n - 1,
+            step=1,
+            value=p.idefault
+        )
 
-    def labeledSliderRow(self, label, id, bounds, n, value, disabled=False, scale='lin'):
-        ''' Return a label:slider table row. '''
+    def paramSliderRow(self, id, p):
+        ''' Return a label:slider:value table row for a range parameter. '''
         return html.Tr(className='table-row', children=[
-            html.Td(label, className='row-label'),
-            html.Td(className='row-slider', children=[
-                self.slider(id, bounds, n, value, disabled=disabled, scale=scale)]),
+            html.Td(p.label, className='row-label'),
+            html.Td(className='row-slider', children=[self.paramSlider(f'{id}-slider', p)]),
             html.Td(id=f'{id}-value', className='row-value')
         ])
 
-    def labeledSlidersTable(self, id, labels, ids, bounds, n, values, scales, disabled):
+    def linkSliderValue(self, id, p):
+        ''' Assign a callback to update the corresponding text value upon slider change. '''
+        self.callback(
+            Output(f'{id}-value', 'children'),
+            [Input(f'{id}-slider', 'value')])(lambda x: f'{si_format(p.values[x], 1)}{p.unit}')
+
+    def paramSlidersTable(self, id, pdict, id_prefix=''):
         ''' Return a table of labeled sliders. '''
-        return html.Table(id=id, className='table', children=[
-            self.labeledSliderRow(
-                labels[i], ids[i], bounds[i], n[i], values[i],
-                scale=scales[i], disabled=disabled[i])
-            for i in range(len(labels))])
+        if len(id_prefix) > 0:
+            id_prefix = f'{id_prefix}-'
+        return html.Table(id=f'{id}-slider-table', className='table', children=[
+            self.paramSliderRow(f'{id_prefix}{k}', p) for k, p in pdict.items()])
 
     def panel(self, children):
         ''' Return a panel with contents. '''
@@ -222,3 +240,26 @@ class AppTemplate(dash.Dash):
                 html.Td(label, className='row-label'),
                 html.Td(datastr, className='row-data')]))
         return rows
+
+    def tabs(self, id, labels, values, default):
+        ''' Construct tabs. '''
+        return dcc.Tabs(
+            id=f'{id}-tabs',
+            className='custom-tabs-container',
+            parent_className='custom-tabs',
+            value=self.defaults['mod'], children=[
+                dcc.Tab(
+                    label=lbl,
+                    value=val,
+                    className='custom-tab',
+                    selected_className='custom-tab--selected'
+                ) for lbl, val in zip(labels, values)]
+        )
+
+    def valueDependentVisibility(self, ref_value):
+        ''' Set the visibility of an element according to a ref value.
+
+            :param ref_value: reference value that needs to be matched to show the element
+            :return: lambda function handling the visibility toggle
+        '''
+        return lambda x: x != ref_value
