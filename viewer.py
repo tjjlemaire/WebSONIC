@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-21 20:58:05
+# @Last Modified time: 2020-04-22 11:59:39
 
 import urllib
 import numpy as np
@@ -45,13 +45,14 @@ class SONICViewer(AppTemplate):
             'radius': RangeParameter(
                 'Sonophore radius', (16e-9, 64e-9), 'm', default=32e-9, scale='log', n=5),
             'coverage_fraction': RangeParameter(
-                'Coverage fraction', (1., 100.), '%', default=100., scale='lin', n=20)},
+                'Coverage fraction', (1., 100.), '%', default=100., scale='lin', n=100)},
         'drive': {
             'US': {
                 'f': RangeParameter(
-                    'Frequency', (20e3, 4e6), 'Hz', default=500e3, scale='log', n=20),
+                    'Frequency', (20e3, 4e6), 'Hz', default=500e3, scale='friendly-log'),
                 'A': RangeParameter(
-                    'Amplitude', (10e3, 600e3), 'Pa', default=80e3, scale='log', n=100)},
+                    'Amplitude', (10e3, 600e3), 'Pa', default=80e3, scale='log', n=100,
+                    round_factor=1e-3)},
             'EL': {
                 'A': RangeParameter(
                     'Amplitude', (-25e-3, 25e-3), 'A/m2', default=10e-3, n=51)}},
@@ -59,9 +60,9 @@ class SONICViewer(AppTemplate):
             'tstim': RangeParameter(
                 'Duration', (20e-3, 1.0), 's', default=200e-3, scale='friendly-log'),
             'PRF': RangeParameter(
-                'PRF', (1e1, 1e3), 'Hz', default=2e1, scale='friendly-log'),
+                'PRF', (1e1, 1e3), 'Hz', default=100., scale='friendly-log'),
             'DC': RangeParameter(
-                'Duty cycle', (1., 100.), '%', default=100., scale='log', n=20)}
+                'Duty cycle', (1., 100.), '%', default=50., scale='lin', n=100)}
     }
 
     # Default plot variables

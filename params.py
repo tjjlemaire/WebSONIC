@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2019-06-07 14:09:05
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-21 20:51:31
+# @Last Modified time: 2020-04-22 11:58:58
 # @Author: Theo Lemaire
 # @Date:   2018-09-10 15:34:07
 # @Last Modified by:   Theo Lemaire
@@ -62,17 +62,22 @@ class QuantitativeParameter(Parameter):
 class RangeParameter(QuantitativeParameter):
 
     def __init__(self, label, bounds, unit, factor=1., default=None, disabled=False,
-                 scale='lin', n=100):
+                 scale='lin', n=100, bases=None, round_factor=None):
+        if bases is None:
+            bases = range(1, 10)
         self.bounds = np.asarray(bounds)
         self.scale = scale
         self.n = n
+        self.bases = bases
         if scale == 'lin':
             self.values = np.linspace(*self.bounds, self.n)
         elif scale == 'log':
             self.values = np.logspace(*np.log10(self.bounds), self.n)
         elif scale == 'friendly-log':
-            self.values = friendlyLogspace(*self.bounds)
+            self.values = friendlyLogspace(*self.bounds, bases=self.bases)
             self.n = self.values.size
+        if round_factor is not None:
+            self.values = np.round(self.values * round_factor) / round_factor
         if default is None:
             default = self.gmean if self.scale == 'log' else self.amean
         else:
