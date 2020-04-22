@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-22 12:34:06
+# @Last Modified time: 2020-04-22 12:54:10
 
 import urllib
 import numpy as np
@@ -240,7 +240,8 @@ class SONICViewer(AppTemplate):
 
         # Coverage slider
         self.callback(
-            [Output('coverage_fraction-slider', 'value'),
+            [Output('coverage_fraction-label', 'children'),
+             Output('coverage_fraction-slider', 'value'),
              Output('coverage_fraction-slider', 'disabled')],
             [Input('cell_type-dropdown', 'value'),
              Input('radius-slider', 'value'),
@@ -329,8 +330,15 @@ class SONICViewer(AppTemplate):
             :return: (value, disabled) tuple to update the slider's state
         '''
         p = self.params['sonophore']['coverage_fraction']
-        disabled_output = (p.idefault, True)
-        enabled_output = (fs_slider, False)
+        disabled_output = ([
+            self.tooltip(
+                'coverage-tooltip', p.label,
+                '''Coverage-fraction-dependent lookup tables are unavailable
+                for this parameters combination'''
+            )],
+            p.idefault, True)
+        enabled_output = ([p.label], fs_slider, False)
+
         if mod_type != 'US':
             return disabled_output
         a = self.params['sonophore']['radius'].values[a_slider]

@@ -3,11 +3,10 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-22 12:22:00
+# @Last Modified time: 2020-04-22 12:47:24
 
 ''' Definition of the SONICViewer class. '''
 
-import numpy as np
 from datetime import datetime
 from matplotlib.pyplot import get_cmap
 from matplotlib.colors import rgb2hex
@@ -197,7 +196,7 @@ class AppTemplate(dash.Dash):
     def paramSliderRow(self, id, p):
         ''' Return a label:slider:value table row for a range parameter. '''
         return html.Tr(className='table-row', children=[
-            html.Td(p.label, className='row-label'),
+            html.Td(id=f'{id}-label', className='row-label', children=[p.label]),
             html.Td(className='row-slider', children=[self.paramSlider(f'{id}-slider', p)]),
             html.Td(id=f'{id}-value', className='row-value')
         ])
@@ -264,3 +263,9 @@ class AppTemplate(dash.Dash):
             :return: lambda function handling the visibility toggle
         '''
         return lambda x: x != ref_value
+
+    def tooltip(self, id, text, desc):
+        return html.Div([
+            html.Span(text, id=id, style={'textDecoration': 'underline', 'cursor': 'pointer'}),
+            dbc.Tooltip(desc, target=id)
+        ])
