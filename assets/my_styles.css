@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2020-04-19 19:08:13
+* @Last Modified time: 2020-04-22 22:22:02
 */
 
 
@@ -56,11 +56,10 @@ p {
 	margin: 1em;
 }
 
-.separator {
-	width: 100%;
-	margin: 0;
+hr.separator {
+	width: 95%;
+	margin-bottom: 1em;
 }
-
 
 #reachout {
 	margin-top: 10px;
