@@ -3,10 +3,11 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-21 20:45:17
+# @Last Modified time: 2020-04-22 12:22:00
 
 ''' Definition of the SONICViewer class. '''
 
+import numpy as np
 from datetime import datetime
 from matplotlib.pyplot import get_cmap
 from matplotlib.colors import rgb2hex
@@ -247,7 +248,7 @@ class AppTemplate(dash.Dash):
             id=f'{id}-tabs',
             className='custom-tabs-container',
             parent_className='custom-tabs',
-            value=self.defaults['mod'], children=[
+            value=values[0], children=[
                 dcc.Tab(
                     label=lbl,
                     value=val,

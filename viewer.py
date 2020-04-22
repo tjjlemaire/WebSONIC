@@ -3,11 +3,10 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-22 11:59:39
+# @Last Modified time: 2020-04-22 12:34:06
 
 import urllib
 import numpy as np
-import pandas as pd
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
@@ -15,7 +14,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-from PySONIC.utils import isIterable, bounds, getMeta
+from PySONIC.utils import isIterable, bounds
 from PySONIC.postpro import detectSpikes
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
 from PySONIC.neurons import getNeuronsDict
@@ -65,18 +64,21 @@ class SONICViewer(AppTemplate):
                 'Duty cycle', (1., 100.), '%', default=50., scale='lin', n=100)}
     }
 
-    # Default plot variables
-    default_vars = ['Q_m', 'V_m', 'I']
-
-    def __init__(self, no_run=False, verbose=False):
+    def __init__(self, verbose=False):
         ''' App constructor.
 
-            :param no_run: boolean stating whether to test the app UI without running simulations
             :param verbose: boolean stating whether or not to print app information in terminal
         '''
         # Initialize constant parameters
-        self.no_run = no_run
         self.verbose = verbose
+
+        # Initialize defaults
+        self.defaults = self.getDefaults(self.params)
+        self.defaults['mod'] = 'US'
+        self.defaults['pltvars'] = ['Q_m', 'V_m', 'I']
+
+        # Initialize point-neuron objects
+        self.pneurons = {k: getNeuronsDict()[k]() for k in self.params['cell'].values}
 
         # Initialize parameters that will change upon requests
         self.simcount = 0
@@ -84,13 +86,7 @@ class SONICViewer(AppTemplate):
         self.model = None
         self.data = None
 
-        # Initialize point-neuron objects
-        self.pneurons = {k: getNeuronsDict()[k]() for k in self.params['cell'].values}
-
-        # Initialize defaults
-        self.defaults = self.getDefaults(self.params)
-        self.defaults['mod'] = 'US'
-
+        # Create app
         super().__init__()
 
     # ------------------------------------------ LAYOUT ------------------------------------------
@@ -313,10 +309,11 @@ class SONICViewer(AppTemplate):
             :param f: US frequency (Hz)
             :return: boolean stating whether a lookup file should exist.
         '''
-        is_default_cell = cell_type == 'RS'
-        is_default_radius = np.isclose(a, self.params['sonophore']['radius'].default,
+        # fpath = self.model.getLookupFilePath(self, a=None, f=None, A=None, fs=False):
+        is_default_cell = cell_type == self.defaults['cell']
+        is_default_radius = np.isclose(a, self.defaults['sonophore']['radius'],
                                        rtol=1e-9, atol=1e-16)
-        is_default_freq = np.isclose(f, self.params['drive']['US']['f'].default,
+        is_default_freq = np.isclose(f, self.defaults['drive']['US']['f'],
                                      rtol=1e-9, atol=1e-16)
         return is_default_cell and is_default_radius and is_default_freq
 
@@ -383,7 +380,7 @@ class SONICViewer(AppTemplate):
             values = [values]
         values = list(filter(lambda x: x in self.pltscheme.keys(), values))
         if len(values) == 0:
-            values = self.default_vars
+            values = self.defaults['pltvars']
 
         # Return new values and options
         return values, options
@@ -415,7 +412,7 @@ class SONICViewer(AppTemplate):
             drive = AcousticDrive(*US_params)
         else:
             drive = ElectricDrive(EL_params[0] * 1e3)
-        pp = PulsedProtocol(tstim, 0.5 * tstim, PRF=PRF, DC=DC * 1e-2)
+        pp = PulsedProtocol(tstim, 0.5 * tstim, PRF=max(PRF, 1 / tstim), DC=DC * 1e-2)
 
         # Update plot variables if different cell type
         new_params = [cell_type, a, fs * 1e-2, drive, pp]
@@ -434,22 +431,6 @@ class SONICViewer(AppTemplate):
     def status(self):
         return [f'Number of simulations: {self.simcount}']
 
-    def getShamData(self, pneuron, pp):
-        ''' Get Sham output data without running a simulation.data
-            :param pneuron: point-neuron object
-            :param pp: pulsed protocol object
-            :return artificially generated dataframe matching input "dimensionality"
-        '''
-        data = pd.DataFrame({
-            't': np.array([0., pp.tstim, pp.tstim, pp.tstim + pp.toffset]),
-            'stimstate': np.hstack((np.ones(2), np.zeros(2))),
-            'Qm': pneuron.Qm0 * np.ones(4),
-            'Vm': pneuron.Vm0 * np.ones(4)
-        })
-        for k in pneuron.states.keys():
-            data[k] = 0.5 * np.ones(4)
-        return data
-
     def runSim(self, cell_type, a, fs, drive, pp):
         ''' Run NEURON simulation to update data.
 
@@ -459,15 +440,9 @@ class SONICViewer(AppTemplate):
             :param drive: drive object
             :param pp: pulsed protocol object
         '''
-        pneuron = self.pneurons[cell_type]
-        self.model = Node(pneuron, a=a, fs=fs)
-        if self.no_run:
-            # If no-run mode, get Sham data
-            self.data = self.getShamData(pneuron, pp)
-            meta = getMeta(self.model, self.model.simulate, drive, pp)
-        else:
-            # Otherwise, run model simulation
-            self.data, meta = self.model.simulate(drive, pp)
+        # Construct model and run simulation
+        self.model = Node(self.pneurons[cell_type], a=a, fs=fs)
+        self.data, meta = self.model.simulate(drive, pp)
 
         # Update simulation count and log
         self.simcount += 1

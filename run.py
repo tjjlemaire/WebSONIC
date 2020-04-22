@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-07-11 18:58:23
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-21 17:44:37
+# @Last Modified time: 2020-04-22 12:13:11
 
 ''' Main script to run the application. '''
 
@@ -18,7 +18,6 @@ is_gunicorn = psutil.Process(os.getppid()).name() == 'gunicorn'
 if is_gunicorn:
     print('Serving via gunicorn')
     debug = False
-    testUI = False
     verbose = False
 
 else:
@@ -28,15 +27,12 @@ else:
         '-d', '--debug', default=False, action='store_true', help='Run in Debug Mode')
     ap.add_argument(
         '-v', '--verbose', default=False, action='store_true', help='Increase verbosity')
-    ap.add_argument(
-        '-t', '--testUI', default=False, action='store_true', help='Test UI only')
     args = ap.parse_args()
     debug = args.debug
-    testUI = args.testUI
     verbose = args.verbose
 
 # Create app instance
-app = SONICViewer(no_run=testUI, verbose=verbose)
+app = SONICViewer(verbose=verbose)
 
 # Add underlying server instance to module global scope (for gunicorn use)
 if is_gunicorn:
