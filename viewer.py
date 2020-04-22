@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-22 12:54:10
+# @Last Modified time: 2020-04-22 22:13:42
 
 import urllib
 import numpy as np
@@ -91,10 +91,8 @@ class SONICViewer(AppTemplate):
 
     # ------------------------------------------ LAYOUT ------------------------------------------
 
-    @property
-    def about(self):
-        with open('about.md', encoding="utf8") as f:
-            return f.read()
+    def header(self):
+        return [html.H2('Ultrasound Neuromodulation: exploring predictions of the SONIC model')]
 
     def content(self):
         return [
@@ -102,8 +100,7 @@ class SONICViewer(AppTemplate):
             html.Div(id='left-col', className='content-column', children=[
                 self.cellPanel(),
                 self.stimPanel(),
-                self.metricsPanel(),
-                self.statusBar()
+                self.metricsPanel()
             ]),
 
             # Right side
@@ -111,9 +108,6 @@ class SONICViewer(AppTemplate):
                 self.outputPanel()
             ])
         ]
-
-    def header(self):
-        return [html.H2('Ultrasound Neuromodulation: exploring predictions of the SONIC model')]
 
     def footer(self):
         return [self.reachout(), *super().footer()]
@@ -140,6 +134,11 @@ class SONICViewer(AppTemplate):
             ' Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '.',
         ])
 
+    @property
+    def about(self):
+        with open('about.md', encoding="utf8") as f:
+            return f.read()
+
     def footerImgs(self):
         return html.Div(id='footer-imgs', className='centered-wrapper', children=[
             html.Div(className='footer-img', children=[html.A(html.Img(
@@ -158,10 +157,8 @@ class SONICViewer(AppTemplate):
                         dcc.Dropdown(
                             className='ddlist',
                             id='cell_type-dropdown',
-                            options=[{
-                                'label': f'{self.pneurons[name].description()} ({name})',
-                                'value': name
-                            } for name in self.pneurons.keys()],
+                            options=[{'label': f'{v.description()} ({k})', 'value': k}
+                                     for k, v in self.pneurons.items()],
                             value=self.defaults['cell']),
                         html.Div(id='membrane-currents'),
                     ])])
@@ -172,7 +169,7 @@ class SONICViewer(AppTemplate):
     def stimPanel(self):
         ''' Construct stimulation parameters panel. '''
         return self.collapsablePanel('Stimulation parameters', children=[
-            # US-EL tabs
+            # Modality tabs
             self.tabs(
                 'modality', ['Ultrasound', 'Injected current'], ['US', 'EL'], self.defaults['mod']),
 
@@ -181,12 +178,8 @@ class SONICViewer(AppTemplate):
             self.paramSlidersTable('pp', self.params['pp'])
         ])
 
-    def statusBar(self):
-        ''' Status bar object. '''
-        return html.Div(id='status-bar', children=[])
-
     def metricsPanel(self):
-        ''' Metric panel. '''
+        ''' Construct metrics panel. '''
         return self.collapsablePanel('Output metrics', children=[
             html.Table(id='info-table', className='table')])
 
@@ -265,7 +258,7 @@ class SONICViewer(AppTemplate):
         # Inputs changes that trigger simulations
         self.callback(
             [Output('info-table', 'children'),
-             Output('status-bar', 'children'),
+             Output('graph-title', 'children'),
              Output('download-link', 'href'),
              Output('download-link', 'download')],
             [Input('modality-tabs', 'value'),
@@ -286,11 +279,10 @@ class SONICViewer(AppTemplate):
             [Input('cell_type-dropdown', 'value')],
             [State(f'graph-dropdown', 'value')])(self.updateOutputDropdown)
 
-        # Update graph & title whenever status bar or dropdown values change
+        # Update graph & title whenever graph title or dropdown values change
         self.callback(
-            [Output('graph', 'figure'),
-             Output('graph-title', 'children')],
-            [Input('status-bar', 'children'),
+            Output('graph', 'figure'),
+            [Input('graph-title', 'children'),
              Input('graph-dropdown', 'value')],
             [State('cell_type-dropdown', 'value')])(self.updateGraph)
 
@@ -310,7 +302,6 @@ class SONICViewer(AppTemplate):
             :param f: US frequency (Hz)
             :return: boolean stating whether a lookup file should exist.
         '''
-        # fpath = self.model.getLookupFilePath(self, a=None, f=None, A=None, fs=False):
         is_default_cell = cell_type == self.defaults['cell']
         is_default_radius = np.isclose(a, self.defaults['sonophore']['radius'],
                                        rtol=1e-9, atol=1e-16)
@@ -433,11 +424,39 @@ class SONICViewer(AppTemplate):
             self.runSim(*new_params)
             self.current_params = new_params
 
-        # Return new info-table, status message and download link-content
-        return [self.infoTable(), self.status(), *self.download()]
+        # Return new info-table, graph title and download link-content
+        return [self.infoTable(), self.simlog, *self.download()]
 
-    def status(self):
-        return [f'Number of simulations: {self.simcount}']
+    def infoTable(self):
+        ''' Return an output metrics table on the current data. '''
+        # Spike detection
+        if self.data is not None:
+            t = self.data['t']
+            ispikes, _ = detectSpikes(self.data)
+            nspikes = ispikes.size
+            lat = t[ispikes[0]] if nspikes > 0 else None
+            sr = np.mean(1 / np.diff(t[ispikes])) if nspikes > 1 else None
+        else:
+            nspikes = 0
+            lat = None
+            sr = None
+
+        return self.dataRows(
+            labels=['# spikes', 'Latency', 'Firing rate'],
+            values=[nspikes, lat, sr],
+            units=['', 's', 'Hz'])
+
+    def download(self):
+        ''' Return a content-name download link according to the current data. '''
+        if self.data is None:
+            csv_string = ''
+            code = 'none'
+        else:
+            csv_string = self.data.to_csv(index=False, encoding='utf-8')
+            code = self.model.filecode(*self.current_params[-2:])
+        content = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+        name = f'{code}.csv'
+        return content, name
 
     def runSim(self, cell_type, a, fs, drive, pp):
         ''' Run NEURON simulation to update data.
@@ -457,15 +476,6 @@ class SONICViewer(AppTemplate):
         self.simlog = self.model.desc(meta)
         if self.verbose:
             print(self.simlog)
-
-    def getFileCode(self, drive, pp):
-        ''' Get simulation filecode for the given parameters.
-
-            :param drive: drive object
-            :param pp: pulsed protocol object
-            :return: filecode
-        '''
-        return self.model.filecode(drive, pp)
 
     def updateGraph(self, _, group_names, cell_type):
         ''' Update graph with new data.
@@ -500,7 +510,7 @@ class SONICViewer(AppTemplate):
                 'x1': pulse[1] * S_TO_MS,
                 'y0': 0,
                 'y1': 1,
-                'fillcolor': 'grey',
+                'fillcolor': self.rgb2hex(pcolor),
                 'line': {'color': self.rgb2hex(pcolor)},
                 'opacity': 0.2
             } for pulse, pcolor in zip(pulses, pcolors)]
@@ -543,7 +553,7 @@ class SONICViewer(AppTemplate):
                 ybounds = None
             yunit = ax_pltvars[0].get('unit', '')
 
-            # Process and add y-axis label
+            # Determine y-axis label
             ylabel = f'{group_name} ({yunit})'
             for c in ['{', '}', '\\', '_', '^']:
                 ylabel = ylabel.replace(c, '')
@@ -578,36 +588,5 @@ class SONICViewer(AppTemplate):
             margin={'l': 60, 'b': 40, 't': 30, 'r': 10},
         )
 
-        # Return figure object and title
-        return fig, self.simlog
-
-    def infoTable(self):
-        ''' Return an output metrics table on the current data. '''
-        # Spike detection
-        if self.data is not None:
-            t = self.data['t']
-            ispikes, _ = detectSpikes(self.data)
-            nspikes = ispikes.size
-            lat = t[ispikes[0]] if nspikes > 0 else None
-            sr = np.mean(1 / np.diff(t[ispikes])) if nspikes > 1 else None
-        else:
-            nspikes = 0
-            lat = None
-            sr = None
-
-        return self.dataRows(
-            labels=['# spikes', 'Latency', 'Firing rate'],
-            values=[nspikes, lat, sr],
-            units=['', 's', 'Hz'])
-
-    def download(self):
-        ''' Return a content-name download link according to the current data. '''
-        if self.data is None:
-            csv_string = ''
-            code = 'none'
-        else:
-            csv_string = self.data.to_csv(index=False, encoding='utf-8')
-            code = self.getFileCode(*self.current_params[-2:])
-        content = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-        name = f'{code}.csv'
-        return content, name
+        # Return figure object
+        return fig
