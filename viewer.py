@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-22 22:13:42
+# @Last Modified time: 2020-04-23 11:37:58
 
 import urllib
 import numpy as np
@@ -140,7 +140,7 @@ class SONICViewer(AppTemplate):
             return f.read()
 
     def footerImgs(self):
-        return html.Div(id='footer-imgs', className='centered-wrapper', children=[
+        return self.centered(id='footer-imgs', children=[
             html.Div(className='footer-img', children=[html.A(html.Img(
                 src='assets/EPFL.svg', className='logo'), href='https://www.epfl.ch')]),
             html.Div(className='footer-img', children=[html.A(html.Img(
@@ -169,11 +169,8 @@ class SONICViewer(AppTemplate):
     def stimPanel(self):
         ''' Construct stimulation parameters panel. '''
         return self.collapsablePanel('Stimulation parameters', children=[
-            # Modality tabs
             self.tabs(
                 'modality', ['Ultrasound', 'Injected current'], ['US', 'EL'], self.defaults['mod']),
-
-            # Ctrl sliders
             *[self.paramSlidersTable(k, v, id_prefix=k) for k, v in self.params['drive'].items()],
             self.paramSlidersTable('pp', self.params['pp'])
         ])
@@ -185,36 +182,14 @@ class SONICViewer(AppTemplate):
 
     def outputPanel(self):
         ''' Set output (graphs) panel layout. '''
-        return html.Div(children=[
-            self.panel(children=[
-                html.Div(className='graph-div', children=[
-                    # Title
-                    html.Div(id='graph-title', className='graph-title', children=[]),
-                    # Multi-dropdown
-                    dcc.Dropdown(
-                        className='ddlist',
-                        id=f'graph-dropdown',
-                        multi=True
-                    ),
-                    # Graph
-                    dcc.Loading(dcc.Graph(
-                        id='graph',
-                        className='graph',
-                        animate=False,
-                        config={
-                            'editable': False,
-                            'modeBarButtonsToRemove': [
-                                'sendDataToCloud',
-                                'displaylogo',
-                                'toggleSpikelines']
-                        },
-                        figure={'data': [], 'layout': {}}
-                    ))
-                ])
-            ]),
-            html.Div(className='centered-wrapper', children=[
-                html.A('Download Data', id='download-link', download='', href='', target='_blank')
-            ]),
+        return self.panel(children=[
+            html.Div('Neural response', className='panel-title'),
+            dcc.Dropdown(className='ddlist', id=f'timeseries-dropdown', multi=True),
+            self.graph('timeseries-graph'),
+            dbc.Alert(id='simlog-box', className='logbox', color='light', children=[]),
+            self.centered(children=[html.A(
+                'Download Data', id='download-link', download='', href='', target='_blank')
+            ])
         ])
 
     # ------------------------------------------ CALLBACKS -----------------------------------------
@@ -258,7 +233,7 @@ class SONICViewer(AppTemplate):
         # Inputs changes that trigger simulations
         self.callback(
             [Output('info-table', 'children'),
-             Output('graph-title', 'children'),
+             Output('simlog-box', 'children'),
              Output('download-link', 'href'),
              Output('download-link', 'download')],
             [Input('modality-tabs', 'value'),
@@ -274,17 +249,17 @@ class SONICViewer(AppTemplate):
 
         # Output dropdown
         self.callback(
-            [Output('graph-dropdown', 'value'),
-             Output('graph-dropdown', 'options')],
+            [Output('timeseries-dropdown', 'value'),
+             Output('timeseries-dropdown', 'options')],
             [Input('cell_type-dropdown', 'value')],
-            [State(f'graph-dropdown', 'value')])(self.updateOutputDropdown)
+            [State(f'timeseries-dropdown', 'value')])(self.updateOutputDropdown)
 
-        # Update graph & title whenever graph title or dropdown values change
+        # Update graph & title whenever simlog box or dropdown values change
         self.callback(
-            Output('graph', 'figure'),
-            [Input('graph-title', 'children'),
-             Input('graph-dropdown', 'value')],
-            [State('cell_type-dropdown', 'value')])(self.updateGraph)
+            Output('timeseries-graph', 'figure'),
+            [Input('simlog-box', 'children'),
+             Input('timeseries-dropdown', 'value')],
+            [State('cell_type-dropdown', 'value')])(self.updateTimeseries)
 
     def updateMembraneCurrents(self, cell_type):
         ''' Update the list of membrane currents on neuron switch.
@@ -360,7 +335,7 @@ class SONICViewer(AppTemplate):
         return labels
 
     def updateOutputDropdown(self, cell_type, values):
-        ''' Update the output dropdown options and selected values on neuron switch.
+        ''' Update the timeseries dropdown options and selected values on neuron switch.
 
             :param cell_type: cell type
             :param values: currently selected value(s)
@@ -424,7 +399,7 @@ class SONICViewer(AppTemplate):
             self.runSim(*new_params)
             self.current_params = new_params
 
-        # Return new info-table, graph title and download link-content
+        # Return new info-table, sim log and download link-content
         return [self.infoTable(), self.simlog, *self.download()]
 
     def infoTable(self):
@@ -477,8 +452,8 @@ class SONICViewer(AppTemplate):
         if self.verbose:
             print(self.simlog)
 
-    def updateGraph(self, _, group_names, cell_type):
-        ''' Update graph with new data.
+    def updateTimeseries(self, _, group_names, cell_type):
+        ''' Update timeseries graph with new data.
 
             :param group_names: names of the groups of output variables to display
             :param cell_type: cell type

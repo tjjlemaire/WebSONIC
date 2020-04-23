@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2020-04-22 22:22:02
+* @Last Modified time: 2020-04-23 11:17:27
 */
 
 
@@ -210,17 +210,17 @@ li {
 }
 
 
-/* Graph
+/* Graphs
 -----------------------------------------*/
 
-.graph-div {
-    width: 100%;
-    padding-top: 0.5em;
+.graph {
+	margin-bottom: 0.5em;
 }
 
-.graph-title {
-	font-size: 1.8rem;
+/* Log-boxes
+-----------------------------------------*/
+
+.logbox {
+	font-size: small;
 	text-align: center;
-	margin-bottom: 0.6rem;
-	margin-top: 0.6rem;
 }

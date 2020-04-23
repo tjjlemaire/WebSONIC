@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-22 12:47:24
+# @Last Modified time: 2020-04-23 11:36:49
 
 ''' Definition of the SONICViewer class. '''
 
@@ -269,3 +269,19 @@ class AppTemplate(dash.Dash):
             html.Span(text, id=id, style={'textDecoration': 'underline', 'cursor': 'pointer'}),
             dbc.Tooltip(desc, target=id)
         ])
+
+    def graph(self, id):
+        return dcc.Loading(dcc.Graph(
+            id=id, className='graph', figure={'data': [], 'layout': {}},
+            config={
+                'editable': False,
+                'modeBarButtonsToRemove': [
+                    'sendDataToCloud',
+                    'displaylogo',
+                    'toggleSpikelines']
+            }
+        ))
+
+    def centered(self, *args, **kwargs):
+        kwargs.pop('className', None)
+        return html.Div(*args, className='centered-wrapper', **kwargs)
