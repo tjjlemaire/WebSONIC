@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-23 11:37:58
+# @Last Modified time: 2020-05-07 17:39:56
 
 import urllib
 import numpy as np
@@ -114,22 +114,22 @@ class SONICViewer(AppTemplate):
 
     def reachout(self):
         return dbc.Alert(id='reachout', color='info', is_open=True, children=[
-            html.H5('Interested in using the SONIC model?', className='alert-heading'),
-            ' Check out the ', html.A(
+            html.H5([
+                html.I('Interested in using the SONIC model?'),
+                " We've just made it open-source!"],
+                className='alert-heading'),
+            ' Download the code from our ', html.A(
+                'online repository', href='https://c4science.ch/diffusion/4670/',
+                className='alert-link'), ' and check-out the ', html.A(
                 'related paper',
                 href='https://iopscience.iop.org/article/10.1088/1741-2552/ab1685',
                 className='alert-link'),
-            ' and ',
-            html.A(
-                'contact us!',
-                href=f'mailto:{self.email}',
-                className='alert-link'),
-            ' We will gladly share our code upon reasonable request.'
+            ' for more details.'
         ])
 
     def credentials(self):
         return html.Span([
-            super().credentials(),
+            *super().credentials(),
             ' Designed with ', html.A('Dash', href='https://dash.plot.ly/'), '.',
             ' Powered by ', html.A('NEURON', href='https://www.neuron.yale.edu/neuron/'), '.',
         ])

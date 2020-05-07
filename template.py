@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-04-23 11:36:49
+# @Last Modified time: 2020-05-07 17:36:07
 
 ''' Definition of the SONICViewer class. '''
 
@@ -102,7 +102,7 @@ class AppTemplate(dash.Dash):
 
     def footer(self):
         return [
-            html.Div([self.credentials()]),
+            html.Div(self.credentials()),
             html.Div([self.lastUpdated()]),
             self.aboutModal(),
             self.footerImgs(),
@@ -110,7 +110,7 @@ class AppTemplate(dash.Dash):
         ]
 
     def credentials(self):
-        return f'Developed by {self.author}.'
+        return ['Developed by ', html.A(self.author, href=f'mailto:{self.email}'), '.']
 
     def getLastUpdateTime(self):
         ''' Get the last time the repository was updated. '''
