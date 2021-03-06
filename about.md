@@ -1,8 +1,14 @@
-The SONIC web app is meant as an interactive tool to explore the responses of different types of neurons Low-Intensity Focused Ultrasound Stimulation (LIFUS), as predicted by the *multiScale Optimized Intramembrane Cavitation (SONIC)* model (Lemaire et al., 2019), an effective and interpretable implementation of the *Neuronal Intramembrane Cavitation Excitation (NICE)* model (Krasovitski et al., 2011, Plaksin et al., 2014, 2016). For comparison purposes, responses of the same neurons to injected intracellular currents can also be visualized.
+Low-Intensity Focused Ultrasound Stimulation (LIFUS) is emerging as a promising technology for noninvasive brain stimulation, but many questions remain regarding its mechanisms of action as well as optimal stimulation parameters.
 
-The SONIC model is part of a bigger modeling effort carried out at the [EPFL Translational Neural Engineering Lab](https://tne.epfl.ch), in collaboration with the [IT'IS Foundation](https://www.itis.ethz.ch), to provide a quantitative, biophysical basis to observed ultrasound neuromodulatory effects.
+One candidate mechanism is that of *intramembrane cavitation*, in which LIFUS induces high-frequency mechanical deflections of the neural membrane to generate depolarizing currents and trigger action potentials. This phernomenon is decribed mathematically by a *Neuronal Intramembrane Cavitation Excitation (NICE)* model (Krasovitski et al., 2011, Plaksin et al., 2014, 2016), whose predictions of cell-type-specific LIFUS responses corroborate a wide range of experimental results on LIFUS-evoked brain activity. However, the NICE model is conceptually complex and  tedious to simulate, thereby limiting its adoption by the community. 
 
-Researchers interested in using the model to help design their experiments and / or compare their experimental findings against theoretical predictions and encouraged to get in touch! We will gladly share our code upon reasonable request.
+To adress these limitations, we recently developed a *multiScale Optimized Intramembrane Cavitation (SONIC)* model (Lemaire et al., 2019), a computationally efficient variant of the NICE model that also defines a more intuititve frame of interpretation for LIFUS-evoked responses.
+
+This web app is meant as an interactive tool to explore the cell-type-specific LIFUS responses of different brain neurons, as predicted by the SONIC model. For comparison purposes, responses of the same neurons to injected intracellular currents (using a simple Hodgkin-Huxley formalism) can also be visualized.
+
+Researchers interested in using the SONIC model for in-depth investigations are encouraged to download the model code from our [online repository](https://c4science.ch/diffusion/4670/). It contains detailed instructions to use and expand the framework. We are also happy to assist fellow scientists in using the framework, and to implement additional features upon reasonable request.
+
+Don't hesitate to contact us ([theo.lemaire@epfl.ch](mailto:theo.lemaire@epfl.ch)).
 
 References:
 - Lemaire, T., Neufeld, E., Kuster, N., and Micera, S. (2019). *[Understanding ultrasound neuromodulation using a computationally efficient and interpretable model of intramembrane cavitation](https://iopscience.iop.org/article/10.1088/1741-2552/ab1685)*. J. Neural Eng.

@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-05-07 17:39:56
+# @Last Modified time: 2021-03-06 02:33:06
 
 import urllib
 import numpy as np
@@ -114,10 +114,8 @@ class SONICViewer(AppTemplate):
 
     def reachout(self):
         return dbc.Alert(id='reachout', color='info', is_open=True, children=[
-            html.H5([
-                html.I('Interested in using the SONIC model?'),
-                " We've just made it open-source!"],
-                className='alert-heading'),
+            html.H5([html.I('Interested in using the SONIC model?')],
+                    className='alert-heading'),
             ' Download the code from our ', html.A(
                 'online repository', href='https://c4science.ch/diffusion/4670/',
                 className='alert-link'), ' and check-out the ', html.A(
