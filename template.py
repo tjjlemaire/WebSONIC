@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2020-05-07 17:36:07
+# @Last Modified time: 2021-03-06 12:47:55
 
 ''' Definition of the SONICViewer class. '''
 
