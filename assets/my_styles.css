@@ -2,7 +2,7 @@
 * @Author: Theo Lemaire
 * @Date:   2017-08-17 19:07:50
 * @Last Modified by:   Theo Lemaire
-* @Last Modified time: 2021-03-09 23:22:15
+* @Last Modified time: 2021-03-10 11:30:59
 */
 
 
@@ -50,6 +50,10 @@ p {
 	width: 20%;
 }
 
+#footer {
+	margin-top: 1em;
+}
+
 .footer-img {
     display: inline-block;
 	height: 5em;
@@ -61,7 +65,7 @@ hr.separator {
 	margin-top: 1rem;
   	margin-bottom: 1rem;
   	border-width: 0;
-	border-top: 2px solid #E1E1E1;
+	border-top: 2px solid #ff0000;
 }
 
 #reachout {

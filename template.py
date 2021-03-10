@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-03-09 23:18:46
+# @Last Modified time: 2021-03-10 11:30:27
 
 ''' Definition of the SONICViewer class. '''
 
@@ -85,11 +85,11 @@ class AppTemplate(dash.Dash):
     def setLayout(self):
         ''' Set app layout. '''
         self.layout = html.Div(id='body', children=[
-            html.Div(className='centered-wrapper', children=self.header()),
+            html.Div(className='centered-wrapper', id='header', children=self.header()),
             self.separator(),
             html.Div(id='content', children=self.content()),
-            self.separator(),
-            html.Div(className='centered-wrapper', children=self.footer())
+            # self.separator(),
+            html.Div(className='centered-wrapper', id='footer', children=self.footer())
         ])
 
     def header(self):
