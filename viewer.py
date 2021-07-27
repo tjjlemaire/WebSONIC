@@ -3,7 +3,7 @@
 # @Email: theo.lemaire@epfl.ch
 # @Date:   2017-06-22 16:57:14
 # @Last Modified by:   Theo Lemaire
-# @Last Modified time: 2021-03-06 02:33:06
+# @Last Modified time: 2021-07-27 18:17:49
 
 import urllib
 import numpy as np
@@ -19,8 +19,8 @@ from PySONIC.postpro import detectSpikes
 from PySONIC.core import PulsedProtocol, ElectricDrive, AcousticDrive
 from PySONIC.neurons import getNeuronsDict
 from PySONIC.plt import GroupedTimeSeries, extractPltVar
-from ExSONIC.core import Node
-from ExSONIC.constants import S_TO_MS
+from MorphoSONIC.core import Node
+from MorphoSONIC.constants import S_TO_MS
 
 from template import AppTemplate
 from params import QualitativeParameter, RangeParameter
@@ -117,7 +117,7 @@ class SONICViewer(AppTemplate):
             html.H5([html.I('Interested in using the SONIC model?')],
                     className='alert-heading'),
             ' Download the code from our ', html.A(
-                'online repository', href='https://c4science.ch/diffusion/4670/',
+                'online repository', href='https://github.com/tjjlemaire/PySONIC',
                 className='alert-link'), ' and check-out the ', html.A(
                 'related paper',
                 href='https://iopscience.iop.org/article/10.1088/1741-2552/ab1685',

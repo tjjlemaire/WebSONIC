@@ -14,8 +14,8 @@
 ## Dependencies
 
 This application is built in Python. It uses the **Dash** framework (https://dash.plot.ly/) for serving and client-side rendering, and the **NEURON** simulation environment (https://www.neuron.yale.edu/neuron/) to run simulations. It depends on two other Python papckages:
-- `PySONIC` (https://c4science.ch/diffusion/4670/) defines the **SONIC model** and provides utilities
-- `ExSONIC` (https://c4science.ch/diffusion/7145/) handles the communication with **NEURON**
+- `PySONIC` (https://github.com/tjjlemaire/PySONIC) defines the **SONIC model** and provides utilities
+- `MorphoSONIC` (https://github.com/tjjlemaire/MorphoSONIC) handles the communication with **NEURON**
 
 # Installation
 
@@ -27,12 +27,12 @@ This application is built in Python. It uses the **Dash** framework (https://das
 
 `pip --version`
 
-- Install local dependencies (PySONIC and ExSONIC packages):
+- Install local dependencies (PySONIC and MorphoSONIC packages):
 
 ```
 cd <path_to_PySONIC_dir/setup.py>
 pip install -e .
-cd <path_to_ExSONIC_dir/setup.py>
+cd <path_to_MorphoSONIC_dir/setup.py>
 pip install -e .
 ```
 
